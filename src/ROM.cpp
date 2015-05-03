@@ -18,7 +18,6 @@ ROM ROM::FromFile(const std::string filename) {
 
 	std::vector<uint8_t> bytes;
 	bytes.reserve(fileSize);
-
 	bytes.insert(bytes.begin(), std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
 
 	ROM rom(bytes);
@@ -32,13 +31,37 @@ ROM::ROM(const std::vector<uint8_t> bytes) {
 	// Get header bytes from buffer
 	const int headerSize = sizeof(ROMHeader);
 	uint8_t headerBytes[headerSize];
-
-	for (int i = 0; i < headerSize; i++) {
-		headerBytes[i] = raw[0x100 + i];
-	}
+	std::copy(raw.begin() + 0x100, raw.begin() + 0x100 + headerSize, headerBytes);
 
 	memcpy(&header, headerBytes, headerSize);
+
+	// Get banks from buffer
+	int bankCount;
+	switch (header.ROMSize) {
+	case ROM_32K:  bankCount = 0; break;
+	case ROM_64K:  bankCount = 4; break;
+	case ROM_128K: bankCount = 8; break;
+	case ROM_256K: bankCount = 16; break;
+	case ROM_512K: bankCount = 32; break;
+	case ROM_1M:   bankCount = header.ROMType == ROM_MBC1 ? 63 : 64; break;
+	case ROM_2M:   bankCount = header.ROMType == ROM_MBC1 ? 125 : 128; break;
+	case ROM_4M:   bankCount = 256; break;
+	case ROM_1_1M: bankCount = 72; break;
+	case ROM_1_2M: bankCount = 80; break;
+	case ROM_1_5M: bankCount = 96; break;
+	default:       throw std::runtime_error("Erroneous ROM Type");
+	}
+
+	// Read fixed 16k from buffer
+	std::copy(raw.begin(), raw.begin() + 16 * 1024, fixed.bytes);
+
+	// Read banks from buffer
+	banks.reserve(bankCount);
+	for (int i = 1; i < bankCount; i++) {
+		ROMBank b;
+		std::copy(raw.begin() + 16 * 1024 * i, raw.begin() + 16 * 1024 * (i + 1), b.bytes);
+		banks.push_back(b);
+	}
 }
 
-ROM::~ROM() {
-}
+ROM::~ROM() {}
