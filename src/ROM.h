@@ -1,21 +1,22 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
-// Located on ROM - Addr 0143
-// NOTE: This might be part of the title, treat carefully
+//! Gameboy Color flag, overlaps title
 enum GBCFlag : uint8_t {
 	GBSupported = 0x80, //!< Supports colors, but works on older models
 	GBCOnly = 0xc0      //!< Game requires Gameboy Color
 };
 
-// Located on ROM - Addr 0146
+//! Super Gameboy flag
 enum SGBFlag : uint8_t {
 	NotSGB = 0x00, //!< GB/GBC-only game
 	SGB = 0x03,    //!< SGB game
 };
 
-// Located on ROM - Addr 0147
+//! ROM Type flag
 enum ROMType : uint8_t {
 	ROM_ONLY = 0x00,       //!< ROM Only (32kB)
 	ROM_RAM = 0x08,        //!< ROM + RAM
@@ -45,7 +46,7 @@ enum ROMType : uint8_t {
 	ROM_HUC1_R_B = 0xff    //!< Hudson Soft Infrared MBC1
 };
 
-// Located on ROM - Addr 0148
+//! ROM Size flag
 enum ROMSize : uint8_t {
 	ROM_32K = 0x00,  //!<  32kB,  no banks
 	ROM_64K = 0x01,  //!<  64kB,   4 banks
@@ -60,7 +61,7 @@ enum ROMSize : uint8_t {
 	ROM_1_5M = 0x54  //!< 1.5MB,  96 banks
 };
 
-// Located on ROM - Addr 0149
+//! RAM Size flag
 enum RAMSize : uint8_t {
 	RAM_NONE = 0x00, //!<   No RAM
 	RAM_2KB = 0x01,  //!<  2kB RAM
@@ -68,18 +69,19 @@ enum RAMSize : uint8_t {
 	RAM_32KB = 0x03, //!< 32kB RAM (4 banks of 8kB)
 };
 
-// Located on ROM - Addr 014a
+//! Destination Code
 enum DestCode : uint8_t {
 	Japanese = 0x00,   //!< Japanese game
 	NonJapanese = 0x01 //!< Non-Japanese game
 };
 
+//! ROM Header, located in the 0100 - 014f zone
 struct ROMHeader {
 	uint8_t entryPoint[0x04];     // 0100 - 0103
 	uint8_t nintendoLogo[0x30];   // 0104 - 0133
 	union {
 		char GBTitle[0x10];       // 0134 - 0143
-		struct {
+		struct {                  // or
 			char GBCTitle[0x0b];  // 0134 - 013e
 			char manCode[0x04];   // 013f - 0142
 			GBCFlag GBCFlag;      // 0143
@@ -97,7 +99,19 @@ struct ROMHeader {
 	uint8_t globalChecksum[0x02]; // 014e - 014f (not verified)
 };
 
-struct ROMFile {
-	uint8_t   start[0x100];
+//! Single ROM Bank, holding 16KB of code/data
+struct ROMBank {
+	uint8_t bytes[16 * 1024];
+};
+
+class ROM {
+private:
+	std::vector<uint8_t> raw;
+	ROM(const std::vector<uint8_t> bytes);
+public:
 	ROMHeader header;
+	ROMBank fixed;
+	std::vector<ROMBank> banks;
+	static ROM FromFile(const std::string filename);
+	~ROM();
 };
