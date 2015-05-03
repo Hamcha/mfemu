@@ -1,0 +1,87 @@
+# Doxyfile 1.8.7
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = mfemu
+PROJECT_BRIEF          = "Gameboy emulator (hopefully)"
+OUTPUT_DIRECTORY       = doxy
+GENERATE_LATEX         = NO
+CREATE_SUBDIRS         = YES
+ALLOW_UNICODE_NAMES    = NO
+OUTPUT_LANGUAGE        = English
+BRIEF_MEMBER_DESC      = YES
+REPEAT_BRIEF           = YES
+ABBREVIATE_BRIEF       = "The $name class" \
+                         "The $name widget" \
+                         "The $name file" \
+                         is \
+                         provides \
+                         specifies \
+                         contains \
+                         represents \
+                         a \
+                         an \
+                         the
+ALWAYS_DETAILED_SEC    = NO
+INLINE_INHERITED_MEMB  = NO
+FULL_PATH_NAMES        = YES
+SHORT_NAMES            = NO
+INHERIT_DOCS           = YES
+TAB_SIZE               = 4
+BUILTIN_STL_SUPPORT    = YES
+SUBGROUPING            = YES
+EXTRACT_ALL            = YES
+EXTRACT_LOCAL_CLASSES  = YES
+SHOW_INCLUDE_FILES     = YES
+INLINE_INFO            = YES
+SORT_MEMBER_DOCS       = YES
+GENERATE_TODOLIST      = YES
+GENERATE_TESTLIST      = YES
+GENERATE_BUGLIST       = YES
+GENERATE_DEPRECATEDLIST= YES
+MAX_INITIALIZER_LINES  = 30
+SHOW_USED_FILES        = YES
+SHOW_FILES             = YES
+SHOW_NAMESPACES        = YES
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_FORMAT            = "$file:$line: $text"
+INPUT                  = src
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          = *.cpp \
+                         *.h
+RECURSIVE              = YES
+SOURCE_BROWSER         = YES
+REFERENCES_LINK_SOURCE = YES
+SOURCE_TOOLTIPS        = YES
+VERBATIM_HEADERS       = YES
+ALPHABETICAL_INDEX     = YES
+COLS_IN_ALPHA_INDEX    = 5
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+DISABLE_INDEX          = NO
+GENERATE_TREEVIEW      = YES
+ENUM_VALUES_PER_LINE   = 4
+TREEVIEW_WIDTH         = 250
+EXT_LINKS_IN_WINDOW    = NO
+FORMULA_FONTSIZE       = 10
+FORMULA_TRANSPARENT    = YES
+SEARCHENGINE           = YES
+ENABLE_PREPROCESSING   = YES
+SEARCH_INCLUDES        = YES
+SKIP_FUNCTION_MACROS   = YES
+EXTERNAL_GROUPS        = YES
+EXTERNAL_PAGES         = YES
+CLASS_DIAGRAMS         = YES
+HIDE_UNDOC_RELATIONS   = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+GENERATE_LEGEND        = YES

@@ -77,26 +77,26 @@ enum DestCode : uint8_t {
 
 //! ROM Header, located in the 0100 - 014f zone
 struct ROMHeader {
-	uint8_t entryPoint[0x04];     // 0100 - 0103
-	uint8_t nintendoLogo[0x30];   // 0104 - 0133
+	uint8_t entryPoint[0x04];     //!< Entry point                    (0100 - 0103)
+	uint8_t nintendoLogo[0x30];   //!< Nintendo's boot logo (checked) (0104 - 0133)
 	union {
-		char GBTitle[0x10];       // 0134 - 0143
+		char GBTitle[0x10];       //!< Gameboy title, 15 characters   (0134 - 0143)
 		struct {                  // or
-			char GBCTitle[0x0b];  // 0134 - 013e
-			char manCode[0x04];   // 013f - 0142
-			GBCFlag GBCFlag;      // 0143
+			char GBCTitle[0x0b];  //!< GBC title, 11 characters       (0134 - 013e)
+			char manCode[0x04];   //!< Manufacturer Code, 3 chars     (013f - 0142)
+			GBCFlag GBCFlag;      //!< Gameboy Color flag             (0143)
 		};
 	};
-	char newLicenseeCode[0x02];   // 0144 - 0145
-	SGBFlag SGBFlag;              // 0146
-	ROMType ROMType;              // 0147
-	ROMSize ROMSize;              // 0148
-	RAMSize RAMSize;              // 0149
-	DestCode destinationCode;     // 014a
-	uint8_t oldLicenseeCode;      // 014b (watch out for 0x33)
-	uint8_t maskROMVersion;       // 014c
-	uint8_t headerChecksum;       // 014d        (to verify)
-	uint8_t globalChecksum[0x02]; // 014e - 014f (not verified)
+	char newLicenseeCode[0x02];   //!< New licensee code, 2 chars     (0144 - 0145)
+	SGBFlag SGBFlag;              //!< Super Gameboy flag             (0146)
+	ROMType ROMType;              //!< ROM Controller type            (0147)
+	ROMSize ROMSize;              //!< ROM Total Size                 (0148)
+	RAMSize RAMSize;              //!< RAM Total Size                 (0149)
+	DestCode destinationCode;     //!< Destination Code (region)      (014a)
+	uint8_t oldLicenseeCode;      //!< Old licensee code, 1 byte      (014b) (watch out for 0x33)
+	uint8_t maskROMVersion;       //!< Mask ROM version               (014c)
+	uint8_t headerChecksum;       //!< Header checksum (verified)     (014d)
+	uint8_t globalChecksum[0x02]; //!< Global ROM checksum (ignored)  (014e - 014f)
 };
 
 //! Single ROM Bank, holding 16KB of code/data
@@ -104,14 +104,30 @@ struct ROMBank {
 	uint8_t bytes[16 * 1024];
 };
 
+//! Single RAM Bank, holding 8KB of data
+struct RAMBank {
+	uint8_t bytes[8 * 1024];
+};
+
+//! ROM class
+//! Loads and allows access to a ROM data and RAM banks
 class ROM {
 private:
-	std::vector<uint8_t> raw;
-	ROM(const std::vector<uint8_t> bytes);
+	ROMBank fixed;              //!< Fixed bank          (0000-3fff)
+	std::vector<ROMBank> banks; //!< Switchable bank     (4000-7fff)
+	std::vector<RAMBank> ram;   //!< Switchable RAM bank (a000-bfff)
+	uint8_t rombank_id;         //!< Current ROM bank id
+	uint8_t rambank_id;         //!< Current RAM bank id
+
 public:
+	//! ROM Header, extracted from the opened ROM
 	ROMHeader header;
-	ROMBank fixed;
-	std::vector<ROMBank> banks;
+
+	//! Load ROM from file
 	static ROM FromFile(const std::string filename);
+
+	//! Load ROM from memory
+	ROM(const std::vector<uint8_t> bytes);
+
 	~ROM();
 };

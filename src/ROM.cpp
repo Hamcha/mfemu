@@ -25,13 +25,10 @@ ROM ROM::FromFile(const std::string filename) {
 }
 
 ROM::ROM(const std::vector<uint8_t> bytes) {
-	// Move bytes to internal buffer
-	raw = bytes;
-
 	// Get header bytes from buffer
 	const int headerSize = sizeof(ROMHeader);
 	uint8_t headerBytes[headerSize];
-	std::copy(raw.begin() + 0x100, raw.begin() + 0x100 + headerSize, headerBytes);
+	std::copy(bytes.begin() + 0x100, bytes.begin() + 0x100 + headerSize, headerBytes);
 
 	memcpy(&header, headerBytes, headerSize);
 
@@ -53,15 +50,26 @@ ROM::ROM(const std::vector<uint8_t> bytes) {
 	}
 
 	// Read fixed 16k from buffer
-	std::copy(raw.begin(), raw.begin() + 16 * 1024, fixed.bytes);
+	std::copy(bytes.begin(), bytes.begin() + 16 * 1024, fixed.bytes);
 
 	// Read banks from buffer
 	banks.reserve(bankCount);
 	for (int i = 1; i < bankCount; i++) {
 		ROMBank b;
-		std::copy(raw.begin() + 16 * 1024 * i, raw.begin() + 16 * 1024 * (i + 1), b.bytes);
+		std::copy(bytes.begin() + 16 * 1024 * i, bytes.begin() + 16 * 1024 * (i + 1), b.bytes);
 		banks.push_back(b);
 	}
+
+	// Setup RAM banks
+	int ramcount;
+	switch (header.RAMSize) {
+	case RAM_NONE: ramcount = 0; break;
+	case RAM_2KB: case RAM_8KB: ramcount = 1; break;
+	case RAM_32KB: ramcount = 4; break;
+	}
+	ram.reserve(ramcount);
+
+	//TODO load from .sav to RAM
 }
 
 ROM::~ROM() {}
