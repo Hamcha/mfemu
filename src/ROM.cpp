@@ -1,5 +1,8 @@
 #include "ROM.h"
 #include <fstream>
+#include <iterator>
+#include <stdexcept>
+#include <cstring>
 
 // From https://stackoverflow.com/questions/15138353/reading-the-binary-file-into-the-vector-of-unsigned-chars
 ROM ROM::FromFile(const std::string filename) {
@@ -40,8 +43,8 @@ ROM::ROM(const std::vector<uint8_t> bytes) {
 	case ROM_128K: bankCount = 8; break;
 	case ROM_256K: bankCount = 16; break;
 	case ROM_512K: bankCount = 32; break;
-	case ROM_1M:   bankCount = header.ROMType == ROM_MBC1 ? 63 : 64; break;
-	case ROM_2M:   bankCount = header.ROMType == ROM_MBC1 ? 125 : 128; break;
+	case ROM_1M:   bankCount = header.Type == ROM_MBC1 ? 63 : 64; break;
+	case ROM_2M:   bankCount = header.Type == ROM_MBC1 ? 125 : 128; break;
 	case ROM_4M:   bankCount = 256; break;
 	case ROM_1_1M: bankCount = 72; break;
 	case ROM_1_2M: bankCount = 80; break;

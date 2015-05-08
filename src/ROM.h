@@ -47,7 +47,7 @@ enum ROMType : uint8_t {
 };
 
 //! ROM Size flag
-enum ROMSize : uint8_t {
+enum ROMSizeType : uint8_t {
 	ROM_32K = 0x00,  //!<  32kB,  no banks
 	ROM_64K = 0x01,  //!<  64kB,   4 banks
 	ROM_128K = 0x02, //!< 128kB,   8 banks
@@ -62,7 +62,7 @@ enum ROMSize : uint8_t {
 };
 
 //! RAM Size flag
-enum RAMSize : uint8_t {
+enum RAMSizeType : uint8_t {
 	RAM_NONE = 0x00, //!<   No RAM
 	RAM_2KB = 0x01,  //!<  2kB RAM
 	RAM_8KB = 0x02,  //!<  8kB RAM
@@ -84,14 +84,14 @@ struct ROMHeader {
 		struct {                  // or
 			char GBCTitle[0x0b];  //!< GBC title, 11 characters       (0134 - 013e)
 			char manCode[0x04];   //!< Manufacturer Code, 3 chars     (013f - 0142)
-			GBCFlag GBCFlag;      //!< Gameboy Color flag             (0143)
+			GBCFlag GBC;          //!< Gameboy Color flag             (0143)
 		};
 	};
 	char newLicenseeCode[0x02];   //!< New licensee code, 2 chars     (0144 - 0145)
-	SGBFlag SGBFlag;              //!< Super Gameboy flag             (0146)
-	ROMType ROMType;              //!< ROM Controller type            (0147)
-	ROMSize ROMSize;              //!< ROM Total Size                 (0148)
-	RAMSize RAMSize;              //!< RAM Total Size                 (0149)
+	SGBFlag SGB;                  //!< Super Gameboy flag             (0146)
+	ROMType Type;                 //!< ROM Controller type            (0147)
+	ROMSizeType ROMSize;          //!< ROM Total Size                 (0148)
+	RAMSizeType RAMSize;          //!< RAM Total Size                 (0149)
 	DestCode destinationCode;     //!< Destination Code (region)      (014a)
 	uint8_t oldLicenseeCode;      //!< Old licensee code, 1 byte      (014b) (watch out for 0x33)
 	uint8_t maskROMVersion;       //!< Mask ROM version               (014c)
