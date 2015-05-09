@@ -84,11 +84,11 @@ struct ROMHeader {
 		struct GBC {              // or
 			char GBCTitle[0x0b];  //!< GBC title, 11 characters       (0134 - 013e)
 			char manCode[0x04];   //!< Manufacturer Code, 3 chars     (013f - 0142)
-			GBCFlag GBC;          //!< Gameboy Color flag             (0143)
+			GBCFlag colorFlag;          //!< Gameboy Color flag             (0143)
 		};
 	};
 	char newLicenseeCode[0x02];   //!< New licensee code, 2 chars     (0144 - 0145)
-	SGBFlag SGB;                  //!< Super Gameboy flag             (0146)
+	SGBFlag superFlag;            //!< Super Gameboy flag             (0146)
 	ROMType Type;                 //!< ROM Controller type            (0147)
 	ROMSizeType ROMSize;          //!< ROM Total Size                 (0148)
 	RAMSizeType RAMSize;          //!< RAM Total Size                 (0149)
