@@ -79,9 +79,9 @@ enum DestCode : uint8_t {
 struct ROMHeader {
 	uint8_t entryPoint[0x04];     //!< Entry point                    (0100 - 0103)
 	uint8_t nintendoLogo[0x30];   //!< Nintendo's boot logo (checked) (0104 - 0133)
-	union Title {
+	union {
 		char GBTitle[0x10];       //!< Gameboy title, 15 characters   (0134 - 0143)
-		struct GBC {              // or
+		struct {                  // or
 			char GBCTitle[0x0b];  //!< GBC title, 11 characters       (0134 - 013e)
 			char manCode[0x04];   //!< Manufacturer Code, 3 chars     (013f - 0142)
 			GBCFlag colorFlag;          //!< Gameboy Color flag             (0143)
