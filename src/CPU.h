@@ -53,6 +53,7 @@ private:
 	ROM* rom;
 
 	uint8_t Read(uint16_t location);
+	uint8_t Execute(uint8_t opcode);
 public:
 	void Step();
 

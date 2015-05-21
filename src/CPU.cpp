@@ -94,8 +94,10 @@ uint8_t CPU::Read(uint16_t location) {
 }
 
 void CPU::Step() {
-	Read(PC);
-	PC++;
+	uint8_t instructionLength = 1;
+	uint8_t opcode = Read(PC);
+	instructionLength += Execute(opcode);
+	PC += instructionLength;
 }
 
 CPU::CPU(ROM* _rom) {
