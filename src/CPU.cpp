@@ -94,15 +94,15 @@ uint8_t CPU::Read(uint16_t location) {
 }
 
 void CPU::Step() {
-	uint8_t instructionLength = 1;
 	uint8_t opcode = Read(PC);
-	instructionLength += Execute(opcode);
-	PC += instructionLength;
+	Execute(opcode);
+	PC += 1;
 }
 
 CPU::CPU(ROM* _rom) {
 	rom = _rom;
 	running = true;
+	cycles = {0,0};
 }
 
 CPU::~CPU() {}

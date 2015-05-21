@@ -10,8 +10,26 @@ struct VRAMBank {
 	uint8_t bytes[8 * 1024];
 };
 
+struct CycleCount {
+	int machine, cpu;
+
+	void add(int m, int c) {
+		machine += m; cpu += c;
+	}
+};
+
 class CPU {
 private:
+	ROM* rom;
+
+	WRAMBank WRAM;
+	std::vector<WRAMBank> WRAMbanks;
+	uint8_t WRAMbankId;
+
+	std::vector<VRAMBank> VRAM;
+	uint8_t VRAMbankId;
+
+public:
 	// Registers
 	union AF {
 		uint16_t Pair;
@@ -43,18 +61,11 @@ private:
 		};
 	};
 
-	WRAMBank WRAM;
-	std::vector<WRAMBank> WRAMbanks;
-	uint8_t WRAMbankId;
-
-	std::vector<VRAMBank> VRAM;
-	uint8_t VRAMbankId;
-
-	ROM* rom;
+	CycleCount cycles;
 
 	uint8_t Read(uint16_t location);
-	uint8_t Execute(uint8_t opcode);
-public:
+	void Execute(uint8_t opcode);
+
 	//! Is running? (Not Halted/Paused)
 	bool running;
 
