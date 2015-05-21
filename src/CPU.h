@@ -51,9 +51,9 @@ public:
 		struct { uint8_t H, L; } Single;
 	} HL;
 
-	uint16_t SP;    // Stack Pointer
-	uint16_t PC;    // Program Counter
-	union Status {  // Status Register
+	uint16_t SP;    //! Stack Pointer
+	uint16_t PC;    //! Program Counter
+	union {
 		uint8_t Byte;
 		struct {
 			unsigned int Zero : 1;
@@ -61,8 +61,8 @@ public:
 			unsigned int BCD_HalfCarry : 1;
 			unsigned int Carry : 1;
 			unsigned int _undef : 4;
-		};
-	};
+		} Single;
+	} Status; //! Status Register
 
 	CycleCount cycles;
 

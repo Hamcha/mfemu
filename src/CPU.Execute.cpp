@@ -23,23 +23,24 @@ uint8_t* registry(CPU* cpu, RID id) {
 }
 
 // Do nothing
-void NOP(CPU* cpu) {
+void Nop(CPU* cpu) {
 	cpu->cycles.add(1, 4);
 }
 
 // Stop or halt the processor
-CPUHandler HALT(bool waitInterrupt) {
-	//TODO handle waitInterrupt (for HALT)
+CPUHandler Halt(bool waitInterrupt) {
+	//Todo handle waitInterrupt (for HALT)
 	return [waitInterrupt](CPU *cpu) {
 		// STOP takes two machine cycles
 		int mcycles = waitInterrupt ? 1 : 2;
+
 		cpu->cycles.add(mcycles, 4);
 		cpu->running = false;
 	};
 }
 
 // Direct Load (Register to Register)
-CPUHandler LD_D(RID src, RID dst) {
+CPUHandler LoadDirect(RID src, RID dst) {
 	return [src, dst](CPU* cpu) {
 		uint8_t* srcRes = registry(cpu, src);
 		uint8_t* dstRes = registry(cpu, dst);
@@ -49,267 +50,267 @@ CPUHandler LD_D(RID src, RID dst) {
 }
 
 // Unimplemented instruction
-void TODO(CPU* cpu) {
+void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
 }
 
 const static CPUHandler handlers[] = {
-	NOP,  // 00 NOP
-	TODO, // 01
-	TODO, // 02
-	TODO, // 03
-	TODO, // 04
-	TODO, // 05
-	TODO, // 06
-	TODO, // 07
-	TODO, // 08
-	TODO, // 09
-	TODO, // 0a
-	TODO, // 0b
-	TODO, // 0c
-	TODO, // 0d
-	TODO, // 0e
-	TODO, // 0f
-	HALT(false), // 10 STOP
-	TODO, // 11
-	TODO, // 12
-	TODO, // 13
-	TODO, // 14
-	TODO, // 15
-	TODO, // 16
-	TODO, // 17
-	TODO, // 18
-	TODO, // 19
-	TODO, // 1a
-	TODO, // 1b
-	TODO, // 1c
-	TODO, // 1d
-	TODO, // 1e
-	TODO, // 1f
-	TODO, // 20
-	TODO, // 21
-	TODO, // 22
-	TODO, // 23
-	TODO, // 24
-	TODO, // 25
-	TODO, // 26
-	TODO, // 27
-	TODO, // 28
-	TODO, // 29
-	TODO, // 2a
-	TODO, // 2b
-	TODO, // 2c
-	TODO, // 2d
-	TODO, // 2e
-	TODO, // 2f
-	TODO, // 30
-	TODO, // 31
-	TODO, // 32
-	TODO, // 33
-	TODO, // 34
-	TODO, // 35
-	TODO, // 36
-	TODO, // 37
-	TODO, // 38
-	TODO, // 39
-	TODO, // 3a
-	TODO, // 3b
-	TODO, // 3c
-	TODO, // 3d
-	TODO, // 3e
-	TODO, // 3f
-	LD_D(B, B), // 40 LD B,B
-	LD_D(B, C), // 41 LD B,C
-	LD_D(B, D), // 42 LD B,D
-	LD_D(B, E), // 43 LD B,E
-	LD_D(B, H), // 44 LD B,H
-	LD_D(B, L), // 45 LD B,L
-	TODO, // 46
-	LD_D(B, A), // 47 LD B,A
-	LD_D(C, B), // 48 LD C,B
-	LD_D(C, C), // 49 LD C,C
-	LD_D(C, D), // 4a LD C,D
-	LD_D(C, E), // 4b LD C,E
-	LD_D(C, H), // 4c LD C,H
-	LD_D(C, L), // 4d LD C,L
-	TODO, // 4e
-	LD_D(C, A), // 4f LD C,A
-	LD_D(D, B), // 50 LD D,B
-	LD_D(D, C), // 51 LD D,C
-	LD_D(D, D), // 52 LD D,D
-	LD_D(D, E), // 53 LD D,E
-	LD_D(D, H), // 54 LD D,H
-	LD_D(D, L), // 55 LD D,L
-	TODO, // 56
-	LD_D(D, A), // 57 LD D,A
-	LD_D(E, B), // 58 LD E,B
-	LD_D(E, C), // 59 LD E,C
-	LD_D(E, D), // 5a LD E,D
-	LD_D(E, E), // 5b LD E,E
-	LD_D(E, H), // 5c LD E,H
-	LD_D(E, L), // 5d LD E,L
-	TODO, // 5e
-	LD_D(E, A), // 5f LD E,A
-	LD_D(H, B), // 60 LD H,B
-	LD_D(H, C), // 61 LD H,C
-	LD_D(H, D), // 62 LD H,D
-	LD_D(H, E), // 63 LD H,E
-	LD_D(H, H), // 64 LD H,H
-	LD_D(H, L), // 65 LD H,L
-	TODO, // 66
-	LD_D(H, A), // 67 LD H,A
-	LD_D(L, B), // 68 LD L,B
-	LD_D(L, C), // 69 LD L,C
-	LD_D(L, D), // 6a LD L,D
-	LD_D(L, E), // 6b LD L,E
-	LD_D(L, H), // 6c LD L,H
-	LD_D(L, L), // 6d LD L,L
-	TODO, // 6e
-	LD_D(L, A), // 6f LD L,A
-	TODO, // 70
-	TODO, // 71
-	TODO, // 72
-	TODO, // 73
-	TODO, // 74
-	TODO, // 75
-	HALT(true), // 76 HALT
-	TODO, // 77
-	LD_D(A, B), // 78 LD A,B
-	LD_D(A, C), // 79 LD A,C
-	LD_D(A, D), // 7a LD A,D
-	LD_D(A, E), // 7b LD A,E
-	LD_D(A, H), // 7c LD A,H
-	LD_D(A, L), // 7d LD A,L
-	TODO, // 7e
-	LD_D(A, A), // 7f LD A,A
-	TODO, // 80
-	TODO, // 81
-	TODO, // 82
-	TODO, // 83
-	TODO, // 84
-	TODO, // 85
-	TODO, // 86
-	TODO, // 87
-	TODO, // 88
-	TODO, // 89
-	TODO, // 8a
-	TODO, // 8b
-	TODO, // 8c
-	TODO, // 8d
-	TODO, // 8e
-	TODO, // 8f
-	TODO, // 90
-	TODO, // 91
-	TODO, // 92
-	TODO, // 93
-	TODO, // 94
-	TODO, // 95
-	TODO, // 96
-	TODO, // 97
-	TODO, // 98
-	TODO, // 99
-	TODO, // 9a
-	TODO, // 9b
-	TODO, // 9c
-	TODO, // 9d
-	TODO, // 9e
-	TODO, // 9f
-	TODO, // a0
-	TODO, // a1
-	TODO, // a2
-	TODO, // a3
-	TODO, // a4
-	TODO, // a5
-	TODO, // a6
-	TODO, // a7
-	TODO, // a8
-	TODO, // a9
-	TODO, // aa
-	TODO, // ab
-	TODO, // ac
-	TODO, // ad
-	TODO, // ae
-	TODO, // af
-	TODO, // b0
-	TODO, // b1
-	TODO, // b2
-	TODO, // b3
-	TODO, // b4
-	TODO, // b5
-	TODO, // b6
-	TODO, // b7
-	TODO, // b8
-	TODO, // b9
-	TODO, // ba
-	TODO, // bb
-	TODO, // bc
-	TODO, // bd
-	TODO, // be
-	TODO, // bf
-	TODO, // c0
-	TODO, // c1
-	TODO, // c2
-	TODO, // c3
-	TODO, // c4
-	TODO, // c5
-	TODO, // c6
-	TODO, // c7
-	TODO, // c8
-	TODO, // c9
-	TODO, // ca
-	TODO, // cb
-	TODO, // cc
-	TODO, // cd
-	TODO, // ce
-	TODO, // cf
-	TODO, // d0
-	TODO, // d1
-	TODO, // d2
-	TODO, // d3
-	TODO, // d4
-	TODO, // d5
-	TODO, // d6
-	TODO, // d7
-	TODO, // d8
-	TODO, // d9
-	TODO, // da
-	TODO, // db
-	TODO, // dc
-	TODO, // dd
-	TODO, // de
-	TODO, // df
-	TODO, // e0
-	TODO, // e1
-	TODO, // e2
-	TODO, // e3
-	TODO, // e4
-	TODO, // e5
-	TODO, // e6
-	TODO, // e7
-	TODO, // e8
-	TODO, // e9
-	TODO, // ea
-	TODO, // eb
-	TODO, // ec
-	TODO, // ed
-	TODO, // ee
-	TODO, // ef
-	TODO, // f0
-	TODO, // f1
-	TODO, // f2
-	TODO, // f3
-	TODO, // f4
-	TODO, // f5
-	TODO, // f6
-	TODO, // f7
-	TODO, // f8
-	TODO, // f9
-	TODO, // fa
-	TODO, // fb
-	TODO, // fc
-	TODO, // fd
-	TODO, // fe
-	TODO  // ff
+	Nop,  // 00 NOP
+	Todo, // 01
+	Todo, // 02
+	Todo, // 03
+	Todo, // 04
+	Todo, // 05
+	Todo, // 06
+	Todo, // 07
+	Todo, // 08
+	Todo, // 09
+	Todo, // 0a
+	Todo, // 0b
+	Todo, // 0c
+	Todo, // 0d
+	Todo, // 0e
+	Todo, // 0f
+	Halt(false), // 10 STOP
+	Todo, // 11
+	Todo, // 12
+	Todo, // 13
+	Todo, // 14
+	Todo, // 15
+	Todo, // 16
+	Todo, // 17
+	Todo, // 18
+	Todo, // 19
+	Todo, // 1a
+	Todo, // 1b
+	Todo, // 1c
+	Todo, // 1d
+	Todo, // 1e
+	Todo, // 1f
+	Todo, // 20
+	Todo, // 21
+	Todo, // 22
+	Todo, // 23
+	Todo, // 24
+	Todo, // 25
+	Todo, // 26
+	Todo, // 27
+	Todo, // 28
+	Todo, // 29
+	Todo, // 2a
+	Todo, // 2b
+	Todo, // 2c
+	Todo, // 2d
+	Todo, // 2e
+	Todo, // 2f
+	Todo, // 30
+	Todo, // 31
+	Todo, // 32
+	Todo, // 33
+	Todo, // 34
+	Todo, // 35
+	Todo, // 36
+	Todo, // 37
+	Todo, // 38
+	Todo, // 39
+	Todo, // 3a
+	Todo, // 3b
+	Todo, // 3c
+	Todo, // 3d
+	Todo, // 3e
+	Todo, // 3f
+	LoadDirect(B, B), // 40 LD B,B
+	LoadDirect(B, C), // 41 LD B,C
+	LoadDirect(B, D), // 42 LD B,D
+	LoadDirect(B, E), // 43 LD B,E
+	LoadDirect(B, H), // 44 LD B,H
+	LoadDirect(B, L), // 45 LD B,L
+	Todo, // 46
+	LoadDirect(B, A), // 47 LD B,A
+	LoadDirect(C, B), // 48 LD C,B
+	LoadDirect(C, C), // 49 LD C,C
+	LoadDirect(C, D), // 4a LD C,D
+	LoadDirect(C, E), // 4b LD C,E
+	LoadDirect(C, H), // 4c LD C,H
+	LoadDirect(C, L), // 4d LD C,L
+	Todo, // 4e
+	LoadDirect(C, A), // 4f LD C,A
+	LoadDirect(D, B), // 50 LD D,B
+	LoadDirect(D, C), // 51 LD D,C
+	LoadDirect(D, D), // 52 LD D,D
+	LoadDirect(D, E), // 53 LD D,E
+	LoadDirect(D, H), // 54 LD D,H
+	LoadDirect(D, L), // 55 LD D,L
+	Todo, // 56
+	LoadDirect(D, A), // 57 LD D,A
+	LoadDirect(E, B), // 58 LD E,B
+	LoadDirect(E, C), // 59 LD E,C
+	LoadDirect(E, D), // 5a LD E,D
+	LoadDirect(E, E), // 5b LD E,E
+	LoadDirect(E, H), // 5c LD E,H
+	LoadDirect(E, L), // 5d LD E,L
+	Todo, // 5e
+	LoadDirect(E, A), // 5f LD E,A
+	LoadDirect(H, B), // 60 LD H,B
+	LoadDirect(H, C), // 61 LD H,C
+	LoadDirect(H, D), // 62 LD H,D
+	LoadDirect(H, E), // 63 LD H,E
+	LoadDirect(H, H), // 64 LD H,H
+	LoadDirect(H, L), // 65 LD H,L
+	Todo, // 66
+	LoadDirect(H, A), // 67 LD H,A
+	LoadDirect(L, B), // 68 LD L,B
+	LoadDirect(L, C), // 69 LD L,C
+	LoadDirect(L, D), // 6a LD L,D
+	LoadDirect(L, E), // 6b LD L,E
+	LoadDirect(L, H), // 6c LD L,H
+	LoadDirect(L, L), // 6d LD L,L
+	Todo, // 6e
+	LoadDirect(L, A), // 6f LD L,A
+	Todo, // 70
+	Todo, // 71
+	Todo, // 72
+	Todo, // 73
+	Todo, // 74
+	Todo, // 75
+	Halt(true), // 76 HALT
+	Todo, // 77
+	LoadDirect(A, B), // 78 LD A,B
+	LoadDirect(A, C), // 79 LD A,C
+	LoadDirect(A, D), // 7a LD A,D
+	LoadDirect(A, E), // 7b LD A,E
+	LoadDirect(A, H), // 7c LD A,H
+	LoadDirect(A, L), // 7d LD A,L
+	Todo, // 7e
+	LoadDirect(A, A), // 7f LD A,A
+	Todo, // 80
+	Todo, // 81
+	Todo, // 82
+	Todo, // 83
+	Todo, // 84
+	Todo, // 85
+	Todo, // 86
+	Todo, // 87
+	Todo, // 88
+	Todo, // 89
+	Todo, // 8a
+	Todo, // 8b
+	Todo, // 8c
+	Todo, // 8d
+	Todo, // 8e
+	Todo, // 8f
+	Todo, // 90
+	Todo, // 91
+	Todo, // 92
+	Todo, // 93
+	Todo, // 94
+	Todo, // 95
+	Todo, // 96
+	Todo, // 97
+	Todo, // 98
+	Todo, // 99
+	Todo, // 9a
+	Todo, // 9b
+	Todo, // 9c
+	Todo, // 9d
+	Todo, // 9e
+	Todo, // 9f
+	Todo, // a0
+	Todo, // a1
+	Todo, // a2
+	Todo, // a3
+	Todo, // a4
+	Todo, // a5
+	Todo, // a6
+	Todo, // a7
+	Todo, // a8
+	Todo, // a9
+	Todo, // aa
+	Todo, // ab
+	Todo, // ac
+	Todo, // ad
+	Todo, // ae
+	Todo, // af
+	Todo, // b0
+	Todo, // b1
+	Todo, // b2
+	Todo, // b3
+	Todo, // b4
+	Todo, // b5
+	Todo, // b6
+	Todo, // b7
+	Todo, // b8
+	Todo, // b9
+	Todo, // ba
+	Todo, // bb
+	Todo, // bc
+	Todo, // bd
+	Todo, // be
+	Todo, // bf
+	Todo, // c0
+	Todo, // c1
+	Todo, // c2
+	Todo, // c3
+	Todo, // c4
+	Todo, // c5
+	Todo, // c6
+	Todo, // c7
+	Todo, // c8
+	Todo, // c9
+	Todo, // ca
+	Todo, // cb
+	Todo, // cc
+	Todo, // cd
+	Todo, // ce
+	Todo, // cf
+	Todo, // d0
+	Todo, // d1
+	Todo, // d2
+	Todo, // d3
+	Todo, // d4
+	Todo, // d5
+	Todo, // d6
+	Todo, // d7
+	Todo, // d8
+	Todo, // d9
+	Todo, // da
+	Todo, // db
+	Todo, // dc
+	Todo, // dd
+	Todo, // de
+	Todo, // df
+	Todo, // e0
+	Todo, // e1
+	Todo, // e2
+	Todo, // e3
+	Todo, // e4
+	Todo, // e5
+	Todo, // e6
+	Todo, // e7
+	Todo, // e8
+	Todo, // e9
+	Todo, // ea
+	Todo, // eb
+	Todo, // ec
+	Todo, // ed
+	Todo, // ee
+	Todo, // ef
+	Todo, // f0
+	Todo, // f1
+	Todo, // f2
+	Todo, // f3
+	Todo, // f4
+	Todo, // f5
+	Todo, // f6
+	Todo, // f7
+	Todo, // f8
+	Todo, // f9
+	Todo, // fa
+	Todo, // fb
+	Todo, // fc
+	Todo, // fd
+	Todo, // fe
+	Todo  // ff
 };
 
 void CPU::Execute(uint8_t opcode) {
