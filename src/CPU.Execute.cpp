@@ -8,6 +8,9 @@ typedef std::function<void(CPU* cpu)> CPUHandler;
 enum RID {
 	A, B, C, D, E, H, L
 };
+enum PID {
+	AF, BC, DE, HL, SP, PC
+};
 
 uint8_t* getRegister(CPU* cpu, RID id) {
 	switch (id) {
@@ -18,6 +21,18 @@ uint8_t* getRegister(CPU* cpu, RID id) {
 	case E: return &(cpu->DE.Single.E);
 	case H: return &(cpu->HL.Single.H);
 	case L: return &(cpu->HL.Single.L);
+	}
+	return nullptr;
+}
+
+uint16_t* getPair(CPU* cpu, PID id) {
+	switch (id) {
+	case AF: return &(cpu->AF.Pair);
+	case BC: return &(cpu->BC.Pair);
+	case DE: return &(cpu->DE.Pair);
+	case HL: return &(cpu->HL.Pair);
+	case SP: return &(cpu->SP);
+	case PC: return &(cpu->PC);
 	}
 	return nullptr;
 }
@@ -64,6 +79,48 @@ CPUHandler LoadImmediate(RID dst) {
 	};
 }
 
+// Increment register (8bit, immediate)
+CPUHandler Increment(RID dst) {
+	return [dst](CPU* cpu) {
+		uint8_t* dstRes = getRegister(cpu, dst);
+		dstRes++;
+		cpu->Status.Single.Zero = dstRes == 0;
+		cpu->Status.Single.BCD_AddSub = 0;
+		cpu->Status.Single.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->cycles.add(1,4);
+	};
+}
+
+// Increment register (16bit, immediate)
+CPUHandler Increment(PID dst) {
+	return [dst](CPU* cpu) {
+		uint16_t* dstRes = getPair(cpu, dst);
+		dstRes++;
+		cpu->cycles.add(1,8);
+	};
+}
+
+// Increment register (8bit, immediate)
+CPUHandler Decrement(RID dst) {
+	return [dst](CPU* cpu) {
+		uint8_t* dstRes = getRegister(cpu, dst);
+		dstRes--;
+		cpu->Status.Single.Zero = dstRes == 0;
+		cpu->Status.Single.BCD_AddSub = 1;
+		cpu->Status.Single.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->cycles.add(1,4);
+	};
+}
+
+// Increment register (16bit, immediate)
+CPUHandler Decrement(PID dst) {
+	return [dst](CPU* cpu) {
+		uint16_t* dstRes = getPair(cpu, dst);
+		dstRes--;
+		cpu->cycles.add(1,8);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -73,30 +130,30 @@ const static CPUHandler handlers[] = {
 	Nop,  // 00 NOP
 	Todo, // 01
 	Todo, // 02
-	Todo, // 03
-	Todo, // 04
-	Todo, // 05
+	Increment(BC), // 03 INC BC
+	Increment(B),  // 04 INC B
+	Decrement(B),  // 05 DEC B
 	LoadImmediate(B), // 06 LD B,d8
 	Todo, // 07
 	Todo, // 08
 	Todo, // 09
 	Todo, // 0a
-	Todo, // 0b
-	Todo, // 0c
-	Todo, // 0d
+	Decrement(BC), // 0b DEC BC
+	Increment(C),  // 0c INC C
+	Decrement(C),  // 0d DEC C
 	LoadImmediate(C), // 0e LD C,d8
 	Todo, // 0f
 	Halt(false), // 10 STOP
 	Todo, // 11
 	Todo, // 12
-	Todo, // 13
-	Todo, // 14
-	Todo, // 15
+	Increment(DE), // 13 INC DE
+	Increment(D),  // 14 INC D
+	Decrement(D),  // 15 DEC D
 	LoadImmediate(D), // 16 LD D,d8
 	Todo, // 17
-	Todo, // 18
-	Todo, // 19
-	Todo, // 1a
+	Decrement(DE), // 18 DEC DE
+	Increment(E),  // 19 DEC E
+	Decrement(E),  // 1a DEC E
 	Todo, // 1b
 	Todo, // 1c
 	Todo, // 1d
@@ -105,14 +162,14 @@ const static CPUHandler handlers[] = {
 	Todo, // 20
 	Todo, // 21
 	Todo, // 22
-	Todo, // 23
-	Todo, // 24
-	Todo, // 25
+	Increment(HL), // 23 INC HL
+	Increment(H),  // 24 INC H
+	Decrement(H),  // 25 DEC H
 	LoadImmediate(H), // 26 LD H,d8
 	Todo, // 27
-	Todo, // 28
-	Todo, // 29
-	Todo, // 2a
+	Decrement(HL), // 28 DEC HL
+	Increment(L),  // 29 INC L
+	Decrement(L),  // 2a DEC L
 	Todo, // 2b
 	Todo, // 2c
 	Todo, // 2d
@@ -121,14 +178,14 @@ const static CPUHandler handlers[] = {
 	Todo, // 30
 	Todo, // 31
 	Todo, // 32
-	Todo, // 33
+	Increment(SP), // 33 INC SP
 	Todo, // 34
 	Todo, // 35
 	Todo, // 36
 	Todo, // 37
-	Todo, // 38
-	Todo, // 39
-	Todo, // 3a
+	Decrement(SP), // 38 DEC SP
+	Increment(A),  // 39 INC A
+	Decrement(A),  // 3a DEC A
 	Todo, // 3b
 	Todo, // 3c
 	Todo, // 3d
