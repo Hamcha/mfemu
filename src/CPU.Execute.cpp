@@ -97,9 +97,9 @@ CPUHandler Increment(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		dstRes++;
-		cpu->Status.Single.Zero = dstRes == 0;
-		cpu->Status.Single.BCD_AddSub = 0;
-		cpu->Status.Single.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->AF.Single.Flags.Zero = dstRes == 0;
+		cpu->AF.Single.Flags.BCD_AddSub = 0;
+		cpu->AF.Single.Flags.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
 		cpu->cycles.add(1,4);
 	};
 }
@@ -118,9 +118,9 @@ CPUHandler Decrement(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		dstRes--;
-		cpu->Status.Single.Zero = dstRes == 0;
-		cpu->Status.Single.BCD_AddSub = 1;
-		cpu->Status.Single.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->AF.Single.Flags.Zero = dstRes == 0;
+		cpu->AF.Single.Flags.BCD_AddSub = 1;
+		cpu->AF.Single.Flags.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
 		cpu->cycles.add(1,4);
 	};
 }

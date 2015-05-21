@@ -102,6 +102,7 @@ void CPU::Step() {
 CPU::CPU(ROM* _rom) {
 	rom = _rom;
 	running = true;
+	PC = 0;
 	cycles = {0,0};
 }
 
