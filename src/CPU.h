@@ -33,7 +33,19 @@ public:
 	// Registers
 	union {
 		uint16_t Pair;
-		struct { uint8_t A, Flags; } Single;
+		struct {
+			uint8_t A;
+			union {
+				uint8_t Byte;
+				struct {
+					unsigned int Zero : 1;
+					unsigned int BCD_AddSub : 1;
+					unsigned int BCD_HalfCarry : 1;
+					unsigned int Carry : 1;
+					unsigned int _undef : 4;
+				};
+			} Flags;
+		} Single;
 	} AF;
 
 	union {
@@ -55,14 +67,7 @@ public:
 	uint16_t PC;    //! Program Counter
 	union {
 		uint8_t Byte;
-		struct {
-			unsigned int Zero : 1;
-			unsigned int BCD_AddSub : 1;
-			unsigned int BCD_HalfCarry : 1;
-			unsigned int Carry : 1;
-			unsigned int _undef : 4;
-		} Single;
-	} Status; //! Status Register
+		} Status; //! Status Register
 
 	CycleCount cycles;
 
