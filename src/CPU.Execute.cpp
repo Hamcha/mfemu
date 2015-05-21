@@ -126,46 +126,46 @@ const static CPUHandler handlers[] = {
 	LD_D(B, L), // 45 LD B,L
 	TODO, // 46
 	LD_D(B, A), // 47 LD B,A
-	LD_D(C, B), // 48
-	LD_D(C, C), // 49
-	LD_D(C, D), // 4a
-	LD_D(C, E), // 4b
-	LD_D(C, H), // 4c
-	LD_D(C, L), // 4d
+	LD_D(C, B), // 48 LD C,B
+	LD_D(C, C), // 49 LD C,C
+	LD_D(C, D), // 4a LD C,D
+	LD_D(C, E), // 4b LD C,E
+	LD_D(C, H), // 4c LD C,H
+	LD_D(C, L), // 4d LD C,L
 	TODO, // 4e
-	LD_D(C, A), // 4f
-	LD_D(D, B), // 50
-	LD_D(D, C), // 51
-	LD_D(D, D), // 52
-	LD_D(D, E), // 53
-	LD_D(D, H), // 54
-	LD_D(D, L), // 55
+	LD_D(C, A), // 4f LD C,A
+	LD_D(D, B), // 50 LD D,B
+	LD_D(D, C), // 51 LD D,C
+	LD_D(D, D), // 52 LD D,D
+	LD_D(D, E), // 53 LD D,E
+	LD_D(D, H), // 54 LD D,H
+	LD_D(D, L), // 55 LD D,L
 	TODO, // 56
-	LD_D(D, A), // 57
-	LD_D(E, B), // 58
-	LD_D(E, C), // 59
-	LD_D(E, D), // 5a
-	LD_D(E, E), // 5b
-	LD_D(E, H), // 5c
-	LD_D(E, L), // 5d
+	LD_D(D, A), // 57 LD D,A
+	LD_D(E, B), // 58 LD E,B
+	LD_D(E, C), // 59 LD E,C
+	LD_D(E, D), // 5a LD E,D
+	LD_D(E, E), // 5b LD E,E
+	LD_D(E, H), // 5c LD E,H
+	LD_D(E, L), // 5d LD E,L
 	TODO, // 5e
-	LD_D(E, A), // 5f
-	LD_D(H, B), // 60
-	LD_D(H, C), // 61
-	LD_D(H, D), // 62
-	LD_D(H, E), // 63
-	LD_D(H, H), // 64
-	LD_D(H, L), // 65
+	LD_D(E, A), // 5f LD E,A
+	LD_D(H, B), // 60 LD H,B
+	LD_D(H, C), // 61 LD H,C
+	LD_D(H, D), // 62 LD H,D
+	LD_D(H, E), // 63 LD H,E
+	LD_D(H, H), // 64 LD H,H
+	LD_D(H, L), // 65 LD H,L
 	TODO, // 66
-	LD_D(H, A), // 67
-	LD_D(L, B), // 68
-	LD_D(L, C), // 69
-	LD_D(L, D), // 6a
-	LD_D(L, E), // 6b
-	LD_D(L, H), // 6c
-	LD_D(L, L), // 6d
+	LD_D(H, A), // 67 LD H,A
+	LD_D(L, B), // 68 LD L,B
+	LD_D(L, C), // 69 LD L,C
+	LD_D(L, D), // 6a LD L,D
+	LD_D(L, E), // 6b LD L,E
+	LD_D(L, H), // 6c LD L,H
+	LD_D(L, L), // 6d LD L,L
 	TODO, // 6e
-	LD_D(L, A), // 6f
+	LD_D(L, A), // 6f LD L,A
 	TODO, // 70
 	TODO, // 71
 	TODO, // 72
@@ -174,14 +174,14 @@ const static CPUHandler handlers[] = {
 	TODO, // 75
 	HALT(true), // 76 HALT
 	TODO, // 77
-	LD_D(A, B), // 78
-	LD_D(A, C), // 79
-	LD_D(A, D), // 7a
-	LD_D(A, E), // 7b
-	LD_D(A, H), // 7c
-	LD_D(A, L), // 7d
+	LD_D(A, B), // 78 LD A,B
+	LD_D(A, C), // 79 LD A,C
+	LD_D(A, D), // 7a LD A,D
+	LD_D(A, E), // 7b LD A,E
+	LD_D(A, H), // 7c LD A,H
+	LD_D(A, L), // 7d LD A,L
 	TODO, // 7e
-	LD_D(A, A), // 7f
+	LD_D(A, A), // 7f LD A,A
 	TODO, // 80
 	TODO, // 81
 	TODO, // 82
