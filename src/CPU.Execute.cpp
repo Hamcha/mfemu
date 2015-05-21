@@ -3,12 +3,31 @@
 #include <iomanip>
 #include <functional>
 
-typedef std::function<void(CPU *cpu)> CPUHandler;
+typedef std::function<void(CPU* cpu)> CPUHandler;
 
+enum RID {
+	A, B, C, D, E, H, L
+};
+
+uint8_t* registry(CPU* cpu, RID id) {
+	switch (id) {
+	case A: return &(cpu->AF.Single.A);
+	case B: return &(cpu->BC.Single.B);
+	case C: return &(cpu->BC.Single.C);
+	case D: return &(cpu->DE.Single.D);
+	case E: return &(cpu->DE.Single.E);
+	case H: return &(cpu->HL.Single.H);
+	case L: return &(cpu->HL.Single.L);
+	}
+	return nullptr;
+}
+
+// Do nothing
 void NOP(CPU* cpu) {
 	cpu->cycles.add(1, 4);
 }
 
+// Stop or halt the processor
 CPUHandler HALT(bool waitInterrupt) {
 	//TODO handle waitInterrupt (for HALT)
 	return [waitInterrupt](CPU *cpu) {
@@ -19,7 +38,18 @@ CPUHandler HALT(bool waitInterrupt) {
 	};
 }
 
-void TODO(CPU *cpu) {
+// Direct Load (Register to Register)
+CPUHandler LD_D(RID src, RID dst) {
+	return [src, dst](CPU* cpu) {
+		uint8_t* srcRes = registry(cpu, src);
+		uint8_t* dstRes = registry(cpu, dst);
+		*dstRes = *srcRes;
+		cpu->cycles.add(1, 4);
+	};
+}
+
+// Unimplemented instruction
+void TODO(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
 }
 
@@ -88,54 +118,54 @@ const static CPUHandler handlers[] = {
 	TODO, // 3d
 	TODO, // 3e
 	TODO, // 3f
-	TODO, // 40
-	TODO, // 41
-	TODO, // 42
-	TODO, // 43
-	TODO, // 44
-	TODO, // 45
+	LD_D(B, B), // 40 LD B,B
+	LD_D(B, C), // 41 LD B,C
+	LD_D(B, D), // 42 LD B,D
+	LD_D(B, E), // 43 LD B,E
+	LD_D(B, H), // 44 LD B,H
+	LD_D(B, L), // 45 LD B,L
 	TODO, // 46
-	TODO, // 47
-	TODO, // 48
-	TODO, // 49
-	TODO, // 4a
-	TODO, // 4b
-	TODO, // 4c
-	TODO, // 4d
+	LD_D(B, A), // 47 LD B,A
+	LD_D(C, B), // 48
+	LD_D(C, C), // 49
+	LD_D(C, D), // 4a
+	LD_D(C, E), // 4b
+	LD_D(C, H), // 4c
+	LD_D(C, L), // 4d
 	TODO, // 4e
-	TODO, // 4f
-	TODO, // 50
-	TODO, // 51
-	TODO, // 52
-	TODO, // 53
-	TODO, // 54
-	TODO, // 55
+	LD_D(C, A), // 4f
+	LD_D(D, B), // 50
+	LD_D(D, C), // 51
+	LD_D(D, D), // 52
+	LD_D(D, E), // 53
+	LD_D(D, H), // 54
+	LD_D(D, L), // 55
 	TODO, // 56
-	TODO, // 57
-	TODO, // 58
-	TODO, // 59
-	TODO, // 5a
-	TODO, // 5b
-	TODO, // 5c
-	TODO, // 5d
+	LD_D(D, A), // 57
+	LD_D(E, B), // 58
+	LD_D(E, C), // 59
+	LD_D(E, D), // 5a
+	LD_D(E, E), // 5b
+	LD_D(E, H), // 5c
+	LD_D(E, L), // 5d
 	TODO, // 5e
-	TODO, // 5f
-	TODO, // 60
-	TODO, // 61
-	TODO, // 62
-	TODO, // 63
-	TODO, // 64
-	TODO, // 65
+	LD_D(E, A), // 5f
+	LD_D(H, B), // 60
+	LD_D(H, C), // 61
+	LD_D(H, D), // 62
+	LD_D(H, E), // 63
+	LD_D(H, H), // 64
+	LD_D(H, L), // 65
 	TODO, // 66
-	TODO, // 67
-	TODO, // 68
-	TODO, // 69
-	TODO, // 6a
-	TODO, // 6b
-	TODO, // 6c
-	TODO, // 6d
+	LD_D(H, A), // 67
+	LD_D(L, B), // 68
+	LD_D(L, C), // 69
+	LD_D(L, D), // 6a
+	LD_D(L, E), // 6b
+	LD_D(L, H), // 6c
+	LD_D(L, L), // 6d
 	TODO, // 6e
-	TODO, // 6f
+	LD_D(L, A), // 6f
 	TODO, // 70
 	TODO, // 71
 	TODO, // 72
@@ -144,14 +174,14 @@ const static CPUHandler handlers[] = {
 	TODO, // 75
 	HALT(true), // 76 HALT
 	TODO, // 77
-	TODO, // 78
-	TODO, // 79
-	TODO, // 7a
-	TODO, // 7b
-	TODO, // 7c
-	TODO, // 7d
+	LD_D(A, B), // 78
+	LD_D(A, C), // 79
+	LD_D(A, D), // 7a
+	LD_D(A, E), // 7b
+	LD_D(A, H), // 7c
+	LD_D(A, L), // 7d
 	TODO, // 7e
-	TODO, // 7f
+	LD_D(A, A), // 7f
 	TODO, // 80
 	TODO, // 81
 	TODO, // 82

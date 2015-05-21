@@ -31,28 +31,31 @@ private:
 
 public:
 	// Registers
-	union AF {
+	union {
 		uint16_t Pair;
-		struct Single { uint8_t A, Flags; };
-	};
-	union BC {
+		struct { uint8_t A, Flags; } Single;
+	} AF;
+
+	union {
 		uint16_t Pair;
-		struct Single { uint8_t B, C; };
-	};
-	union DE {
+		struct { uint8_t B, C; } Single;
+	} BC;
+
+	union {
 		uint16_t Pair;
-		struct Single { uint8_t D, E; };
-	};
-	union HL {
+		struct { uint8_t D, E; } Single;
+	} DE;
+
+	union {
 		uint16_t Pair;
-		struct Single { uint8_t H, L; };
-	};
+		struct { uint8_t H, L; } Single;
+	} HL;
 
 	uint16_t SP;    // Stack Pointer
 	uint16_t PC;    // Program Counter
 	union Status {  // Status Register
 		uint8_t Byte;
-		struct Flags {
+		struct {
 			unsigned int Zero : 1;
 			unsigned int BCD_AddSub : 1;
 			unsigned int BCD_HalfCarry : 1;
