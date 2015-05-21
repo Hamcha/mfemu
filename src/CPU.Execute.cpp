@@ -49,6 +49,21 @@ CPUHandler LoadDirect(RID src, RID dst) {
 	};
 }
 
+// Immediate Load (8bit constant to Register)
+CPUHandler LoadImmediate(RID dst) {
+	return [dst](CPU* cpu) {
+		uint8_t* dstRes = getRegister(cpu, dst);
+		// Get next byte
+		cpu->PC++;
+		uint8_t value = cpu->Read(cpu->PC);
+
+		// Assign to register
+		*dstRes = value;
+
+		cpu->cycles.add(2, 8);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -61,7 +76,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 03
 	Todo, // 04
 	Todo, // 05
-	Todo, // 06
+	LoadImmediate(B), // 06 LD B,d8
 	Todo, // 07
 	Todo, // 08
 	Todo, // 09
@@ -69,7 +84,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 0b
 	Todo, // 0c
 	Todo, // 0d
-	Todo, // 0e
+	LoadImmediate(C), // 0e LD C,d8
 	Todo, // 0f
 	Halt(false), // 10 STOP
 	Todo, // 11
@@ -77,7 +92,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 13
 	Todo, // 14
 	Todo, // 15
-	Todo, // 16
+	LoadImmediate(D), // 16 LD D,d8
 	Todo, // 17
 	Todo, // 18
 	Todo, // 19
@@ -85,7 +100,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 1b
 	Todo, // 1c
 	Todo, // 1d
-	Todo, // 1e
+	LoadImmediate(E), // 1e LD E,d8
 	Todo, // 1f
 	Todo, // 20
 	Todo, // 21
@@ -93,7 +108,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 23
 	Todo, // 24
 	Todo, // 25
-	Todo, // 26
+	LoadImmediate(H), // 26 LD H,d8
 	Todo, // 27
 	Todo, // 28
 	Todo, // 29
@@ -101,7 +116,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 2b
 	Todo, // 2c
 	Todo, // 2d
-	Todo, // 2e
+	LoadImmediate(L), // 2e LD L,d8
 	Todo, // 2f
 	Todo, // 30
 	Todo, // 31
@@ -117,7 +132,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 3b
 	Todo, // 3c
 	Todo, // 3d
-	Todo, // 3e
+	LoadImmediate(A), // 3e LD A,d8
 	Todo, // 3f
 	LoadDirect(B, B), // 40 LD B,B
 	LoadDirect(B, C), // 41 LD B,C
