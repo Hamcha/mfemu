@@ -127,5 +127,8 @@ public:
 	//! Load ROM from memory
 	ROM(const std::vector<uint8_t> bytes);
 
+	//! Print ROM data (for debugging)
+	void debugPrintData();
+
 	~ROM();
 };

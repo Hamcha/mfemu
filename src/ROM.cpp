@@ -1,5 +1,6 @@
 #include "ROM.h"
 #include <fstream>
+#include <iostream>
 #include <iterator>
 #include <stdexcept>
 #include <cstring>
@@ -76,3 +77,43 @@ ROM::ROM(const std::vector<uint8_t> bytes) {
 }
 
 ROM::~ROM() {}
+
+void ROM::debugPrintData() {
+	std::cout << "== ROM INFO ==" << std::endl;
+	// The title can be either 15 or 13 characters, depending on target console
+	if (header.colorFlag == GBSupported || header.colorFlag == GBCOnly) {
+		std::cout << "Title (GBC format): " << std::string(header.GBCTitle) << std::endl;
+		std::cout << "Manifacturer Code: " << std::string(header.manCode) << std::endl;
+	} else {
+		std::cout << "Title (GB format): " << std::string(header.GBTitle) << std::endl;
+	}
+
+	// GBC features support
+	std::string gbFlag = "GBC not supported";
+	if (header.colorFlag == GBSupported) gbFlag = "GBC features supported";
+	if (header.colorFlag == GBCOnly) gbFlag = "GBC Only";
+	std::cout << "GBC support: " << gbFlag << std::endl;
+
+	// SGB features support
+	std::string super = "SGB not supported";
+	if (header.superFlag == SGB) super = "SGB features supported";
+	std::cout << "SGB support: " << super << std::endl;
+
+	// ROM/RAM types
+	std::cout << "ROM Type: " << std::hex << header.Type << std::endl;
+	std::cout << "ROM Size: " << std::hex << header.ROMSize << std::endl;
+	std::cout << "RAM Size: " << std::hex << header.RAMSize << std::endl;
+
+	// Manifacturer code(s)
+	if (header.oldLicenseeCode != 0x33) {
+		std::cout << "Licensee code (old): " << std::hex << (int) header.oldLicenseeCode << std::endl;
+	} else {
+		std::cout << "Licensee code (new): " << std::string(header.newLicenseeCode) << std::endl;
+	}
+
+	// Destination code and other infos
+	std::cout << "Destination code: " << (header.destinationCode == Japanese ? "Japan Only" : "Non-Japanese") << std::endl;
+	std::cout << "Mask ROM version: " << (int) header.maskROMVersion << std::endl;
+
+	std::cout << "== END ROM INFO ==" << std::endl;
+}

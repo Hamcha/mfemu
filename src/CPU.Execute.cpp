@@ -1,4 +1,6 @@
 #include "CPU.h"
+#include <iostream>
+#include <iomanip>
 
 uint8_t CPU::Execute(uint8_t opcode) {
 	switch (opcode) {
@@ -8,12 +10,16 @@ uint8_t CPU::Execute(uint8_t opcode) {
 
 	// STOP
 	case 0x10:
-		//TODO Halt CPU
+		running = false;
 		return 0;
 
 	// HALT
 	case 0x76:
-		//TODO Halt until Interrupt
+		running = false;
+		//TODO Listen for Interrupt
 		return 0;
+
+	default:
+		std::cout << "Unknown opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)opcode << std::endl;
 	}
 }

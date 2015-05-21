@@ -55,8 +55,14 @@ private:
 	uint8_t Read(uint16_t location);
 	uint8_t Execute(uint8_t opcode);
 public:
+	//! Is running? (Not Halted/Paused)
+	bool running;
+
+	//! Execute single step (instruction)
 	void Step();
 
+	//! Create CPU from ROM file
 	CPU(ROM* _rom);
+
 	~CPU();
 };
