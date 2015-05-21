@@ -69,13 +69,26 @@ CPUHandler LoadImmediate(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		// Get next byte
-		cpu->PC++;
-		uint8_t value = cpu->Read(cpu->PC);
+		uint8_t value = cpu->Read(++cpu->PC);
 
 		// Assign to register
 		*dstRes = value;
 
 		cpu->cycles.add(2, 8);
+	};
+}
+
+// Immediate Load (16bit constant to register pair)
+CPUHandler LoadImmediate(PID dst) {
+	return [dst](CPU* cpu) {
+		uint16_t* dstRes = getPair(cpu, dst);
+		// Get next bytes
+		uint8_t  low  = cpu->Read(++cpu->PC);
+		uint8_t  high = cpu->Read(++cpu->PC);
+		uint16_t word = (high << 8) + low;
+
+		*dstRes = word;
+		cpu->cycles.add(3, 12);
 	};
 }
 
@@ -128,7 +141,7 @@ void Todo(CPU* cpu) {
 
 const static CPUHandler handlers[] = {
 	Nop,  // 00 NOP
-	Todo, // 01
+	LoadImmediate(BC), // 01 LD BC,d16
 	Todo, // 02
 	Increment(BC), // 03 INC BC
 	Increment(B),  // 04 INC B
@@ -144,7 +157,7 @@ const static CPUHandler handlers[] = {
 	LoadImmediate(C), // 0e LD C,d8
 	Todo, // 0f
 	Halt(false), // 10 STOP
-	Todo, // 11
+	LoadImmediate(DE), // 11 LD DE,d16
 	Todo, // 12
 	Increment(DE), // 13 INC DE
 	Increment(D),  // 14 INC D
@@ -160,7 +173,7 @@ const static CPUHandler handlers[] = {
 	LoadImmediate(E), // 1e LD E,d8
 	Todo, // 1f
 	Todo, // 20
-	Todo, // 21
+	LoadImmediate(HL), // 21 LD HL,d16
 	Todo, // 22
 	Increment(HL), // 23 INC HL
 	Increment(H),  // 24 INC H
@@ -176,7 +189,7 @@ const static CPUHandler handlers[] = {
 	LoadImmediate(L), // 2e LD L,d8
 	Todo, // 2f
 	Todo, // 30
-	Todo, // 31
+	LoadImmediate(SP), // 31 LD SP,d16
 	Todo, // 32
 	Increment(SP), // 33 INC SP
 	Todo, // 34
