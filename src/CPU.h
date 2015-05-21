@@ -75,6 +75,7 @@ public:
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }
 
 	uint8_t Read(uint16_t location);
+	void Write(uint16_t location, uint8_t value);
 	void Execute(uint8_t opcode);
 
 	//! Is running? (Not Halted/Paused)

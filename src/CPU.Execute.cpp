@@ -55,12 +55,33 @@ CPUHandler Halt(bool waitInterrupt) {
 }
 
 // Direct Load (Register to Register)
-CPUHandler LoadDirect(RID src, RID dst) {
+CPUHandler LoadDirect(RID dst, RID src) {
 	return [src, dst](CPU* cpu) {
 		uint8_t* srcRes = getRegister(cpu, src);
 		uint8_t* dstRes = getRegister(cpu, dst);
 		*dstRes = *srcRes;
 		cpu->cycles.add(1, 4);
+	};
+}
+
+// Indirect Load (Register offset to Register)
+CPUHandler LoadIndirect(RID dst, PID ind) {
+	return [dst, ind](CPU* cpu) {
+		uint8_t* res = getRegister(cpu, dst);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t value = cpu->Read(*addr);
+		*res = value;
+		cpu->cycles.add(1, 8);
+	};
+}
+
+// Indirect Load (Register to Register offset)
+CPUHandler LoadIndirect(PID dst, RID src) {
+	return [dst, src](CPU* cpu) {
+		uint8_t* value = getRegister(cpu, src);
+		uint16_t* addr = getPair(cpu, dst);
+		cpu->Write(*addr, *value);
+		cpu->cycles.add(1, 8);
 	};
 }
 
@@ -73,7 +94,6 @@ CPUHandler LoadImmediate(RID dst) {
 
 		// Assign to register
 		*dstRes = value;
-
 		cpu->cycles.add(2, 8);
 	};
 }
@@ -134,22 +154,69 @@ CPUHandler Decrement(PID dst) {
 	};
 }
 
+// Add function (called by AddDirect etc)
+void Add(CPU* cpu, uint8_t* a, uint8_t* b, bool useCarry) {
+	uint8_t orig = *a;
+	*a += *b;
+	if (useCarry && cpu->Flags().Carry) {
+		*a++;
+	}
+	cpu->Flags().Carry = *a < orig;
+	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9;
+}
+
 // Direct Add (8bit, register to register)
 CPUHandler AddDirect(RID a, RID b, bool useCarry) {
 	return [a,b,useCarry](CPU* cpu){
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
-		uint8_t orig = *aRes;
-		*aRes += *bRes;
-		if (useCarry && cpu->Flags().Carry) {
-			*aRes++;
-		}
-		cpu->Flags().Carry = *aRes < orig;
-		cpu->Flags().Zero  = *aRes == 0;
-		cpu->Flags().BCD_AddSub = 1;
-		cpu->Flags().BCD_HalfCarry = (*aRes & 0x0f) > 9;
-
+		Add(cpu, aRes, bRes, useCarry);
 		cpu->cycles.add(1, 4);
+	};
+}
+
+CPUHandler AddIndirect(RID a, PID ind, bool useCarry) {
+	return[a, ind, useCarry](CPU* cpu) {
+		uint8_t*  aRes = getRegister(cpu, a);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t   bRes = cpu->Read(*addr);
+		Add(cpu, aRes, &bRes, useCarry);
+		cpu->cycles.add(1, 8);
+	};
+}
+
+// Subtract function (called by SubDirect etc)
+void Subtract(CPU* cpu, uint8_t* a, uint8_t* b, bool useCarry) {
+	uint8_t orig = *a;
+	*a -= *b;
+	if (useCarry && cpu->Flags().Carry) {
+		*a--;
+	}
+	cpu->Flags().Carry = *a > orig;
+	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().BCD_AddSub = 1;
+	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9;
+}
+
+// Direct Subtract (8bit, register to register)
+CPUHandler SubDirect(RID a, RID b, bool useCarry) {
+	return [a, b, useCarry](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t* bRes = getRegister(cpu, b);
+		Subtract(cpu, aRes, bRes, useCarry);
+		cpu->cycles.add(1, 4);
+	};
+}
+
+CPUHandler SubIndirect(RID a, PID ind, bool useCarry) {
+	return[a, ind, useCarry](CPU* cpu) {
+		uint8_t*  aRes = getRegister(cpu, a);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t   bRes = cpu->Read(*addr);
+		Subtract(cpu, aRes, &bRes, useCarry);
+		cpu->cycles.add(1, 8);
 	};
 }
 
@@ -159,25 +226,25 @@ void Todo(CPU* cpu) {
 }
 
 const static CPUHandler handlers[] = {
-	Nop,  // 00 NOP
-	LoadImmediate(BC), // 01 LD BC,d16
-	Todo, // 02
-	Increment(BC), // 03 INC BC
-	Increment(B),  // 04 INC B
-	Decrement(B),  // 05 DEC B
-	LoadImmediate(B), // 06 LD B,d8
+	Nop,                 // 00 NOP
+	LoadImmediate(BC),   // 01 LD BC,d16
+	LoadIndirect(BC, A), // 02 LD (BC),A
+	Increment(BC),       // 03 INC BC
+	Increment(B),        // 04 INC B
+	Decrement(B),        // 05 DEC B
+	LoadImmediate(B),    // 06 LD B,d8
 	Todo, // 07
 	Todo, // 08
 	Todo, // 09
 	Todo, // 0a
-	Decrement(BC), // 0b DEC BC
-	Increment(C),  // 0c INC C
-	Decrement(C),  // 0d DEC C
-	LoadImmediate(C), // 0e LD C,d8
-	Todo, // 0f
-	Halt(false), // 10 STOP
-	LoadImmediate(DE), // 11 LD DE,d16
-	Todo, // 12
+	Decrement(BC),       // 0b DEC BC
+	Increment(C),        // 0c INC C
+	Decrement(C),        // 0d DEC C
+	LoadImmediate(C),    // 0e LD C,d8
+	Todo,                // 0f
+	Halt(false),         // 10 STOP
+	LoadImmediate(DE),   // 11 LD DE,d16
+	LoadIndirect(DE, A), // 12 LD (DE),A
 	Increment(DE), // 13 INC DE
 	Increment(D),  // 14 INC D
 	Decrement(D),  // 15 DEC D
@@ -223,102 +290,102 @@ const static CPUHandler handlers[] = {
 	Todo, // 3d
 	LoadImmediate(A), // 3e LD A,d8
 	Todo, // 3f
-	LoadDirect(B, B), // 40 LD B,B
-	LoadDirect(B, C), // 41 LD B,C
-	LoadDirect(B, D), // 42 LD B,D
-	LoadDirect(B, E), // 43 LD B,E
-	LoadDirect(B, H), // 44 LD B,H
-	LoadDirect(B, L), // 45 LD B,L
-	Todo, // 46
-	LoadDirect(B, A), // 47 LD B,A
-	LoadDirect(C, B), // 48 LD C,B
-	LoadDirect(C, C), // 49 LD C,C
-	LoadDirect(C, D), // 4a LD C,D
-	LoadDirect(C, E), // 4b LD C,E
-	LoadDirect(C, H), // 4c LD C,H
-	LoadDirect(C, L), // 4d LD C,L
-	Todo, // 4e
-	LoadDirect(C, A), // 4f LD C,A
-	LoadDirect(D, B), // 50 LD D,B
-	LoadDirect(D, C), // 51 LD D,C
-	LoadDirect(D, D), // 52 LD D,D
-	LoadDirect(D, E), // 53 LD D,E
-	LoadDirect(D, H), // 54 LD D,H
-	LoadDirect(D, L), // 55 LD D,L
-	Todo, // 56
-	LoadDirect(D, A), // 57 LD D,A
-	LoadDirect(E, B), // 58 LD E,B
-	LoadDirect(E, C), // 59 LD E,C
-	LoadDirect(E, D), // 5a LD E,D
-	LoadDirect(E, E), // 5b LD E,E
-	LoadDirect(E, H), // 5c LD E,H
-	LoadDirect(E, L), // 5d LD E,L
-	Todo, // 5e
-	LoadDirect(E, A), // 5f LD E,A
-	LoadDirect(H, B), // 60 LD H,B
-	LoadDirect(H, C), // 61 LD H,C
-	LoadDirect(H, D), // 62 LD H,D
-	LoadDirect(H, E), // 63 LD H,E
-	LoadDirect(H, H), // 64 LD H,H
-	LoadDirect(H, L), // 65 LD H,L
-	Todo, // 66
-	LoadDirect(H, A), // 67 LD H,A
-	LoadDirect(L, B), // 68 LD L,B
-	LoadDirect(L, C), // 69 LD L,C
-	LoadDirect(L, D), // 6a LD L,D
-	LoadDirect(L, E), // 6b LD L,E
-	LoadDirect(L, H), // 6c LD L,H
-	LoadDirect(L, L), // 6d LD L,L
-	Todo, // 6e
-	LoadDirect(L, A), // 6f LD L,A
-	Todo, // 70
-	Todo, // 71
-	Todo, // 72
-	Todo, // 73
-	Todo, // 74
-	Todo, // 75
-	Halt(true), // 76 HALT
-	Todo, // 77
-	LoadDirect(A, B), // 78 LD A,B
-	LoadDirect(A, C), // 79 LD A,C
-	LoadDirect(A, D), // 7a LD A,D
-	LoadDirect(A, E), // 7b LD A,E
-	LoadDirect(A, H), // 7c LD A,H
-	LoadDirect(A, L), // 7d LD A,L
-	Todo, // 7e
-	LoadDirect(A, A), // 7f LD A,A
-	Todo, // 80
-	Todo, // 81
-	Todo, // 82
-	Todo, // 83
-	Todo, // 84
-	Todo, // 85
-	Todo, // 86
-	Todo, // 87
-	Todo, // 88
-	Todo, // 89
-	Todo, // 8a
-	Todo, // 8b
-	Todo, // 8c
-	Todo, // 8d
-	Todo, // 8e
-	Todo, // 8f
-	Todo, // 90
-	Todo, // 91
-	Todo, // 92
-	Todo, // 93
-	Todo, // 94
-	Todo, // 95
-	Todo, // 96
-	Todo, // 97
-	Todo, // 98
-	Todo, // 99
-	Todo, // 9a
-	Todo, // 9b
-	Todo, // 9c
-	Todo, // 9d
-	Todo, // 9e
-	Todo, // 9f
+	LoadDirect(B, B),    // 40 LD B,B
+	LoadDirect(B, C),    // 41 LD B,C
+	LoadDirect(B, D),    // 42 LD B,D
+	LoadDirect(B, E),    // 43 LD B,E
+	LoadDirect(B, H),    // 44 LD B,H
+	LoadDirect(B, L),    // 45 LD B,L
+	LoadIndirect(B, HL), // 46 LD B,(HL)
+	LoadDirect(B, A),    // 47 LD B,A
+	LoadDirect(C, B),    // 48 LD C,B
+	LoadDirect(C, C),    // 49 LD C,C
+	LoadDirect(C, D),    // 4a LD C,D
+	LoadDirect(C, E),    // 4b LD C,E
+	LoadDirect(C, H),    // 4c LD C,H
+	LoadDirect(C, L),    // 4d LD C,L
+	LoadIndirect(C, HL), // 4e LD C,(HL)
+	LoadDirect(C, A),    // 4f LD C,A
+	LoadDirect(D, B),    // 50 LD D,B
+	LoadDirect(D, C),    // 51 LD D,C
+	LoadDirect(D, D),    // 52 LD D,D
+	LoadDirect(D, E),    // 53 LD D,E
+	LoadDirect(D, H),    // 54 LD D,H
+	LoadDirect(D, L),    // 55 LD D,L
+	LoadIndirect(D, HL), // 56 LD D,(HL)
+	LoadDirect(D, A),    // 57 LD D,A
+	LoadDirect(E, B),    // 58 LD E,B
+	LoadDirect(E, C),    // 59 LD E,C
+	LoadDirect(E, D),    // 5a LD E,D
+	LoadDirect(E, E),    // 5b LD E,E
+	LoadDirect(E, H),    // 5c LD E,H
+	LoadDirect(E, L),    // 5d LD E,L
+	LoadIndirect(E, HL), // 5e LD E,(HL)
+	LoadDirect(E, A),    // 5f LD E,A
+	LoadDirect(H, B),    // 60 LD H,B
+	LoadDirect(H, C),    // 61 LD H,C
+	LoadDirect(H, D),    // 62 LD H,D
+	LoadDirect(H, E),    // 63 LD H,E
+	LoadDirect(H, H),    // 64 LD H,H
+	LoadDirect(H, L),    // 65 LD H,L
+	LoadIndirect(H, HL), // 66 LD H,(HL)
+	LoadDirect(H, A),    // 67 LD H,A
+	LoadDirect(L, B),    // 68 LD L,B
+	LoadDirect(L, C),    // 69 LD L,C
+	LoadDirect(L, D),    // 6a LD L,D
+	LoadDirect(L, E),    // 6b LD L,E
+	LoadDirect(L, H),    // 6c LD L,H
+	LoadDirect(L, L),    // 6d LD L,L
+	LoadIndirect(L, HL), // 6e LD L,(HL)
+	LoadDirect(L, A),    // 6f LD L,A
+	LoadIndirect(HL, B), // 70 LD (HL),B
+	LoadIndirect(HL, C), // 71 LD (HL),C
+	LoadIndirect(HL, D), // 72 LD (HL),D
+	LoadIndirect(HL, E), // 73 LD (HL),E
+	LoadIndirect(HL, H), // 74 LD (HL),H
+	LoadIndirect(HL, L), // 75 LD (HL),L
+	Halt(true),          // 76 HALT
+	LoadIndirect(HL, A), // 77 LD (HL),A
+	LoadDirect(A, B),    // 78 LD A,B
+	LoadDirect(A, C),    // 79 LD A,C
+	LoadDirect(A, D),    // 7a LD A,D
+	LoadDirect(A, E),    // 7b LD A,E
+	LoadDirect(A, H),    // 7c LD A,H
+	LoadDirect(A, L),    // 7d LD A,L
+	LoadIndirect(A, HL), // 7e LD A,(HL)
+	LoadDirect(A, A),    // 7f LD A,A
+	AddDirect(A, B, false),    // 80 ADD A,B
+	AddDirect(A, C, false),    // 81 ADD A,C
+	AddDirect(A, D, false),    // 82 ADD A,D
+	AddDirect(A, E, false),    // 83 ADD A,E
+	AddDirect(A, H, false),    // 84 ADD A,H
+	AddDirect(A, L, false),    // 85 ADD A,L
+	AddIndirect(A, HL, false), // 86 ADD A,(HL)
+	AddDirect(A, A, false),    // 87 ADD A,A
+	AddDirect(A, B, true),     // 88 ADC A,B
+	AddDirect(A, C, true),     // 89 ADC A,C
+	AddDirect(A, D, true),     // 8a ADC A,D
+	AddDirect(A, E, true),     // 8b ADC A,E
+	AddDirect(A, H, true),     // 8c ADC A,H
+	AddDirect(A, L, true),     // 8d ADC A,L
+	AddIndirect(A, HL, false), // 8e ADC A,(HL)
+	AddDirect(A, A, true),     // 8f ADC A,A
+	SubDirect(A, B, false),    // 90 SUB A,B
+	SubDirect(A, C, false),    // 91 SUB A,C
+	SubDirect(A, D, false),    // 92 SUB A,D
+	SubDirect(A, E, false),    // 93 SUB A,E
+	SubDirect(A, H, false),    // 94 SUB A,H
+	SubDirect(A, L, false),    // 95 SUB A,L
+	SubIndirect(A, HL, false), // 96 SUB A,(HL)
+	SubDirect(A, A, false),    // 97 SUB A,A
+	SubDirect(A, B, true),     // 98 SBC A,B
+	SubDirect(A, C, true),     // 99 SBC A,C
+	SubDirect(A, D, true),     // 9a SBC A,D
+	SubDirect(A, E, true),     // 9b SBC A,E
+	SubDirect(A, H, true),     // 9c SBC A,H
+	SubDirect(A, L, true),     // 9d SBC A,L
+	SubIndirect(A, HL, true),  // 9e SBC A,(HL)
+	SubDirect(A, A, true),     // 9f SBC A,A
 	Todo, // a0
 	Todo, // a1
 	Todo, // a2

@@ -90,7 +90,60 @@ uint8_t CPU::Read(uint16_t location) {
 	}
 
 	// ffff is IME, IME is not accessible
-	return 0; 
+	return 0;
+}
+
+void CPU::Write(uint16_t location, uint8_t value) {
+	// 0000 - 7fff => ROM (Not writable)
+	if (location < 0x8000) { return; }
+
+	// 8000 - 9fff => VRAM bank (switchable in GBC)
+	if (location < 0xa000) {
+		VRAM[VRAMbankId].bytes[location - 0x8000] = value;
+		return;
+	}
+
+	// a000 - bfff => External RAM (switchable)
+	if (location < 0xc000) {
+		rom->ram[rom->ramBankId].bytes[location - 0xa000] = value;
+		return;
+	}
+
+	// c000 - cfff => Work RAM fixed bank
+	if (location < 0xd000) {
+		WRAM.bytes[location - 0xc000] = value;
+		return;
+	}
+
+	// d000 - dfff => Switchable Work RAM bank
+	if (location < 0xe000) {
+		WRAMbanks[WRAMbankId].bytes[location - 0xd000] = value;
+		return;
+	}
+
+	// e000 - fdff => Mirror of c000 - ddff (Not writable)
+	if (location < 0xfe00) { return; }
+
+	// fe00 - fe9f => Sprite attribute table
+	if (location < 0xfea0) {
+		//TODO
+		return;
+	}
+
+	// fea0 - feff => Not usable
+	if (location < 0xff00) { return; }
+
+	// ff00 - ff7f => I/O Registers
+	if (location < 0xff80) {
+		//TODO
+		return;
+	}
+
+	// ff80 - fffe => High RAM (HRAM)
+	if (location < 0xffff) {
+		//TODO
+		return;
+	}
 }
 
 void CPU::Step() {
