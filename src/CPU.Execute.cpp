@@ -9,7 +9,7 @@ enum RID {
 	A, B, C, D, E, H, L
 };
 
-uint8_t* registry(CPU* cpu, RID id) {
+uint8_t* getRegister(CPU* cpu, RID id) {
 	switch (id) {
 	case A: return &(cpu->AF.Single.A);
 	case B: return &(cpu->BC.Single.B);
@@ -42,8 +42,8 @@ CPUHandler Halt(bool waitInterrupt) {
 // Direct Load (Register to Register)
 CPUHandler LoadDirect(RID src, RID dst) {
 	return [src, dst](CPU* cpu) {
-		uint8_t* srcRes = registry(cpu, src);
-		uint8_t* dstRes = registry(cpu, dst);
+		uint8_t* srcRes = getRegister(cpu, src);
+		uint8_t* dstRes = getRegister(cpu, dst);
 		*dstRes = *srcRes;
 		cpu->cycles.add(1, 4);
 	};
