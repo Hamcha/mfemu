@@ -54,13 +54,23 @@ CPUHandler Halt(bool waitInterrupt) {
 	};
 }
 
-// Direct Load (Register to Register)
+// Direct Load (8bit Register to 8bit Register)
 CPUHandler LoadDirect(RID dst, RID src) {
 	return [src, dst](CPU* cpu) {
 		uint8_t* srcRes = getRegister(cpu, src);
 		uint8_t* dstRes = getRegister(cpu, dst);
 		*dstRes = *srcRes;
 		cpu->cycles.add(1, 4);
+	};
+}
+
+// Direct Load (16bit Register to 16bit Register)
+CPUHandler LoadDirect(PID dst, PID src) {
+	return [src, dst](CPU* cpu) {
+		uint16_t* srcRes = getPair(cpu, src);
+		uint16_t* dstRes = getPair(cpu, dst);
+		*dstRes = *srcRes;
+		cpu->cycles.add(1, 8);
 	};
 }
 
@@ -167,6 +177,15 @@ void Add(CPU* cpu, uint8_t* a, uint8_t* b, bool useCarry) {
 	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9;
 }
 
+void Add(CPU* cpu, uint16_t* a, uint16_t* b, bool setZero) {
+	uint16_t orig = *a;
+	*a += *b;
+	cpu->Flags().Carry = *a < orig;
+	if (setZero) cpu->Flags().Zero = 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = (*a & 0x000f) > 9;
+}
+
 // Direct Add (8bit, register to register)
 CPUHandler AddDirect(RID a, RID b, bool useCarry) {
 	return [a,b,useCarry](CPU* cpu){
@@ -177,6 +196,17 @@ CPUHandler AddDirect(RID a, RID b, bool useCarry) {
 	};
 }
 
+// Direct Add (16bit, register to register)
+CPUHandler AddDirect(PID a, PID b) {
+	return[a, b](CPU* cpu) {
+		uint16_t* aRes = getPair(cpu, a);
+		uint16_t* bRes = getPair(cpu, b);
+		Add(cpu, aRes, bRes, false);
+		cpu->cycles.add(1, 8);
+	};
+}
+
+// Indirect Add (register offset to register)
 CPUHandler AddIndirect(RID a, PID ind, bool useCarry) {
 	return[a, ind, useCarry](CPU* cpu) {
 		uint8_t*  aRes = getRegister(cpu, a);
@@ -184,6 +214,26 @@ CPUHandler AddIndirect(RID a, PID ind, bool useCarry) {
 		uint8_t   bRes = cpu->Read(*addr);
 		Add(cpu, aRes, &bRes, useCarry);
 		cpu->cycles.add(1, 8);
+	};
+}
+
+// Add Immediate (8bit constant value to 8bit register)
+CPUHandler AddImmediate(RID a, bool useCarry) {
+	return[a, useCarry](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t  bRes = cpu->Read(++cpu->PC);
+		Add(cpu, aRes, &bRes, useCarry);
+		cpu->cycles.add(2, 8);
+	};
+}
+
+// Add Immediate (8bit constant value to 16bit register)
+CPUHandler AddImmediate(PID a) {
+	return[a](CPU* cpu) {
+		uint16_t* aRes = getPair(cpu, a);
+		uint16_t  bRes = 0 + cpu->Read(++cpu->PC);
+		Add(cpu, aRes, &bRes, false);
+		cpu->cycles.add(2, 16);
 	};
 }
 
@@ -220,6 +270,16 @@ CPUHandler SubIndirect(RID a, PID ind, bool useCarry) {
 	};
 }
 
+// Subtract Immediate (8bit constant value to 8bit register)
+CPUHandler SubImmediate(RID a, bool useCarry) {
+	return[a](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t  bRes = cpu->Read(++cpu->PC);
+		Subtract(cpu, aRes, &bRes, false);
+		cpu->cycles.add(2, 8);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -235,7 +295,7 @@ const static CPUHandler handlers[] = {
 	LoadImmediate(B),    // 06 LD B,d8
 	Todo, // 07
 	Todo, // 08
-	Todo, // 09
+	AddDirect(HL, BC),   // 09 ADD HL,BC
 	Todo, // 0a
 	Decrement(BC),       // 0b DEC BC
 	Increment(C),        // 0c INC C
@@ -245,50 +305,50 @@ const static CPUHandler handlers[] = {
 	Halt(false),         // 10 STOP
 	LoadImmediate(DE),   // 11 LD DE,d16
 	LoadIndirect(DE, A), // 12 LD (DE),A
-	Increment(DE), // 13 INC DE
-	Increment(D),  // 14 INC D
-	Decrement(D),  // 15 DEC D
-	LoadImmediate(D), // 16 LD D,d8
+	Increment(DE),       // 13 INC DE
+	Increment(D),        // 14 INC D
+	Decrement(D),        // 15 DEC D
+	LoadImmediate(D),    // 16 LD D,d8
 	Todo, // 17
-	Decrement(DE), // 18 DEC DE
-	Increment(E),  // 19 DEC E
-	Decrement(E),  // 1a DEC E
-	Todo, // 1b
-	Todo, // 1c
-	Todo, // 1d
-	LoadImmediate(E), // 1e LD E,d8
+	Todo, // 18
+	AddDirect(HL,DE),    // 19 ADD HL,DE
+	Todo, // 1a
+	Decrement(DE),       // 1b DEC DE
+	Increment(E),        // 1c DEC E
+	Decrement(E),        // 1d DEC E
+	LoadImmediate(E),    // 1e LD E,d8
 	Todo, // 1f
 	Todo, // 20
-	LoadImmediate(HL), // 21 LD HL,d16
+	LoadImmediate(HL),   // 21 LD HL,d16
 	Todo, // 22
-	Increment(HL), // 23 INC HL
-	Increment(H),  // 24 INC H
-	Decrement(H),  // 25 DEC H
-	LoadImmediate(H), // 26 LD H,d8
+	Increment(HL),       // 23 INC HL
+	Increment(H),        // 24 INC H
+	Decrement(H),        // 25 DEC H
+	LoadImmediate(H),    // 26 LD H,d8
 	Todo, // 27
-	Decrement(HL), // 28 DEC HL
-	Increment(L),  // 29 INC L
-	Decrement(L),  // 2a DEC L
-	Todo, // 2b
-	Todo, // 2c
-	Todo, // 2d
-	LoadImmediate(L), // 2e LD L,d8
+	Todo, // 28
+	AddDirect(HL,HL),    // 29 ADD HL,HL
+	Todo, // 2a
+	Decrement(HL),       // 2b DEC HL
+	Increment(L),        // 2c INC L
+	Decrement(L),        // 2d DEC L
+	LoadImmediate(L),    // 2e LD L,d8
 	Todo, // 2f
 	Todo, // 30
-	LoadImmediate(SP), // 31 LD SP,d16
+	LoadImmediate(SP),   // 31 LD SP,d16
 	Todo, // 32
-	Increment(SP), // 33 INC SP
+	Increment(SP),       // 33 INC SP
 	Todo, // 34
 	Todo, // 35
 	Todo, // 36
 	Todo, // 37
-	Decrement(SP), // 38 DEC SP
-	Increment(A),  // 39 INC A
-	Decrement(A),  // 3a DEC A
-	Todo, // 3b
-	Todo, // 3c
-	Todo, // 3d
-	LoadImmediate(A), // 3e LD A,d8
+	Todo, // 38
+	AddDirect(HL,SP),    // 39 ADD HL,SP
+	Todo, // 3a
+	Decrement(SP),       // 3b DEC SP
+	Increment(A),        // 3c INC A
+	Decrement(A),        // 3d DEC A
+	LoadImmediate(A),    // 3e LD A,d8
 	Todo, // 3f
 	LoadDirect(B, B),    // 40 LD B,B
 	LoadDirect(B, C),    // 41 LD B,C
@@ -424,7 +484,7 @@ const static CPUHandler handlers[] = {
 	Todo, // c3
 	Todo, // c4
 	Todo, // c5
-	Todo, // c6
+	AddImmediate(A, false), // c6 ADD A,d8
 	Todo, // c7
 	Todo, // c8
 	Todo, // c9
@@ -432,7 +492,7 @@ const static CPUHandler handlers[] = {
 	Todo, // cb
 	Todo, // cc
 	Todo, // cd
-	Todo, // ce
+	AddImmediate(A, true),  // ce ADC A,d8
 	Todo, // cf
 	Todo, // d0
 	Todo, // d1
@@ -440,7 +500,7 @@ const static CPUHandler handlers[] = {
 	Todo, // d3
 	Todo, // d4
 	Todo, // d5
-	Todo, // d6
+	SubImmediate(A, false), // d6 SUB A,d8
 	Todo, // d7
 	Todo, // d8
 	Todo, // d9
@@ -448,7 +508,7 @@ const static CPUHandler handlers[] = {
 	Todo, // db
 	Todo, // dc
 	Todo, // dd
-	Todo, // de
+	SubImmediate(A, true),  // de SBC A,d8
 	Todo, // df
 	Todo, // e0
 	Todo, // e1
@@ -458,7 +518,7 @@ const static CPUHandler handlers[] = {
 	Todo, // e5
 	Todo, // e6
 	Todo, // e7
-	Todo, // e8
+	AddImmediate(SP),       // e8 ADD SP,r8
 	Todo, // e9
 	Todo, // ea
 	Todo, // eb
@@ -475,7 +535,7 @@ const static CPUHandler handlers[] = {
 	Todo, // f6
 	Todo, // f7
 	Todo, // f8
-	Todo, // f9
+	LoadDirect(SP, HL), // f9 LD SP,HL
 	Todo, // fa
 	Todo, // fb
 	Todo, // fc

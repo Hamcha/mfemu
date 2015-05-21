@@ -118,8 +118,8 @@ public:
 	ROMBank fixed;              //!< Fixed bank          (0000-3fff)
 	std::vector<ROMBank> banks; //!< Switchable bank     (4000-7fff)
 	std::vector<RAMBank> ram;   //!< Switchable RAM bank (a000-bfff)
-	uint8_t romBankId;          //!< Current ROM bank id
-	uint8_t ramBankId;          //!< Current RAM bank id
+	uint8_t romBankId = 0;      //!< Current ROM bank id
+	uint8_t ramBankId = 0;      //!< Current RAM bank id
 
 	//! Load ROM from file
 	static ROM FromFile(const std::string filename);

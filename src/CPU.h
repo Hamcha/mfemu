@@ -32,10 +32,10 @@ private:
 
 	WRAMBank WRAM;
 	std::vector<WRAMBank> WRAMbanks;
-	uint8_t WRAMbankId;
+	uint8_t WRAMbankId = 0;
 
 	std::vector<VRAMBank> VRAM;
-	uint8_t VRAMbankId;
+	uint8_t VRAMbankId = 0;
 
 public:
 	// Registers

@@ -153,10 +153,15 @@ void CPU::Step() {
 }
 
 CPU::CPU(ROM* _rom) {
+	// Setup variables
 	rom = _rom;
 	running = true;
 	PC = 0;
 	cycles = {0,0};
+
+	// Push at least one ram bank (GB classic)
+	VRAMBank bank1;
+	VRAM.push_back(bank1);
 }
 
 CPU::~CPU() {}
