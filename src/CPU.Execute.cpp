@@ -97,9 +97,9 @@ CPUHandler Increment(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		dstRes++;
-		cpu->AF.Single.Flags.Zero = dstRes == 0;
-		cpu->AF.Single.Flags.BCD_AddSub = 0;
-		cpu->AF.Single.Flags.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->Flags().Zero = *dstRes == 0;
+		cpu->Flags().BCD_AddSub = 0;
+		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9;
 		cpu->cycles.add(1,4);
 	};
 }
@@ -118,9 +118,9 @@ CPUHandler Decrement(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		dstRes--;
-		cpu->AF.Single.Flags.Zero = dstRes == 0;
-		cpu->AF.Single.Flags.BCD_AddSub = 1;
-		cpu->AF.Single.Flags.BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->Flags().Zero = *dstRes == 0;
+		cpu->Flags().BCD_AddSub = 1;
+		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9;
 		cpu->cycles.add(1,4);
 	};
 }
@@ -131,6 +131,25 @@ CPUHandler Decrement(PID dst) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		dstRes--;
 		cpu->cycles.add(1,8);
+	};
+}
+
+// Direct Add (8bit, register to register)
+CPUHandler AddDirect(RID a, RID b, bool useCarry) {
+	return [a,b,useCarry](CPU* cpu){
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t* bRes = getRegister(cpu, b);
+		uint8_t orig = *aRes;
+		*aRes += *bRes;
+		if (useCarry && cpu->Flags().Carry) {
+			*aRes++;
+		}
+		cpu->Flags().Carry = *aRes < orig;
+		cpu->Flags().Zero  = *aRes == 0;
+		cpu->Flags().BCD_AddSub = 1;
+		cpu->Flags().BCD_HalfCarry = (*aRes & 0x0f) > 9;
+
+		cpu->cycles.add(1, 4);
 	};
 }
 

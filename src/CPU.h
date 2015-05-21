@@ -18,6 +18,14 @@ struct CycleCount {
 	}
 };
 
+struct FlagStruct {
+	unsigned int Zero : 1;
+	unsigned int BCD_AddSub : 1;
+	unsigned int BCD_HalfCarry : 1;
+	unsigned int Carry : 1;
+	unsigned int _undef : 4;
+};
+
 class CPU {
 private:
 	ROM* rom;
@@ -37,13 +45,7 @@ public:
 			uint8_t A;
 			union {
 				uint8_t Byte;
-				struct {
-					unsigned int Zero : 1;
-					unsigned int BCD_AddSub : 1;
-					unsigned int BCD_HalfCarry : 1;
-					unsigned int Carry : 1;
-					unsigned int _undef : 4;
-				};
+				FlagStruct Values;
 			} Flags;
 		} Single;
 	} AF;
@@ -70,6 +72,7 @@ public:
 		} Status; //! Status Register
 
 	CycleCount cycles;
+	FlagStruct& Flags() { return AF.Single.Flags.Values; }
 
 	uint8_t Read(uint16_t location);
 	void Execute(uint8_t opcode);
