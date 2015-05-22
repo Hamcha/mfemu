@@ -4,7 +4,7 @@
 #define DEBUG 1
 
 int main() {
-	std::cout << "fmemu v." << VERSION << " rev." << COMMIT << std::endl << std::endl;
+	std::cout << "mfemu v." << VERSION << " rev." << COMMIT << std::endl << std::endl;
 	ROM file = ROM::FromFile("test.gb");
 
 	// The title can be either 15 or 13 characters, depending on target console
