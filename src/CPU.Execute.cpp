@@ -550,6 +550,21 @@ CPUHandler RotateReg(RID reg, bool left, bool throughCarry, bool shift) {
 	};
 }
 
+// Rotate Indirect
+CPUHandler RotateInd(PID ind, bool left, bool throughCarry, bool shift) {
+	return [ind, left, throughCarry, shift](CPU* cpu) {
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t value = cpu->Read(*addr);
+		if (left) {
+			RotateLeft(cpu, &value, throughCarry, shift);
+		} else {
+			RotateRight(cpu, &value, throughCarry, shift);
+		}
+		cpu->Write(*addr, value);
+		cpu->cycles.add(2, 16);
+	};
+}
+
 // Swap function (swaps nibbles)
 void Swap(CPU* cpu, uint8_t* value) {
 	*value = (*value >> 4) | (*value << 4);
@@ -652,7 +667,7 @@ const static CPUHandler cbhandlers[] = {
 	RotateReg(E, true, false, false),  // 03 RLC E
 	RotateReg(H, true, false, false),  // 04 RLC H
 	RotateReg(L, true, false, false),  // 05 RLC L
-	Todo2, // 06 RLC (HL)
+	RotateInd(HL, true, false, false), // 06 RLC (HL)
 	RotateReg(A, true, false, false),  // 07 RLC A
 	RotateReg(B, false, false, false), // 08 RRC B
 	RotateReg(C, false, false, false), // 09 RRC C
@@ -660,7 +675,7 @@ const static CPUHandler cbhandlers[] = {
 	RotateReg(E, false, false, false), // 0b RRC E
 	RotateReg(H, false, false, false), // 0c RRC H
 	RotateReg(L, false, false, false), // 0d RRC L
-	Todo2, // 0e RRC (HL)
+	RotateInd(HL, false, false, false), // 0e RRC (HL)
 	RotateReg(A, false, false, false), // 0f RRC A
 	RotateReg(B, true, true, false),   // 10 RL  B
 	RotateReg(C, true, true, false),   // 11 RL  C
@@ -668,7 +683,7 @@ const static CPUHandler cbhandlers[] = {
 	RotateReg(E, true, true, false),   // 13 RL  E
 	RotateReg(H, true, true, false),   // 14 RL  H
 	RotateReg(L, true, true, false),   // 15 RL  L
-	Todo2, // 16 RL  (HL)
+	RotateInd(HL, true, true, false),  // 16 RL  (HL)
 	RotateReg(A, true, true, false),   // 17 RL  A
 	RotateReg(B, false, true, false),  // 18 RR  B
 	RotateReg(C, false, true, false),  // 19 RR  C
@@ -676,7 +691,7 @@ const static CPUHandler cbhandlers[] = {
 	RotateReg(E, false, true, false),  // 1b RR  E
 	RotateReg(H, false, true, false),  // 1c RR  H
 	RotateReg(L, false, true, false),  // 1d RR  L
-	Todo2, // 1e RR  (HL)
+	RotateInd(HL, false, true, false), // 1e RR  (HL)
 	RotateReg(A, false, true, false),  // 1f RR  A
 	RotateReg(B, true, false, true),   // 20 SLA B
 	RotateReg(C, true, false, true),   // 21 SLA C
@@ -684,7 +699,7 @@ const static CPUHandler cbhandlers[] = {
 	RotateReg(E, true, false, true),   // 23 SLA E
 	RotateReg(H, true, false, true),   // 24 SLA H
 	RotateReg(L, true, false, true),   // 25 SLA L
-	Todo2, // 26 SLA (HL)
+	RotateInd(HL, true, false, true),  // 26 SLA (HL)
 	RotateReg(A, true, false, true),   // 27 SLA A
 	Todo2, // 28 SRA B
 	Todo2, // 29 SRA C
@@ -708,7 +723,7 @@ const static CPUHandler cbhandlers[] = {
 	RotateReg(E, false, false, true),  // 3b SRL E
 	RotateReg(H, false, false, true),  // 3c SRL H
 	RotateReg(L, false, false, true),  // 3d SRL L
-	Todo2, // 3e SRL (HL)
+	RotateInd(HL, false, false, true), // 3e SRL (HL)
 	RotateReg(A, false, false, true),  // 3f SRL A
 	BitDirect(B, 0),           // 40 BIT 0,B
 	BitDirect(C, 0),           // 41 BIT 0,C
