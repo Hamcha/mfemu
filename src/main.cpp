@@ -27,8 +27,8 @@ int main() {
 
 	while(emulator.running) {
 		emulator.Step();
-		if (emulator.cycles.machine > 1000) {
-			std::cout << "CPU has been running for more than 1000 cycles, halting" << std::endl;
+		if (emulator.cycles.cpu > 10000) {
+			std::cout << "CPU has been running for more than 10000 cycles, halting" << std::endl;
 			break;
 		}
 	}
