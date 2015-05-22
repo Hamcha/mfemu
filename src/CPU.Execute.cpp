@@ -555,6 +555,276 @@ void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
 }
 
+// Unimplemented instruction (for extra opcodes)
+void Todo2(CPU* cpu) {
+	std::cout << "Unknown Opcode: cb " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
+}
+
+const static CPUHandler cbhandlers[] = {
+	RotateReg(B, true, false, false),  // 00 RLC B
+	RotateReg(C, true, false, false),  // 01 RLC C
+	RotateReg(D, true, false, false),  // 02 RLC D
+	RotateReg(E, true, false, false),  // 03 RLC E
+	RotateReg(H, true, false, false),  // 04 RLC H
+	RotateReg(L, true, false, false),  // 05 RLC L
+	Todo2, // 06 RLC (HL)
+	RotateReg(A, true, false, false),  // 07 RLC A
+	RotateReg(B, false, false, false), // 08 RRC B
+	RotateReg(C, false, false, false), // 09 RRC C
+	RotateReg(D, false, false, false), // 0a RRC D
+	RotateReg(E, false, false, false), // 0b RRC E
+	RotateReg(H, false, false, false), // 0c RRC H
+	RotateReg(L, false, false, false), // 0d RRC L
+	Todo2, // 0e RRC (HL)
+	RotateReg(A, false, false, false), // 0f RRC A
+	RotateReg(B, true, true, false),   // 10 RL  B
+	RotateReg(C, true, true, false),   // 11 RL  C
+	RotateReg(D, true, true, false),   // 12 RL  D
+	RotateReg(E, true, true, false),   // 13 RL  E
+	RotateReg(H, true, true, false),   // 14 RL  H
+	RotateReg(L, true, true, false),   // 15 RL  L
+	Todo2, // 16 RL  (HL)
+	RotateReg(A, true, true, false),   // 17 RL  A
+	RotateReg(B, false, true, false),  // 18 RR  B
+	RotateReg(C, false, true, false),  // 19 RR  C
+	RotateReg(D, false, true, false),  // 1a RR  D
+	RotateReg(E, false, true, false),  // 1b RR  E
+	RotateReg(H, false, true, false),  // 1c RR  H
+	RotateReg(L, false, true, false),  // 1d RR  L
+	Todo2, // 1e RR  (HL)
+	RotateReg(A, false, true, false),  // 1f RR  A
+	RotateReg(B, true, false, true),   // 20 SLA B
+	RotateReg(C, true, false, true),   // 21 SLA C
+	RotateReg(D, true, false, true),   // 22 SLA D
+	RotateReg(E, true, false, true),   // 23 SLA E
+	RotateReg(H, true, false, true),   // 24 SLA H
+	RotateReg(L, true, false, true),   // 25 SLA L
+	Todo2, // 26 SLA (HL)
+	RotateReg(A, true, false, true),   // 27 SLA A
+	Todo2, // 28 SRA B
+	Todo2, // 29 SRA C
+	Todo2, // 2a SRA D
+	Todo2, // 2b SRA E
+	Todo2, // 2c SRA H
+	Todo2, // 2d SRA L
+	Todo2, // 2e SRA (HL)
+	Todo2, // 2f SRA A
+	Todo2, // 30 SWAP B
+	Todo2, // 31 SWAP C
+	Todo2, // 32 SWAP D
+	Todo2, // 33 SWAP E
+	Todo2, // 34 SWAP H
+	Todo2, // 35 SWAP L
+	Todo2, // 36 SWAP (HL)
+	Todo2, // 37 SWAP A
+	RotateReg(B, false, false, true),  // 38 SRL B
+	RotateReg(C, false, false, true),  // 39 SRL C
+	RotateReg(D, false, false, true),  // 3a SRL D
+	RotateReg(E, false, false, true),  // 3b SRL E
+	RotateReg(H, false, false, true),  // 3c SRL H
+	RotateReg(L, false, false, true),  // 3d SRL L
+	Todo2, // 3e SRL (HL)
+	RotateReg(A, false, false, true),  // 3f SRL A
+	Todo2, // 40
+	Todo2, // 41
+	Todo2, // 42
+	Todo2, // 43
+	Todo2, // 44
+	Todo2, // 45
+	Todo2, // 46
+	Todo2, // 47
+	Todo2, // 48
+	Todo2, // 49
+	Todo2, // 4a
+	Todo2, // 4b
+	Todo2, // 4c
+	Todo2, // 4d
+	Todo2, // 4e
+	Todo2, // 4f
+	Todo2, // 50
+	Todo2, // 51
+	Todo2, // 52
+	Todo2, // 53
+	Todo2, // 54
+	Todo2, // 55
+	Todo2, // 56
+	Todo2, // 57
+	Todo2, // 58
+	Todo2, // 59
+	Todo2, // 5a
+	Todo2, // 5b
+	Todo2, // 5c
+	Todo2, // 5d
+	Todo2, // 5e
+	Todo2, // 5f
+	Todo2, // 60
+	Todo2, // 61
+	Todo2, // 62
+	Todo2, // 63
+	Todo2, // 64
+	Todo2, // 65
+	Todo2, // 66
+	Todo2, // 67
+	Todo2, // 68
+	Todo2, // 69
+	Todo2, // 6a
+	Todo2, // 6b
+	Todo2, // 6c
+	Todo2, // 6d
+	Todo2, // 6e
+	Todo2, // 6f
+	Todo2, // 70
+	Todo2, // 71
+	Todo2, // 72
+	Todo2, // 73
+	Todo2, // 74
+	Todo2, // 75
+	Todo2, // 76
+	Todo2, // 77
+	Todo2, // 78
+	Todo2, // 79
+	Todo2, // 7a
+	Todo2, // 7b
+	Todo2, // 7c
+	Todo2, // 7d
+	Todo2, // 7e
+	Todo2, // 7f
+	Todo2, // 80
+	Todo2, // 81
+	Todo2, // 82
+	Todo2, // 83
+	Todo2, // 84
+	Todo2, // 85
+	Todo2, // 86
+	Todo2, // 87
+	Todo2, // 88
+	Todo2, // 89
+	Todo2, // 8a
+	Todo2, // 8b
+	Todo2, // 8c
+	Todo2, // 8d
+	Todo2, // 8e
+	Todo2, // 8f
+	Todo2, // 90
+	Todo2, // 91
+	Todo2, // 92
+	Todo2, // 93
+	Todo2, // 94
+	Todo2, // 95
+	Todo2, // 96
+	Todo2, // 97
+	Todo2, // 98
+	Todo2, // 99
+	Todo2, // 9a
+	Todo2, // 9b
+	Todo2, // 9c
+	Todo2, // 9d
+	Todo2, // 9e
+	Todo2, // 9f
+	Todo2, // a0
+	Todo2, // a1
+	Todo2, // a2
+	Todo2, // a3
+	Todo2, // a4
+	Todo2, // a5
+	Todo2, // a6
+	Todo2, // a7
+	Todo2, // a8
+	Todo2, // a9
+	Todo2, // aa
+	Todo2, // ab
+	Todo2, // ac
+	Todo2, // ad
+	Todo2, // ae
+	Todo2, // af
+	Todo2, // b0
+	Todo2, // b1
+	Todo2, // b2
+	Todo2, // b3
+	Todo2, // b4
+	Todo2, // b5
+	Todo2, // b6
+	Todo2, // b7
+	Todo2, // b8
+	Todo2, // b9
+	Todo2, // ba
+	Todo2, // bb
+	Todo2, // bc
+	Todo2, // bd
+	Todo2, // be
+	Todo2, // bf
+	Todo2, // c0
+	Todo2, // c1
+	Todo2, // c2
+	Todo2, // c3
+	Todo2, // c4
+	Todo2, // c5
+	Todo2, // c6
+	Todo2, // c7
+	Todo2, // c8
+	Todo2, // c9
+	Todo2, // ca
+	Todo2, // cb
+	Todo2, // cc
+	Todo2, // cd
+	Todo2, // ce
+	Todo2, // cf
+	Todo2, // d0
+	Todo2, // d1
+	Todo2, // d2
+	Todo2, // d3
+	Todo2, // d4
+	Todo2, // d5
+	Todo2, // d6
+	Todo2, // d7
+	Todo2, // d8
+	Todo2, // d9
+	Todo2, // da
+	Todo2, // db
+	Todo2, // dc
+	Todo2, // dd
+	Todo2, // de
+	Todo2, // df
+	Todo2, // e0
+	Todo2, // e1
+	Todo2, // e2
+	Todo2, // e3
+	Todo2, // e4
+	Todo2, // e5
+	Todo2, // e6
+	Todo2, // e7
+	Todo2, // e8
+	Todo2, // e9
+	Todo2, // ea
+	Todo2, // eb
+	Todo2, // ec
+	Todo2, // ed
+	Todo2, // ee
+	Todo2, // ef
+	Todo2, // f0
+	Todo2, // f1
+	Todo2, // f2
+	Todo2, // f3
+	Todo2, // f4
+	Todo2, // f5
+	Todo2, // f6
+	Todo2, // f7
+	Todo2, // f8
+	Todo2, // f9
+	Todo2, // fa
+	Todo2, // fb
+	Todo2, // fc
+	Todo2, // fd
+	Todo2, // fe
+	Todo2  // ff
+};
+
+void HandleCB(CPU* cpu) {
+	uint8_t opcode = cpu->Read(++cpu->PC);
+	cbhandlers[opcode](cpu);
+	cpu->cycles.add(1, 4);
+}
+
 const static CPUHandler handlers[] = {
 	Nop,                 // 00 NOP
 	LoadImmediate(BC),   // 01 LD  BC,d16
@@ -759,7 +1029,7 @@ const static CPUHandler handlers[] = {
 	Todo, // c8
 	Todo, // c9
 	JumpAbsolute(ZE),    // ca JP Z,a16
-	Todo, // cb
+	HandleCB,            // cb PREFIX: See cbhandlers
 	Todo, // cc
 	Todo, // cd
 	AddImmediate(A, true),  // ce ADC A,d8
@@ -774,7 +1044,7 @@ const static CPUHandler handlers[] = {
 	Todo, // d7
 	Todo, // d8
 	Todo, // d9
-	JumpAbsolute(C),     // da JP C,a16
+	JumpAbsolute(CA),     // da JP C,a16
 	Todo, // db
 	Todo, // dc
 	Todo, // dd
