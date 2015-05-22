@@ -487,6 +487,69 @@ CPUHandler JumpAbsolute(PID src) {
 	};
 }
 
+// Rotate Left function (called by RLCA/RLA etc)
+void RotateLeft(CPU* cpu, uint8_t* val, bool throughCarry, bool shift) {
+	uint8_t shf = *val >> 7;
+	uint8_t old = cpu->Flags().Carry;
+	cpu->Flags().Carry = shf;
+	*val = *val << 1;
+	if (!throughCarry) {
+		if (!shift) {
+			*val |= shf;
+		}
+	} else {
+		*val |= old;
+	}
+	cpu->Flags().Zero = *val == 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = 0;
+}
+
+// Rotate Right function (called by RRCA/RRA etc)
+void RotateRight(CPU* cpu, uint8_t* val, bool throughCarry, bool shift) {
+	uint8_t shf = *val << 7;
+	uint8_t old = cpu->Flags().Carry;
+	cpu->Flags().Carry = shf >> 7;
+	*val = *val >> 1;
+	if (!throughCarry) {
+		if (!shift) {
+			*val |= shf;
+		}
+	} else {
+		*val |= old << 7;
+	}
+	cpu->Flags().Zero = *val == 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = 0;
+}
+
+// Rotate Accumulator
+CPUHandler RotateAcc(bool left, bool throughCarry) {
+	return [left, throughCarry](CPU* cpu) {
+		uint8_t* acc = getRegister(cpu, A);
+		if (left) {
+			RotateLeft(cpu, acc, throughCarry, false);
+		} else {
+			RotateRight(cpu, acc, throughCarry, false);
+		}
+		cpu->Flags().Zero = 0;
+		cpu->cycles.add(1, 4);
+	};
+}
+
+// Rotate Register
+CPUHandler RotateReg(RID reg, bool left, bool throughCarry, bool shift) {
+	return [reg, left, throughCarry, shift](CPU* cpu) {
+		uint8_t* val = getRegister(cpu, reg);
+		if (left) {
+			RotateLeft(cpu, val, throughCarry, shift);
+		} else {
+			RotateRight(cpu, val, throughCarry, shift);
+		}
+		cpu->cycles.add(2, 8);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -500,15 +563,15 @@ const static CPUHandler handlers[] = {
 	Increment(B),        // 04 INC B
 	Decrement(B),        // 05 DEC B
 	LoadImmediate(B),    // 06 LD  B,d8
-	Todo, // 07
+	RotateAcc(true, false), // 07 RLCA
 	Todo, // 08
 	AddDirect(HL, BC),   // 09 ADD HL,BC
-	Todo, // 0a
+	LoadIndirect(A, BC), // 0a LD  A,(BC)
 	Decrement(BC),       // 0b DEC BC
 	Increment(C),        // 0c INC C
 	Decrement(C),        // 0d DEC C
 	LoadImmediate(C),    // 0e LD  C,d8
-	Todo,                // 0f
+	RotateAcc(false, false), // 0f RRCA
 	Halt(false),         // 10 STOP
 	LoadImmediate(DE),   // 11 LD  DE,d16
 	LoadIndirect(DE, A), // 12 LD  (DE),A
@@ -516,15 +579,15 @@ const static CPUHandler handlers[] = {
 	Increment(D),        // 14 INC D
 	Decrement(D),        // 15 DEC D
 	LoadImmediate(D),    // 16 LD  D,d8
-	Todo, // 17
+	RotateAcc(true, true), // 17 RLA
 	JumpRelative(NO),    // 18 JR  r8
 	AddDirect(HL,DE),    // 19 ADD HL,DE
-	Todo, // 1a
+	LoadIndirect(A, DE), // 1a LD  A,(DE)
 	Decrement(DE),       // 1b DEC DE
 	Increment(E),        // 1c DEC E
 	Decrement(E),        // 1d DEC E
 	LoadImmediate(E),    // 1e LD  E,d8
-	Todo, // 1f
+	RotateAcc(false, true), // 1f RRA
 	JumpRelative(NZ),    // 20 JR  NZ,r8
 	LoadImmediate(HL),   // 21 LD  HL,d16
 	LoadIndirectInc(HL, A, true), // 22 LDI (HL),A
