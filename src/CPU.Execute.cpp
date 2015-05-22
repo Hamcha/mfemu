@@ -157,7 +157,7 @@ CPUHandler Increment(PID dst) {
 	};
 }
 
-// Increment register (8bit, immediate)
+// Decrement register (8bit, immediate)
 CPUHandler Decrement(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
@@ -169,7 +169,7 @@ CPUHandler Decrement(RID dst) {
 	};
 }
 
-// Increment register (16bit, immediate)
+// Decrement register (16bit, immediate)
 CPUHandler Decrement(PID dst) {
 	return [dst](CPU* cpu) {
 		uint16_t* dstRes = getPair(cpu, dst);
@@ -431,6 +431,23 @@ CPUHandler JumpRelative(JumpCondition condition) {
 	};
 }
 
+// Immediate Absolute jump (16bit constant)
+CPUHandler JumpAbsolute(JumpCondition condition) {
+	return [condition](CPU* cpu) {
+		// Get next bytes
+		uint8_t  low  = cpu->Read(++cpu->PC);
+		uint8_t  high = cpu->Read(++cpu->PC);
+		uint16_t word = (high << 8) + low;
+
+		if (shouldJump(cpu, condition)) {
+			cpu->PC = word;
+			cpu->cycles.add(3, 16);
+		} else {
+			cpu->cycles.add(3, 12);
+		}
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -631,15 +648,15 @@ const static CPUHandler handlers[] = {
 	Todo, // bf
 	Todo, // c0
 	Todo, // c1
-	Todo, // c2
-	Todo, // c3
+	JumpAbsolute(NZ),    // c2 JP NZ,a16
+	JumpAbsolute(NO),    // c3 JP a16
 	Todo, // c4
 	Todo, // c5
 	AddImmediate(A, false), // c6 ADD A,d8
 	Todo, // c7
 	Todo, // c8
 	Todo, // c9
-	Todo, // ca
+	JumpAbsolute(ZE),    // ca JP Z,a16
 	Todo, // cb
 	Todo, // cc
 	Todo, // cd
@@ -647,7 +664,7 @@ const static CPUHandler handlers[] = {
 	Todo, // cf
 	Todo, // d0
 	Todo, // d1
-	Todo, // d2
+	JumpAbsolute(NC),    // d2 JP NC,a16
 	Todo, // d3
 	Todo, // d4
 	Todo, // d5
@@ -655,7 +672,7 @@ const static CPUHandler handlers[] = {
 	Todo, // d7
 	Todo, // d8
 	Todo, // d9
-	Todo, // da
+	JumpAbsolute(C),     // da JP C,a16
 	Todo, // db
 	Todo, // dc
 	Todo, // dd
