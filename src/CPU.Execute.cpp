@@ -14,6 +14,9 @@ enum PID {
 enum JumpCondition {
 	NO, NZ, ZE, NC, CA
 };
+enum RotationType {
+	ThC, Shf, Rep, Rot
+};
 
 uint8_t* getRegister(CPU* cpu, RID id) {
 	switch (id) {
@@ -488,36 +491,36 @@ CPUHandler JumpAbsolute(PID src) {
 }
 
 // Rotate Left function (called by RLCA/RLA etc)
-void RotateLeft(CPU* cpu, uint8_t* val, bool throughCarry, bool shift) {
+void RotateLeft(CPU* cpu, uint8_t* val, RotationType type) {
+	uint8_t car = cpu->Flags().Carry; // Save Carry for ThC (Through Carry)
 	uint8_t shf = *val >> 7;
-	uint8_t old = cpu->Flags().Carry;
 	cpu->Flags().Carry = shf;
 	*val = *val << 1;
-	if (!throughCarry) {
-		if (!shift) {
-			*val |= shf;
-		}
-	} else {
-		*val |= old;
+
+	switch (type) {
+	case ThC: *val |= car; break;
+	case Rot: *val |= shf; break;
 	}
+
 	cpu->Flags().Zero = *val == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 0;
 }
 
 // Rotate Right function (called by RRCA/RRA etc)
-void RotateRight(CPU* cpu, uint8_t* val, bool throughCarry, bool shift) {
+void RotateRight(CPU* cpu, uint8_t* val, RotationType type) {
+	uint8_t car = cpu->Flags().Carry; // Save Carry for ThC (Through Carry)
+	uint8_t old = *val;               // Save old value for Rep (Repeat)
 	uint8_t shf = *val << 7;
-	uint8_t old = cpu->Flags().Carry;
 	cpu->Flags().Carry = shf >> 7;
 	*val = *val >> 1;
-	if (!throughCarry) {
-		if (!shift) {
-			*val |= shf;
-		}
-	} else {
-		*val |= old << 7;
+
+	switch (type) {
+	case ThC: *val |= (car << 7); break;
+	case Rot: *val |= shf;        break;
+	case Rep: *val |= (old << 7); break;
 	}
+
 	cpu->Flags().Zero = *val == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 0;
@@ -528,9 +531,9 @@ CPUHandler RotateAcc(bool left, bool throughCarry) {
 	return [left, throughCarry](CPU* cpu) {
 		uint8_t* acc = getRegister(cpu, A);
 		if (left) {
-			RotateLeft(cpu, acc, throughCarry, false);
+			RotateLeft(cpu, acc, throughCarry ? ThC : Rot);
 		} else {
-			RotateRight(cpu, acc, throughCarry, false);
+			RotateRight(cpu, acc, throughCarry ? ThC : Rot);
 		}
 		cpu->Flags().Zero = 0;
 		cpu->cycles.add(1, 4);
@@ -538,27 +541,27 @@ CPUHandler RotateAcc(bool left, bool throughCarry) {
 }
 
 // Rotate Register
-CPUHandler RotateReg(RID reg, bool left, bool throughCarry, bool shift) {
-	return [reg, left, throughCarry, shift](CPU* cpu) {
+CPUHandler RotateReg(RID reg, bool left, RotationType type) {
+	return [reg, left, type](CPU* cpu) {
 		uint8_t* val = getRegister(cpu, reg);
 		if (left) {
-			RotateLeft(cpu, val, throughCarry, shift);
+			RotateLeft(cpu, val, type);
 		} else {
-			RotateRight(cpu, val, throughCarry, shift);
+			RotateRight(cpu, val, type);
 		}
 		cpu->cycles.add(2, 8);
 	};
 }
 
 // Rotate Indirect
-CPUHandler RotateInd(PID ind, bool left, bool throughCarry, bool shift) {
-	return [ind, left, throughCarry, shift](CPU* cpu) {
+CPUHandler RotateInd(PID ind, bool left, RotationType type) {
+	return [ind, left, type](CPU* cpu) {
 		uint16_t* addr = getPair(cpu, ind);
 		uint8_t value = cpu->Read(*addr);
 		if (left) {
-			RotateLeft(cpu, &value, throughCarry, shift);
+			RotateLeft(cpu, &value, type);
 		} else {
-			RotateRight(cpu, &value, throughCarry, shift);
+			RotateRight(cpu, &value, type);
 		}
 		cpu->Write(*addr, value);
 		cpu->cycles.add(2, 16);
@@ -661,70 +664,70 @@ void Todo2(CPU* cpu) {
 }
 
 const static CPUHandler cbhandlers[] = {
-	RotateReg(B, true, false, false),  // 00 RLC B
-	RotateReg(C, true, false, false),  // 01 RLC C
-	RotateReg(D, true, false, false),  // 02 RLC D
-	RotateReg(E, true, false, false),  // 03 RLC E
-	RotateReg(H, true, false, false),  // 04 RLC H
-	RotateReg(L, true, false, false),  // 05 RLC L
-	RotateInd(HL, true, false, false), // 06 RLC (HL)
-	RotateReg(A, true, false, false),  // 07 RLC A
-	RotateReg(B, false, false, false), // 08 RRC B
-	RotateReg(C, false, false, false), // 09 RRC C
-	RotateReg(D, false, false, false), // 0a RRC D
-	RotateReg(E, false, false, false), // 0b RRC E
-	RotateReg(H, false, false, false), // 0c RRC H
-	RotateReg(L, false, false, false), // 0d RRC L
-	RotateInd(HL, false, false, false), // 0e RRC (HL)
-	RotateReg(A, false, false, false), // 0f RRC A
-	RotateReg(B, true, true, false),   // 10 RL  B
-	RotateReg(C, true, true, false),   // 11 RL  C
-	RotateReg(D, true, true, false),   // 12 RL  D
-	RotateReg(E, true, true, false),   // 13 RL  E
-	RotateReg(H, true, true, false),   // 14 RL  H
-	RotateReg(L, true, true, false),   // 15 RL  L
-	RotateInd(HL, true, true, false),  // 16 RL  (HL)
-	RotateReg(A, true, true, false),   // 17 RL  A
-	RotateReg(B, false, true, false),  // 18 RR  B
-	RotateReg(C, false, true, false),  // 19 RR  C
-	RotateReg(D, false, true, false),  // 1a RR  D
-	RotateReg(E, false, true, false),  // 1b RR  E
-	RotateReg(H, false, true, false),  // 1c RR  H
-	RotateReg(L, false, true, false),  // 1d RR  L
-	RotateInd(HL, false, true, false), // 1e RR  (HL)
-	RotateReg(A, false, true, false),  // 1f RR  A
-	RotateReg(B, true, false, true),   // 20 SLA B
-	RotateReg(C, true, false, true),   // 21 SLA C
-	RotateReg(D, true, false, true),   // 22 SLA D
-	RotateReg(E, true, false, true),   // 23 SLA E
-	RotateReg(H, true, false, true),   // 24 SLA H
-	RotateReg(L, true, false, true),   // 25 SLA L
-	RotateInd(HL, true, false, true),  // 26 SLA (HL)
-	RotateReg(A, true, false, true),   // 27 SLA A
-	Todo2, // 28 SRA B
-	Todo2, // 29 SRA C
-	Todo2, // 2a SRA D
-	Todo2, // 2b SRA E
-	Todo2, // 2c SRA H
-	Todo2, // 2d SRA L
-	Todo2, // 2e SRA (HL)
-	Todo2, // 2f SRA A
-	SwapDirect(B),    // 30 SWAP B
-	SwapDirect(C),    // 31 SWAP C
-	SwapDirect(D),    // 32 SWAP D
-	SwapDirect(E),    // 33 SWAP E
-	SwapDirect(H),    // 34 SWAP H
-	SwapDirect(L),    // 35 SWAP L
-	SwapIndirect(HL), // 36 SWAP (HL)
-	SwapDirect(A),    // 37 SWAP A
-	RotateReg(B, false, false, true),  // 38 SRL B
-	RotateReg(C, false, false, true),  // 39 SRL C
-	RotateReg(D, false, false, true),  // 3a SRL D
-	RotateReg(E, false, false, true),  // 3b SRL E
-	RotateReg(H, false, false, true),  // 3c SRL H
-	RotateReg(L, false, false, true),  // 3d SRL L
-	RotateInd(HL, false, false, true), // 3e SRL (HL)
-	RotateReg(A, false, false, true),  // 3f SRL A
+	RotateReg(B, true, Rot),   // 00 RLC B
+	RotateReg(C, true, Rot),   // 01 RLC C
+	RotateReg(D, true, Rot),   // 02 RLC D
+	RotateReg(E, true, Rot),   // 03 RLC E
+	RotateReg(H, true, Rot),   // 04 RLC H
+	RotateReg(L, true, Rot),   // 05 RLC L
+	RotateInd(HL, true, Rot),  // 06 RLC (HL)
+	RotateReg(A, true, Rot),   // 07 RLC A
+	RotateReg(B, false, Rot),  // 08 RRC B
+	RotateReg(C, false, Rot),  // 09 RRC C
+	RotateReg(D, false, Rot),  // 0a RRC D
+	RotateReg(E, false, Rot),  // 0b RRC E
+	RotateReg(H, false, Rot),  // 0c RRC H
+	RotateReg(L, false, Rot),  // 0d RRC L
+	RotateInd(HL, false, Rot), // 0e RRC (HL)
+	RotateReg(A, false, Rot),  // 0f RRC A
+	RotateReg(B, true, ThC),   // 10 RL  B
+	RotateReg(C, true, ThC),   // 11 RL  C
+	RotateReg(D, true, ThC),   // 12 RL  D
+	RotateReg(E, true, ThC),   // 13 RL  E
+	RotateReg(H, true, ThC),   // 14 RL  H
+	RotateReg(L, true, ThC),   // 15 RL  L
+	RotateInd(HL, true, ThC),  // 16 RL  (HL)
+	RotateReg(A, true, ThC),   // 17 RL  A
+	RotateReg(B, false, ThC),  // 18 RR  B
+	RotateReg(C, false, ThC),  // 19 RR  C
+	RotateReg(D, false, ThC),  // 1a RR  D
+	RotateReg(E, false, ThC),  // 1b RR  E
+	RotateReg(H, false, ThC),  // 1c RR  H
+	RotateReg(L, false, ThC),  // 1d RR  L
+	RotateInd(HL, false, ThC), // 1e RR  (HL)
+	RotateReg(A, false, ThC),  // 1f RR  A
+	RotateReg(B, true, Shf),   // 20 SLA B
+	RotateReg(C, true, Shf),   // 21 SLA C
+	RotateReg(D, true, Shf),   // 22 SLA D
+	RotateReg(E, true, Shf),   // 23 SLA E
+	RotateReg(H, true, Shf),   // 24 SLA H
+	RotateReg(L, true, Shf),   // 25 SLA L
+	RotateInd(HL, true, Shf),  // 26 SLA (HL)
+	RotateReg(A, true, Shf),   // 27 SLA A
+	RotateReg(B, false, Rep),  // 28 SRA B
+	RotateReg(C, false, Rep),  // 29 SRA C
+	RotateReg(D, false, Rep),  // 2a SRA D
+	RotateReg(E, false, Rep),  // 2b SRA E
+	RotateReg(H, false, Rep),  // 2c SRA H
+	RotateReg(L, false, Rep),  // 2d SRA L
+	RotateInd(HL, false, Rep), // 2e SRA (HL)
+	RotateReg(A, false, Rep),  // 2f SRA A
+	SwapDirect(B),             // 30 SWAP B
+	SwapDirect(C),             // 31 SWAP C
+	SwapDirect(D),             // 32 SWAP D
+	SwapDirect(E),             // 33 SWAP E
+	SwapDirect(H),             // 34 SWAP H
+	SwapDirect(L),             // 35 SWAP L
+	SwapIndirect(HL),          // 36 SWAP (HL)
+	SwapDirect(A),             // 37 SWAP A
+	RotateReg(B, false, Shf),  // 38 SRL B
+	RotateReg(C, false, Shf),  // 39 SRL C
+	RotateReg(D, false, Shf),  // 3a SRL D
+	RotateReg(E, false, Shf),  // 3b SRL E
+	RotateReg(H, false, Shf),  // 3c SRL H
+	RotateReg(L, false, Shf),  // 3d SRL L
+	RotateInd(HL, false, Shf), // 3e SRL (HL)
+	RotateReg(A, false, Shf),  // 3f SRL A
 	BitDirect(B, 0),           // 40 BIT 0,B
 	BitDirect(C, 0),           // 41 BIT 0,C
 	BitDirect(D, 0),           // 42 BIT 0,D
