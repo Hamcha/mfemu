@@ -108,7 +108,7 @@ void ROM::debugPrintData() {
 	if (header.oldLicenseeCode != 0x33) {
 		std::cout << "Licensee code (old): " << std::hex << (int) header.oldLicenseeCode << std::endl;
 	} else {
-		std::cout << "Licensee code (new): " << std::string(header.newLicenseeCode) << std::endl;
+		std::cout << "Licensee code (new): " << header.newLicenseeCode[0] << header.newLicenseeCode[1] << std::endl;
 	}
 
 	// Destination code and other infos

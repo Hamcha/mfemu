@@ -46,8 +46,8 @@ uint16_t* getPair(CPU* cpu, PID id) {
 bool shouldJump(CPU* cpu, JumpCondition condition) {
 	switch (condition) {
 	case NO: return true;
-	case NZ: return cpu->Flags().Zero  == 0;
-	case ZE: return cpu->Flags().Zero  == 1;
+	case NZ: return cpu->Flags().Zero == 0;
+	case ZE: return cpu->Flags().Zero == 1;
 	case NC: return cpu->Flags().Carry == 0;
 	case CA: return cpu->Flags().Carry == 1;
 	}
@@ -91,7 +91,7 @@ CPUHandler LoadDirect(PID dst, PID src) {
 	};
 }
 
-// Indirect Load (Register offset to Register)
+// Indirect Load (16bit Register offset to Register)
 CPUHandler LoadIndirect(RID dst, PID ind) {
 	return [dst, ind](CPU* cpu) {
 		uint8_t* res = getRegister(cpu, dst);
@@ -102,13 +102,36 @@ CPUHandler LoadIndirect(RID dst, PID ind) {
 	};
 }
 
-// Indirect Load (Register to Register offset)
+// Indirect Load (Register to 16bit Register offset)
 CPUHandler LoadIndirect(PID dst, RID src) {
 	return [dst, src](CPU* cpu) {
 		uint8_t* value = getRegister(cpu, src);
 		uint16_t* addr = getPair(cpu, dst);
 		cpu->Write(*addr, *value);
 		cpu->cycles.add(1, 8);
+	};
+}
+
+// Indirect Load (Register to 8bit Register offset)
+CPUHandler LoadIndirectMem(RID ind, RID reg) {
+	return [ind, reg](CPU* cpu) {
+		uint8_t* value = getRegister(cpu, reg);
+		uint8_t* offset = getRegister(cpu, ind);
+
+		cpu->Write(0xff00 + *offset, *value);
+		cpu->cycles.add(2, 8);
+	};
+}
+
+// Indirect Load (8bit Register offset to Register)
+CPUHandler LoadIndirectReg(RID dst, RID ind) {
+	return [dst, ind](CPU* cpu) {
+		uint8_t* reg = getRegister(cpu, dst);
+		uint8_t* offset = getRegister(cpu, ind);
+
+		uint8_t value = cpu->Read(0xff00 + *offset);
+		*reg = value;
+		cpu->cycles.add(2, 8);
 	};
 }
 
@@ -161,7 +184,7 @@ CPUHandler LoadImmediate(PID dst) {
 	return [dst](CPU* cpu) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		// Get next bytes
-		uint8_t  low  = cpu->Read(++cpu->PC);
+		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
 		uint16_t word = (high << 8) + low;
 
@@ -178,7 +201,7 @@ CPUHandler Increment(RID dst) {
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 0;
 		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
-		cpu->cycles.add(1,4);
+		cpu->cycles.add(1, 4);
 	};
 }
 
@@ -187,7 +210,7 @@ CPUHandler Increment(PID dst) {
 	return [dst](CPU* cpu) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		dstRes++;
-		cpu->cycles.add(1,8);
+		cpu->cycles.add(1, 8);
 	};
 }
 
@@ -199,7 +222,7 @@ CPUHandler Decrement(RID dst) {
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 1;
 		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
-		cpu->cycles.add(1,4);
+		cpu->cycles.add(1, 4);
 	};
 }
 
@@ -208,7 +231,7 @@ CPUHandler Decrement(PID dst) {
 	return [dst](CPU* cpu) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		dstRes--;
-		cpu->cycles.add(1,8);
+		cpu->cycles.add(1, 8);
 	};
 }
 
@@ -235,7 +258,7 @@ void Add(CPU* cpu, uint16_t* a, uint16_t* b) {
 
 // Direct Add (8bit, register to register)
 CPUHandler AddDirect(RID a, RID b, bool useCarry) {
-	return [a,b,useCarry](CPU* cpu){
+	return [a, b, useCarry](CPU* cpu) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Add(cpu, aRes, bRes, useCarry);
@@ -278,7 +301,7 @@ CPUHandler AddImmediate(RID a, bool useCarry) {
 CPUHandler AddImmediateS(PID a) {
 	return[a](CPU* cpu) {
 		uint16_t* aRes = getPair(cpu, a);
-		int8_t bRes = (int8_t)cpu->Read(++cpu->PC);
+		int8_t bRes = (int8_t) cpu->Read(++cpu->PC);
 		uint16_t orig = *aRes;
 		*aRes += bRes;
 		cpu->Flags().Zero = 0;
@@ -361,7 +384,7 @@ void Xor(CPU* cpu, uint8_t* a, uint8_t* b) {
 
 // Direct AND (register to register)
 CPUHandler AndDirect(RID a, RID b) {
-	return [a,b](CPU* cpu) {
+	return [a, b](CPU* cpu) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		And(cpu, aRes, bRes);
@@ -392,7 +415,7 @@ CPUHandler AndImmediate(RID a) {
 
 // Direct OR (register to register)
 CPUHandler OrDirect(RID a, RID b) {
-	return [a,b](CPU* cpu) {
+	return [a, b](CPU* cpu) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Or(cpu, aRes, bRes);
@@ -423,7 +446,7 @@ CPUHandler OrImmediate(RID a) {
 
 // Direct XOR (register to register)
 CPUHandler XorDirect(RID a, RID b) {
-	return [a,b](CPU* cpu) {
+	return [a, b](CPU* cpu) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Xor(cpu, aRes, bRes);
@@ -455,7 +478,7 @@ CPUHandler XorImmediate(RID a) {
 // Relative jump (8bit constant)
 CPUHandler JumpRelative(JumpCondition condition) {
 	return [condition](CPU* cpu) {
-		int8_t r8 = (int8_t)cpu->Read(++cpu->PC);
+		int8_t r8 = (int8_t) cpu->Read(++cpu->PC);
 		if (shouldJump(cpu, condition)) {
 			cpu->PC += r8;
 			cpu->cycles.add(2, 12);
@@ -469,7 +492,7 @@ CPUHandler JumpRelative(JumpCondition condition) {
 CPUHandler JumpAbsolute(JumpCondition condition) {
 	return [condition](CPU* cpu) {
 		// Get next bytes
-		uint8_t  low  = cpu->Read(++cpu->PC);
+		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
 		uint16_t word = (high << 8) + low;
 
@@ -655,12 +678,12 @@ CPUHandler BitIndirect(PID ind, uint8_t bit) {
 
 // Unimplemented instruction
 void Todo(CPU* cpu) {
-	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
+	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
 }
 
 // Unimplemented instruction (for extra opcodes)
 void Todo2(CPU* cpu) {
-	std::cout << "Unknown Opcode: cb " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
+	std::cout << "Unknown Opcode: cb " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
 }
 
 const static CPUHandler cbhandlers[] = {
@@ -954,7 +977,7 @@ const static CPUHandler handlers[] = {
 	LoadImmediate(D),    // 16 LD  D,d8
 	RotateAcc(true, true), // 17 RLA
 	JumpRelative(NO),    // 18 JR  r8
-	AddDirect(HL,DE),    // 19 ADD HL,DE
+	AddDirect(HL, DE),   // 19 ADD HL,DE
 	LoadIndirect(A, DE), // 1a LD  A,(DE)
 	Decrement(DE),       // 1b DEC DE
 	Increment(E),        // 1c DEC E
@@ -970,7 +993,7 @@ const static CPUHandler handlers[] = {
 	LoadImmediate(H),    // 26 LD  H,d8
 	Todo, // 27
 	JumpRelative(ZE),    // 28 JR  Z,r8
-	AddDirect(HL,HL),    // 29 ADD HL,HL
+	AddDirect(HL, HL),   // 29 ADD HL,HL
 	LoadIndirectInc(A, HL, true), // 2a LDI A,(HL)
 	Decrement(HL),       // 2b DEC HL
 	Increment(L),        // 2c INC L
@@ -986,7 +1009,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 36
 	Todo, // 37
 	JumpRelative(CA),    // 38 JR  C,r8
-	AddDirect(HL,SP),    // 39 ADD HL,SP
+	AddDirect(HL, SP),   // 39 ADD HL,SP
 	LoadIndirectInc(A, HL, false), // 3a LDD A,(HL)
 	Decrement(SP),       // 3b DEC SP
 	Increment(A),        // 3c INC A
@@ -1123,23 +1146,23 @@ const static CPUHandler handlers[] = {
 	Todo, // bf
 	Todo, // c0
 	Todo, // c1
-	JumpAbsolute(NZ),    // c2 JP NZ,a16
-	JumpAbsolute(NO),    // c3 JP a16
+	JumpAbsolute(NZ),       // c2 JP NZ,a16
+	JumpAbsolute(NO),       // c3 JP a16
 	Todo, // c4
 	Todo, // c5
 	AddImmediate(A, false), // c6 ADD A,d8
 	Todo, // c7
 	Todo, // c8
 	Todo, // c9
-	JumpAbsolute(ZE),    // ca JP Z,a16
-	HandleCB,            // cb PREFIX: See cbhandlers
+	JumpAbsolute(ZE),       // ca JP Z,a16
+	HandleCB,               // cb PREFIX: See cbhandlers
 	Todo, // cc
 	Todo, // cd
 	AddImmediate(A, true),  // ce ADC A,d8
 	Todo, // cf
 	Todo, // d0
 	Todo, // d1
-	JumpAbsolute(NC),    // d2 JP NC,a16
+	JumpAbsolute(NC),       // d2 JP NC,a16
 	Todo, // d3
 	Todo, // d4
 	Todo, // d5
@@ -1147,7 +1170,7 @@ const static CPUHandler handlers[] = {
 	Todo, // d7
 	Todo, // d8
 	Todo, // d9
-	JumpAbsolute(CA),     // da JP C,a16
+	JumpAbsolute(CA),       // da JP C,a16
 	Todo, // db
 	Todo, // dc
 	Todo, // dd
@@ -1155,30 +1178,30 @@ const static CPUHandler handlers[] = {
 	Todo, // df
 	Todo, // e0
 	Todo, // e1
-	Todo, // e2
+	LoadIndirectMem(C, A),  // e2 LD (C),A
 	Todo, // e3
 	Todo, // e4
 	Todo, // e5
-	AndImmediate(A),     // e6 AND A,d8
+	AndImmediate(A),        // e6 AND A,d8
 	Todo, // e7
-	AddImmediateS(SP),   // e8 ADD SP,r8
-	JumpAbsolute(HL),    // e9 JP  (HL)
+	AddImmediateS(SP),      // e8 ADD SP,r8
+	JumpAbsolute(HL),       // e9 JP  (HL)
 	Todo, // ea
 	Todo, // eb
 	Todo, // ec
 	Todo, // ed
-	XorImmediate(A),     // ee XOR A,d8
+	XorImmediate(A),        // ee XOR A,d8
 	Todo, // ef
 	Todo, // f0
 	Todo, // f1
-	Todo, // f2
+	LoadIndirectReg(A, C),  // f2 LD A,(C)
 	Todo, // f3
 	Todo, // f4
 	Todo, // f5
-	OrImmediate(A),      // f6 OR A,d8
+	OrImmediate(A),         // f6 OR A,d8
 	Todo, // f7
 	Todo, // f8
-	LoadDirect(SP, HL),  // f9 LD SP,HL
+	LoadDirect(SP, HL),     // f9 LD SP,HL
 	Todo, // fa
 	Todo, // fb
 	Todo, // fc

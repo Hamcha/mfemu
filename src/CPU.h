@@ -69,7 +69,7 @@ public:
 	uint16_t PC;    //! Program Counter
 	union {
 		uint8_t Byte;
-		} Status; //! Status Register
+	} Status; //! Status Register
 
 	CycleCount cycles;
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }

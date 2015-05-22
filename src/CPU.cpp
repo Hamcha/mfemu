@@ -157,7 +157,7 @@ CPU::CPU(ROM* _rom) {
 	rom = _rom;
 	running = true;
 	PC = 0;
-	cycles = {0,0};
+	cycles = { 0, 0 };
 
 	// Push at least one ram bank (GB classic)
 	VRAMBank bank1;
