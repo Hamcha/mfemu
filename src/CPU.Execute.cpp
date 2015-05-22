@@ -109,6 +109,37 @@ CPUHandler LoadIndirect(PID dst, RID src) {
 	};
 }
 
+// Indirect Load with increment/decrement (register offset to register)
+CPUHandler LoadIndirectInc(RID dst, PID ind, bool increment) {
+	return [dst, ind, increment](CPU* cpu) {
+		uint8_t* res = getRegister(cpu, dst);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t value = cpu->Read(*addr);
+		*res = value;
+		if (increment) {
+			*addr++;
+		} else {
+			*addr--;
+		}
+		cpu->cycles.add(1, 8);
+	};
+}
+
+// Indirect Load with increment/decrement (register to register offset)
+CPUHandler LoadIndirectInc(PID ind, RID src, bool increment) {
+	return [ind, src, increment](CPU* cpu) {
+		uint8_t* res = getRegister(cpu, src);
+		uint16_t* addr = getPair(cpu, ind);
+		cpu->Write(*addr, *res);
+		if (increment) {
+			*addr++;
+		} else {
+			*addr--;
+		}
+		cpu->cycles.add(1, 8);
+	};
+}
+
 // Immediate Load (8bit constant to Register)
 CPUHandler LoadImmediate(RID dst) {
 	return [dst](CPU* cpu) {
@@ -448,6 +479,14 @@ CPUHandler JumpAbsolute(JumpCondition condition) {
 	};
 }
 
+// Immediate Absolute Jump (register)
+CPUHandler JumpAbsolute(PID src) {
+	return [src](CPU* cpu) {
+		cpu->PC = cpu->HL.Pair;
+		cpu->cycles.add(1, 4);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -488,15 +527,15 @@ const static CPUHandler handlers[] = {
 	Todo, // 1f
 	JumpRelative(NZ),    // 20 JR  NZ,r8
 	LoadImmediate(HL),   // 21 LD  HL,d16
-	Todo, // 22
+	LoadIndirectInc(HL, A, true), // 22 LDI (HL),A
 	Increment(HL),       // 23 INC HL
 	Increment(H),        // 24 INC H
 	Decrement(H),        // 25 DEC H
 	LoadImmediate(H),    // 26 LD  H,d8
 	Todo, // 27
-	JumpRelative(ZE),     // 28 JR  Z,r8
+	JumpRelative(ZE),    // 28 JR  Z,r8
 	AddDirect(HL,HL),    // 29 ADD HL,HL
-	Todo, // 2a
+	LoadIndirectInc(A, HL, true), // 2a LDI A,(HL)
 	Decrement(HL),       // 2b DEC HL
 	Increment(L),        // 2c INC L
 	Decrement(L),        // 2d DEC L
@@ -504,7 +543,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 2f
 	JumpRelative(NC),    // 30 JR  NC,r8
 	LoadImmediate(SP),   // 31 LD  SP,d16
-	Todo, // 32
+	LoadIndirectInc(HL, A, false), // 32 LDD (HL),A
 	Increment(SP),       // 33 INC SP
 	Todo, // 34
 	Todo, // 35
@@ -512,7 +551,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 37
 	JumpRelative(CA),    // 38 JR  C,r8
 	AddDirect(HL,SP),    // 39 ADD HL,SP
-	Todo, // 3a
+	LoadIndirectInc(A, HL, false), // 3a LDD A,(HL)
 	Decrement(SP),       // 3b DEC SP
 	Increment(A),        // 3c INC A
 	Decrement(A),        // 3d DEC A
@@ -687,7 +726,7 @@ const static CPUHandler handlers[] = {
 	AndImmediate(A),     // e6 AND A,d8
 	Todo, // e7
 	AddImmediateS(SP),   // e8 ADD SP,r8
-	Todo, // e9
+	JumpAbsolute(HL),    // e9 JP  (HL)
 	Todo, // ea
 	Todo, // eb
 	Todo, // ec
