@@ -280,6 +280,126 @@ CPUHandler SubImmediate(RID a, bool useCarry) {
 	};
 }
 
+// And function (called by AndDirect etc)
+void And(CPU* cpu, uint8_t* a, uint8_t* b) {
+	*a &= *b;
+	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = 1;
+	cpu->Flags().Carry = 0;
+}
+
+// Or function (called by OrDirect etc)
+void Or(CPU* cpu, uint8_t* a, uint8_t* b) {
+	*a |= *b;
+	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = 0;
+	cpu->Flags().Carry = 0;
+}
+
+// Or function (called by OrDirect etc)
+void Xor(CPU* cpu, uint8_t* a, uint8_t* b) {
+	*a ^= *b;
+	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = 0;
+	cpu->Flags().Carry = 0;
+}
+
+// Direct AND (register to register)
+CPUHandler AndDirect(RID a, RID b) {
+	return [a,b](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t* bRes = getRegister(cpu, b);
+		And(cpu, aRes, bRes);
+		cpu->cycles.add(1, 4);
+	};
+}
+
+// Indirect AND (register offset to register)
+CPUHandler AndIndirect(RID a, PID ind) {
+	return[a, ind](CPU* cpu) {
+		uint8_t*  aRes = getRegister(cpu, a);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t   bRes = cpu->Read(*addr);
+		And(cpu, aRes, &bRes);
+		cpu->cycles.add(1, 8);
+	};
+}
+
+// Immediate AND (8bit constant to register)
+CPUHandler AndImmediate(RID a) {
+	return[a](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t  bRes = cpu->Read(++cpu->PC);
+		And(cpu, aRes, &bRes);
+		cpu->cycles.add(2, 8);
+	};
+}
+
+// Direct OR (register to register)
+CPUHandler OrDirect(RID a, RID b) {
+	return [a,b](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t* bRes = getRegister(cpu, b);
+		Or(cpu, aRes, bRes);
+		cpu->cycles.add(1, 4);
+	};
+}
+
+// Indirect OR (register offset to register)
+CPUHandler OrIndirect(RID a, PID ind) {
+	return[a, ind](CPU* cpu) {
+		uint8_t*  aRes = getRegister(cpu, a);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t   bRes = cpu->Read(*addr);
+		Or(cpu, aRes, &bRes);
+		cpu->cycles.add(1, 8);
+	};
+}
+
+// Immediate OR (8bit constant to register)
+CPUHandler OrImmediate(RID a) {
+	return[a](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t  bRes = cpu->Read(++cpu->PC);
+		Or(cpu, aRes, &bRes);
+		cpu->cycles.add(2, 8);
+	};
+}
+
+// Direct XOR (register to register)
+CPUHandler XorDirect(RID a, RID b) {
+	return [a,b](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t* bRes = getRegister(cpu, b);
+		Xor(cpu, aRes, bRes);
+		cpu->cycles.add(1, 4);
+	};
+}
+
+// Indirect XOR (register offset to register)
+CPUHandler XorIndirect(RID a, PID ind) {
+	return[a, ind](CPU* cpu) {
+		uint8_t*  aRes = getRegister(cpu, a);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t   bRes = cpu->Read(*addr);
+		Xor(cpu, aRes, &bRes);
+		cpu->cycles.add(1, 8);
+	};
+}
+
+// Immediate XOR (8bit constant to register)
+CPUHandler XorImmediate(RID a) {
+	return[a](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t  bRes = cpu->Read(++cpu->PC);
+		Xor(cpu, aRes, &bRes);
+		cpu->cycles.add(2, 8);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -446,30 +566,30 @@ const static CPUHandler handlers[] = {
 	SubDirect(A, L, true),     // 9d SBC A,L
 	SubIndirect(A, HL, true),  // 9e SBC A,(HL)
 	SubDirect(A, A, true),     // 9f SBC A,A
-	Todo, // a0
-	Todo, // a1
-	Todo, // a2
-	Todo, // a3
-	Todo, // a4
-	Todo, // a5
-	Todo, // a6
-	Todo, // a7
-	Todo, // a8
-	Todo, // a9
-	Todo, // aa
-	Todo, // ab
-	Todo, // ac
-	Todo, // ad
-	Todo, // ae
-	Todo, // af
-	Todo, // b0
-	Todo, // b1
-	Todo, // b2
-	Todo, // b3
-	Todo, // b4
-	Todo, // b5
-	Todo, // b6
-	Todo, // b7
+	AndDirect(A, B),     // a0 AND A,B
+	AndDirect(A, C),     // a1 AND A,C
+	AndDirect(A, D),     // a2 AND A,D
+	AndDirect(A, E),     // a3 AND A,E
+	AndDirect(A, H),     // a4 AND A,H
+	AndDirect(A, L),     // a5 AND A,L
+	AndIndirect(A, HL),  // a6 AND A,(HL)
+	AndDirect(A, A),     // a7 AND A,A
+	XorDirect(A, B),     // a8 XOR A,B
+	XorDirect(A, C),     // a9 XOR A,C
+	XorDirect(A, D),     // aa XOR A,D
+	XorDirect(A, E),     // ab XOR A,E
+	XorDirect(A, H),     // ac XOR A,H
+	XorDirect(A, L),     // ad XOR A,L
+	XorIndirect(A, HL),  // ae XOR A,(HL)
+	XorDirect(A, A),     // af XOR A,A
+	OrDirect(A, B),      // b0 OR  A,B
+	OrDirect(A, C),      // b1 OR  A,C
+	OrDirect(A, D),      // b2 OR  A,D
+	OrDirect(A, E),      // b3 OR  A,E
+	OrDirect(A, H),      // b4 OR  A,H
+	OrDirect(A, L),      // b5 OR  A,L
+	OrIndirect(A, HL),   // b6 OR  A,(HL)
+	OrDirect(A, A),      // b7 OR  A,A
 	Todo, // b8
 	Todo, // b9
 	Todo, // ba
@@ -516,15 +636,15 @@ const static CPUHandler handlers[] = {
 	Todo, // e3
 	Todo, // e4
 	Todo, // e5
-	Todo, // e6
+	AndImmediate(A),     // e6 AND A,d8
 	Todo, // e7
-	AddImmediate(SP),       // e8 ADD SP,r8
+	AddImmediate(SP),    // e8 ADD SP,r8
 	Todo, // e9
 	Todo, // ea
 	Todo, // eb
 	Todo, // ec
 	Todo, // ed
-	Todo, // ee
+	XorImmediate(A),     // ee XOR A,d8
 	Todo, // ef
 	Todo, // f0
 	Todo, // f1
@@ -532,10 +652,10 @@ const static CPUHandler handlers[] = {
 	Todo, // f3
 	Todo, // f4
 	Todo, // f5
-	Todo, // f6
+	OrImmediate(A),      // f6 OR A,d8
 	Todo, // f7
 	Todo, // f8
-	LoadDirect(SP, HL), // f9 LD SP,HL
+	LoadDirect(SP, HL),  // f9 LD SP,HL
 	Todo, // fa
 	Todo, // fb
 	Todo, // fc
