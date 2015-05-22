@@ -550,6 +550,35 @@ CPUHandler RotateReg(RID reg, bool left, bool throughCarry, bool shift) {
 	};
 }
 
+// Swap function (swaps nibbles)
+void Swap(CPU* cpu, uint8_t* value) {
+	*value = (*value >> 4) | (*value << 4);
+	cpu->Flags().Zero = *value == 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = 0;
+	cpu->Flags().Carry = 0;
+}
+
+// Direct Swap (register)
+CPUHandler SwapDirect(RID reg) {
+	return [reg](CPU* cpu) {
+		uint8_t* val = getRegister(cpu, reg);
+		Swap(cpu, val);
+		cpu->cycles.add(2, 8);
+	};
+}
+
+// Indirect Swap (register offset)
+CPUHandler SwapIndirect(PID reg) {
+	return [reg](CPU* cpu) {
+		uint16_t* addr = getPair(cpu, reg);
+		uint8_t value = cpu->Read(*addr);
+		Swap(cpu, &value);
+		cpu->Write(*addr, value);
+		cpu->cycles.add(2, 16);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -609,14 +638,14 @@ const static CPUHandler cbhandlers[] = {
 	Todo2, // 2d SRA L
 	Todo2, // 2e SRA (HL)
 	Todo2, // 2f SRA A
-	Todo2, // 30 SWAP B
-	Todo2, // 31 SWAP C
-	Todo2, // 32 SWAP D
-	Todo2, // 33 SWAP E
-	Todo2, // 34 SWAP H
-	Todo2, // 35 SWAP L
-	Todo2, // 36 SWAP (HL)
-	Todo2, // 37 SWAP A
+	SwapDirect(B),    // 30 SWAP B
+	SwapDirect(C),    // 31 SWAP C
+	SwapDirect(D),    // 32 SWAP D
+	SwapDirect(E),    // 33 SWAP E
+	SwapDirect(H),    // 34 SWAP H
+	SwapDirect(L),    // 35 SWAP L
+	SwapIndirect(HL), // 36 SWAP (HL)
+	SwapDirect(A),    // 37 SWAP A
 	RotateReg(B, false, false, true),  // 38 SRL B
 	RotateReg(C, false, false, true),  // 39 SRL C
 	RotateReg(D, false, false, true),  // 3a SRL D
