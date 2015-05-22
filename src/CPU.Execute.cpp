@@ -608,6 +608,33 @@ CPUHandler SetIndirect(PID ind, uint8_t bit, bool reset) {
 	};
 }
 
+// Get bit operation (called by BitDirect/Indirect)
+void Bit(CPU* cpu, uint8_t value, uint8_t offset) {
+	uint8_t bit = (value >> offset) & 0x01;
+	cpu->Flags().Zero = bit == 0 ? 1 : 0;
+	cpu->Flags().BCD_AddSub = 0;
+	cpu->Flags().BCD_HalfCarry = 1;
+}
+
+// Direct Get bit (register)
+CPUHandler BitDirect(RID reg, uint8_t bit) {
+	return [reg, bit](CPU* cpu) {
+		uint8_t* value = getRegister(cpu, reg);
+		Bit(cpu, *value, bit);
+		cpu->cycles.add(2, 8);
+	};
+}
+
+// Indirect Get bit (register offset)
+CPUHandler BitIndirect(PID ind, uint8_t bit) {
+	return [ind, bit](CPU* cpu) {
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t value = cpu->Read(*addr);
+		Bit(cpu, value, bit);
+		cpu->cycles.add(2, 16);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -683,70 +710,70 @@ const static CPUHandler cbhandlers[] = {
 	RotateReg(L, false, false, true),  // 3d SRL L
 	Todo2, // 3e SRL (HL)
 	RotateReg(A, false, false, true),  // 3f SRL A
-	Todo2, // 40
-	Todo2, // 41
-	Todo2, // 42
-	Todo2, // 43
-	Todo2, // 44
-	Todo2, // 45
-	Todo2, // 46
-	Todo2, // 47
-	Todo2, // 48
-	Todo2, // 49
-	Todo2, // 4a
-	Todo2, // 4b
-	Todo2, // 4c
-	Todo2, // 4d
-	Todo2, // 4e
-	Todo2, // 4f
-	Todo2, // 50
-	Todo2, // 51
-	Todo2, // 52
-	Todo2, // 53
-	Todo2, // 54
-	Todo2, // 55
-	Todo2, // 56
-	Todo2, // 57
-	Todo2, // 58
-	Todo2, // 59
-	Todo2, // 5a
-	Todo2, // 5b
-	Todo2, // 5c
-	Todo2, // 5d
-	Todo2, // 5e
-	Todo2, // 5f
-	Todo2, // 60
-	Todo2, // 61
-	Todo2, // 62
-	Todo2, // 63
-	Todo2, // 64
-	Todo2, // 65
-	Todo2, // 66
-	Todo2, // 67
-	Todo2, // 68
-	Todo2, // 69
-	Todo2, // 6a
-	Todo2, // 6b
-	Todo2, // 6c
-	Todo2, // 6d
-	Todo2, // 6e
-	Todo2, // 6f
-	Todo2, // 70
-	Todo2, // 71
-	Todo2, // 72
-	Todo2, // 73
-	Todo2, // 74
-	Todo2, // 75
-	Todo2, // 76
-	Todo2, // 77
-	Todo2, // 78
-	Todo2, // 79
-	Todo2, // 7a
-	Todo2, // 7b
-	Todo2, // 7c
-	Todo2, // 7d
-	Todo2, // 7e
-	Todo2, // 7f
+	BitDirect(B, 0),           // 40 BIT 0,B
+	BitDirect(C, 0),           // 41 BIT 0,C
+	BitDirect(D, 0),           // 42 BIT 0,D
+	BitDirect(E, 0),           // 43 BIT 0,E
+	BitDirect(H, 0),           // 44 BIT 0,H
+	BitDirect(L, 0),           // 45 BIT 0,L
+	BitIndirect(HL, 0),        // 46 BIT 0,(HL)
+	BitDirect(A, 0),           // 47 BIT 0,A
+	BitDirect(B, 1),           // 48 BIT 1,B
+	BitDirect(C, 1),           // 49 BIT 1,C
+	BitDirect(D, 1),           // 4a BIT 1,D
+	BitDirect(E, 1),           // 4b BIT 1,E
+	BitDirect(H, 1),           // 4c BIT 1,H
+	BitDirect(L, 1),           // 4d BIT 1,L
+	BitIndirect(HL, 1),        // 4e BIT 1,(HL)
+	BitDirect(A, 1),           // 4f BIT 1,A
+	BitDirect(B, 2),           // 50 BIT 2,B
+	BitDirect(C, 2),           // 51 BIT 2,C
+	BitDirect(D, 2),           // 52 BIT 2,D
+	BitDirect(E, 2),           // 53 BIT 2,E
+	BitDirect(H, 2),           // 54 BIT 2,H
+	BitDirect(L, 2),           // 55 BIT 2,L
+	BitIndirect(HL, 2),        // 56 BIT 2,(HL)
+	BitDirect(A, 2),           // 57 BIT 2,A
+	BitDirect(B, 3),           // 58 BIT 3,B
+	BitDirect(C, 3),           // 59 BIT 3,C
+	BitDirect(D, 3),           // 5a BIT 3,D
+	BitDirect(E, 3),           // 5b BIT 3,E
+	BitDirect(H, 3),           // 5c BIT 3,H
+	BitDirect(L, 3),           // 5d BIT 3,L
+	BitIndirect(HL, 3),        // 5e BIT 3,(HL)
+	BitDirect(A, 3),           // 5f BIT 3,A
+	BitDirect(B, 4),           // 60 BIT 4,B
+	BitDirect(C, 4),           // 61 BIT 4,C
+	BitDirect(D, 4),           // 62 BIT 4,D
+	BitDirect(E, 4),           // 63 BIT 4,E
+	BitDirect(H, 4),           // 64 BIT 4,H
+	BitDirect(L, 4),           // 65 BIT 4,L
+	BitIndirect(HL, 4),        // 66 BIT 4,(HL)
+	BitDirect(A, 4),           // 67 BIT 4,A
+	BitDirect(B, 5),           // 68 BIT 5,B
+	BitDirect(C, 5),           // 69 BIT 5,C
+	BitDirect(D, 5),           // 6a BIT 5,D
+	BitDirect(E, 5),           // 6b BIT 5,E
+	BitDirect(H, 5),           // 6c BIT 5,H
+	BitDirect(L, 5),           // 6d BIT 5,L
+	BitIndirect(HL, 5),        // 6e BIT 5,(HL)
+	BitDirect(A, 5),           // 6f BIT 5,A
+	BitDirect(B, 6),           // 70 BIT 6,B
+	BitDirect(C, 6),           // 71 BIT 6,C
+	BitDirect(D, 6),           // 72 BIT 6,D
+	BitDirect(E, 6),           // 73 BIT 6,E
+	BitDirect(H, 6),           // 74 BIT 6,H
+	BitDirect(L, 6),           // 75 BIT 6,L
+	BitIndirect(HL, 6),        // 76 BIT 6,(HL)
+	BitDirect(A, 6),           // 77 BIT 6,A
+	BitDirect(B, 7),           // 78 BIT 7,B
+	BitDirect(C, 7),           // 79 BIT 7,C
+	BitDirect(D, 7),           // 7a BIT 7,D
+	BitDirect(E, 7),           // 7b BIT 7,E
+	BitDirect(H, 7),           // 7c BIT 7,H
+	BitDirect(L, 7),           // 7d BIT 7,L
+	BitIndirect(HL, 7),        // 7e BIT 7,(HL)
+	BitDirect(A, 7),           // 7f BIT 7,A
 	SetDirect(B, 0, true),     // 80 RES 0,B
 	SetDirect(C, 0, true),     // 81 RES 0,C
 	SetDirect(D, 0, true),     // 82 RES 0,D
