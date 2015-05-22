@@ -579,6 +579,35 @@ CPUHandler SwapIndirect(PID reg) {
 	};
 }
 
+// Set bit function (called by Set/Res
+void Set(uint8_t* value, uint8_t offset, bool reset) {
+	if (reset) {
+		*value &= ~(1 << offset);
+	} else {
+		*value |= 1 << offset;
+	}
+}
+
+// Direct Set/Reset (register)
+CPUHandler SetDirect(RID reg, uint8_t bit, bool reset) {
+	return [reg, bit, reset](CPU* cpu) {
+		uint8_t* val = getRegister(cpu, reg);
+		Set(val, bit, reset);
+		cpu->cycles.add(2, 8);
+	};
+}
+
+// Indirect Set/Reset (register offset)
+CPUHandler SetIndirect(PID ind, uint8_t bit, bool reset) {
+	return [ind, bit, reset](CPU* cpu) {
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t value = cpu->Read(*addr);
+		Set(&value, bit, reset);
+		cpu->Write(*addr, value);
+		cpu->cycles.add(2, 16);
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int)cpu->Read(cpu->PC) << std::endl;
@@ -718,134 +747,134 @@ const static CPUHandler cbhandlers[] = {
 	Todo2, // 7d
 	Todo2, // 7e
 	Todo2, // 7f
-	Todo2, // 80
-	Todo2, // 81
-	Todo2, // 82
-	Todo2, // 83
-	Todo2, // 84
-	Todo2, // 85
-	Todo2, // 86
-	Todo2, // 87
-	Todo2, // 88
-	Todo2, // 89
-	Todo2, // 8a
-	Todo2, // 8b
-	Todo2, // 8c
-	Todo2, // 8d
-	Todo2, // 8e
-	Todo2, // 8f
-	Todo2, // 90
-	Todo2, // 91
-	Todo2, // 92
-	Todo2, // 93
-	Todo2, // 94
-	Todo2, // 95
-	Todo2, // 96
-	Todo2, // 97
-	Todo2, // 98
-	Todo2, // 99
-	Todo2, // 9a
-	Todo2, // 9b
-	Todo2, // 9c
-	Todo2, // 9d
-	Todo2, // 9e
-	Todo2, // 9f
-	Todo2, // a0
-	Todo2, // a1
-	Todo2, // a2
-	Todo2, // a3
-	Todo2, // a4
-	Todo2, // a5
-	Todo2, // a6
-	Todo2, // a7
-	Todo2, // a8
-	Todo2, // a9
-	Todo2, // aa
-	Todo2, // ab
-	Todo2, // ac
-	Todo2, // ad
-	Todo2, // ae
-	Todo2, // af
-	Todo2, // b0
-	Todo2, // b1
-	Todo2, // b2
-	Todo2, // b3
-	Todo2, // b4
-	Todo2, // b5
-	Todo2, // b6
-	Todo2, // b7
-	Todo2, // b8
-	Todo2, // b9
-	Todo2, // ba
-	Todo2, // bb
-	Todo2, // bc
-	Todo2, // bd
-	Todo2, // be
-	Todo2, // bf
-	Todo2, // c0
-	Todo2, // c1
-	Todo2, // c2
-	Todo2, // c3
-	Todo2, // c4
-	Todo2, // c5
-	Todo2, // c6
-	Todo2, // c7
-	Todo2, // c8
-	Todo2, // c9
-	Todo2, // ca
-	Todo2, // cb
-	Todo2, // cc
-	Todo2, // cd
-	Todo2, // ce
-	Todo2, // cf
-	Todo2, // d0
-	Todo2, // d1
-	Todo2, // d2
-	Todo2, // d3
-	Todo2, // d4
-	Todo2, // d5
-	Todo2, // d6
-	Todo2, // d7
-	Todo2, // d8
-	Todo2, // d9
-	Todo2, // da
-	Todo2, // db
-	Todo2, // dc
-	Todo2, // dd
-	Todo2, // de
-	Todo2, // df
-	Todo2, // e0
-	Todo2, // e1
-	Todo2, // e2
-	Todo2, // e3
-	Todo2, // e4
-	Todo2, // e5
-	Todo2, // e6
-	Todo2, // e7
-	Todo2, // e8
-	Todo2, // e9
-	Todo2, // ea
-	Todo2, // eb
-	Todo2, // ec
-	Todo2, // ed
-	Todo2, // ee
-	Todo2, // ef
-	Todo2, // f0
-	Todo2, // f1
-	Todo2, // f2
-	Todo2, // f3
-	Todo2, // f4
-	Todo2, // f5
-	Todo2, // f6
-	Todo2, // f7
-	Todo2, // f8
-	Todo2, // f9
-	Todo2, // fa
-	Todo2, // fb
-	Todo2, // fc
-	Todo2, // fd
-	Todo2, // fe
-	Todo2  // ff
+	SetDirect(B, 0, true),     // 80 RES 0,B
+	SetDirect(C, 0, true),     // 81 RES 0,C
+	SetDirect(D, 0, true),     // 82 RES 0,D
+	SetDirect(E, 0, true),     // 83 RES 0,E
+	SetDirect(H, 0, true),     // 84 RES 0,H
+	SetDirect(L, 0, true),     // 85 RES 0,L
+	SetIndirect(HL, 0, true),  // 86 RES 0,(HL)
+	SetDirect(A, 0, true),     // 87 RES 0,A
+	SetDirect(B, 1, true),     // 88 RES 1,B
+	SetDirect(C, 1, true),     // 89 RES 1,C
+	SetDirect(D, 1, true),     // 8a RES 1,D
+	SetDirect(E, 1, true),     // 8b RES 1,E
+	SetDirect(H, 1, true),     // 8c RES 1,H
+	SetDirect(L, 1, true),     // 8d RES 1,L
+	SetIndirect(HL, 1, true),  // 8e RES 1,(HL)
+	SetDirect(A, 1, true),     // 8f RES 1,A
+	SetDirect(B, 2, true),     // 90 RES 2,B
+	SetDirect(C, 2, true),     // 91 RES 2,C
+	SetDirect(D, 2, true),     // 92 RES 2,D
+	SetDirect(E, 2, true),     // 93 RES 2,E
+	SetDirect(H, 2, true),     // 94 RES 2,H
+	SetDirect(L, 2, true),     // 95 RES 2,L
+	SetIndirect(HL, 2, true),  // 96 RES 2,(HL)
+	SetDirect(A, 2, true),     // 97 RES 2,A
+	SetDirect(B, 3, true),     // 98 RES 3,B
+	SetDirect(C, 3, true),     // 99 RES 3,C
+	SetDirect(D, 3, true),     // 9a RES 3,D
+	SetDirect(E, 3, true),     // 9b RES 3,E
+	SetDirect(H, 3, true),     // 9c RES 3,H
+	SetDirect(L, 3, true),     // 9d RES 3,L
+	SetIndirect(HL, 3, true),  // 9e RES 3,(HL)
+	SetDirect(A, 3, true),     // 9f RES 3,A
+	SetDirect(B, 4, true),     // a0 RES 4,B
+	SetDirect(C, 4, true),     // a1 RES 4,C
+	SetDirect(D, 4, true),     // a2 RES 4,D
+	SetDirect(E, 4, true),     // a3 RES 4,E
+	SetDirect(H, 4, true),     // a4 RES 4,H
+	SetDirect(L, 4, true),     // a5 RES 4,L
+	SetIndirect(HL, 4, true),  // a6 RES 4,(HL)
+	SetDirect(A, 4, true),     // a7 RES 4,A
+	SetDirect(B, 5, true),     // a8 RES 5,B
+	SetDirect(C, 5, true),     // a9 RES 5,C
+	SetDirect(D, 5, true),     // aa RES 5,D
+	SetDirect(E, 5, true),     // ab RES 5,E
+	SetDirect(H, 5, true),     // ac RES 5,H
+	SetDirect(L, 5, true),     // ad RES 5,L
+	SetIndirect(HL, 5, true),  // ae RES 5,(HL)
+	SetDirect(A, 5, true),     // af RES 5,A
+	SetDirect(B, 6, true),     // b0 RES 6,B
+	SetDirect(C, 6, true),     // b1 RES 6,C
+	SetDirect(D, 6, true),     // b2 RES 6,D
+	SetDirect(E, 6, true),     // b3 RES 6,E
+	SetDirect(H, 6, true),     // b4 RES 6,H
+	SetDirect(L, 6, true),     // b5 RES 6,L
+	SetIndirect(HL, 6, true),  // b6 RES 6,(HL)
+	SetDirect(A, 6, true),     // b7 RES 6,A
+	SetDirect(B, 7, true),     // b8 RES 7,B
+	SetDirect(C, 7, true),     // b9 RES 7,C
+	SetDirect(D, 7, true),     // ba RES 7,D
+	SetDirect(E, 7, true),     // bb RES 7,E
+	SetDirect(H, 7, true),     // bc RES 7,H
+	SetDirect(L, 7, true),     // bd RES 7,L
+	SetIndirect(HL, 7, true),  // be RES 7,(HL)
+	SetDirect(A, 7, true),     // bf RES 7,A
+	SetDirect(B, 0, false),    // c0 SET 0,B
+	SetDirect(C, 0, false),    // c1 SET 0,C
+	SetDirect(D, 0, false),    // c2 SET 0,D
+	SetDirect(E, 0, false),    // c3 SET 0,E
+	SetDirect(H, 0, false),    // c4 SET 0,H
+	SetDirect(L, 0, false),    // c5 SET 0,L
+	SetIndirect(HL, 0, false), // c6 SET 0,(HL)
+	SetDirect(A, 0, false),    // c7 SET 0,A
+	SetDirect(B, 1, false),    // c8 SET 1,B
+	SetDirect(C, 1, false),    // c9 SET 1,C
+	SetDirect(D, 1, false),    // ca SET 1,D
+	SetDirect(E, 1, false),    // cb SET 1,E
+	SetDirect(H, 1, false),    // cc SET 1,H
+	SetDirect(L, 1, false),    // cd SET 1,L
+	SetIndirect(HL, 1, false), // ce SET 1,(HL)
+	SetDirect(A, 1, false),    // cf SET 1,A
+	SetDirect(B, 2, false),    // d0 SET 2,B
+	SetDirect(C, 2, false),    // d1 SET 2,C
+	SetDirect(D, 2, false),    // d2 SET 2,D
+	SetDirect(E, 2, false),    // d3 SET 2,E
+	SetDirect(H, 2, false),    // d4 SET 2,H
+	SetDirect(L, 2, false),    // d5 SET 2,L
+	SetIndirect(HL, 2, false), // d6 SET 2,(HL)
+	SetDirect(A, 2, false),    // d7 SET 2,A
+	SetDirect(B, 3, false),    // d8 SET 3,B
+	SetDirect(C, 3, false),    // d9 SET 3,C
+	SetDirect(D, 3, false),    // da SET 3,D
+	SetDirect(E, 3, false),    // db SET 3,E
+	SetDirect(H, 3, false),    // dc SET 3,H
+	SetDirect(L, 3, false),    // dd SET 3,L
+	SetIndirect(HL, 3, false), // de SET 3,(HL)
+	SetDirect(A, 3, false),    // df SET 3,A
+	SetDirect(B, 4, false),    // e0 SET 4,B
+	SetDirect(C, 4, false),    // e1 SET 4,C
+	SetDirect(D, 4, false),    // e2 SET 4,D
+	SetDirect(E, 4, false),    // e3 SET 4,E
+	SetDirect(H, 4, false),    // e4 SET 4,H
+	SetDirect(L, 4, false),    // e5 SET 4,L
+	SetIndirect(HL, 4, false), // e6 SET 4,(HL)
+	SetDirect(A, 4, false),    // e7 SET 4,A
+	SetDirect(B, 5, false),    // e8 SET 5,B
+	SetDirect(C, 5, false),    // e9 SET 5,C
+	SetDirect(D, 5, false),    // ea SET 5,D
+	SetDirect(E, 5, false),    // eb SET 5,E
+	SetDirect(H, 5, false),    // ec SET 5,H
+	SetDirect(L, 5, false),    // ed SET 5,L
+	SetIndirect(HL, 5, false), // ee SET 5,(HL)
+	SetDirect(A, 5, false),    // ef SET 5,A
+	SetDirect(B, 6, false),    // f0 SET 6,B
+	SetDirect(C, 6, false),    // f1 SET 6,C
+	SetDirect(D, 6, false),    // f2 SET 6,D
+	SetDirect(E, 6, false),    // f3 SET 6,E
+	SetDirect(H, 6, false),    // f4 SET 6,H
+	SetDirect(L, 6, false),    // f5 SET 6,L
+	SetIndirect(HL, 6, false), // f6 SET 6,(HL)
+	SetDirect(A, 6, false),    // f7 SET 6,A
+	SetDirect(B, 7, false),    // f8 SET 7,B
+	SetDirect(C, 7, false),    // f9 SET 7,C
+	SetDirect(D, 7, false),    // fa SET 7,D
+	SetDirect(E, 7, false),    // fb SET 7,E
+	SetDirect(H, 7, false),    // fc SET 7,H
+	SetDirect(L, 7, false),    // fd SET 7,L
+	SetIndirect(HL, 7, false), // fe SET 7,(HL)
+	SetDirect(A, 7, false)     // ff SET 7,A
 };
 
 void HandleCB(CPU* cpu) {
