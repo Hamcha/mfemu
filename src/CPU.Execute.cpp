@@ -166,6 +166,20 @@ CPUHandler LoadIndirectInc(PID ind, RID src, bool increment) {
 	};
 }
 
+// Load to memory (register to 16bit constant)
+CPUHandler LoadToMemory(RID src) {
+	return [src](CPU* cpu) {
+		// Get next bytes
+		uint8_t  low = cpu->Read(++cpu->PC);
+		uint8_t  high = cpu->Read(++cpu->PC);
+		uint16_t word = (high << 8) + low;
+		uint8_t* reg = getRegister(cpu, src);
+		
+		cpu->Write(word, *reg);
+		cpu->cycles.add(3, 16);
+	};
+}
+
 // Immediate Load (8bit constant to Register)
 CPUHandler LoadImmediate(RID dst) {
 	return [dst](CPU* cpu) {
@@ -681,9 +695,9 @@ void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
 }
 
-// Unimplemented instruction (for extra opcodes)
-void Todo2(CPU* cpu) {
-	std::cout << "Unknown Opcode: cb " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
+// Inexistent instruction
+void Wrong(CPU* cpu) {
+	std::cout << "Called inexistent opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
 }
 
 const static CPUHandler cbhandlers[] = {
@@ -1163,7 +1177,7 @@ const static CPUHandler handlers[] = {
 	Todo, // d0
 	Todo, // d1
 	JumpAbsolute(NC),       // d2 JP NC,a16
-	Todo, // d3
+	Wrong,                  // d3
 	Todo, // d4
 	Todo, // d5
 	SubImmediate(A, false), // d6 SUB A,d8
@@ -1171,32 +1185,32 @@ const static CPUHandler handlers[] = {
 	Todo, // d8
 	Todo, // d9
 	JumpAbsolute(CA),       // da JP C,a16
-	Todo, // db
+	Wrong,                  // db
 	Todo, // dc
-	Todo, // dd
+	Wrong,                  // dd
 	SubImmediate(A, true),  // de SBC A,d8
 	Todo, // df
 	Todo, // e0
 	Todo, // e1
 	LoadIndirectMem(C, A),  // e2 LD (C),A
-	Todo, // e3
-	Todo, // e4
+	Wrong,                  // e3
+	Wrong,                  // e4
 	Todo, // e5
 	AndImmediate(A),        // e6 AND A,d8
 	Todo, // e7
 	AddImmediateS(SP),      // e8 ADD SP,r8
 	JumpAbsolute(HL),       // e9 JP  (HL)
-	Todo, // ea
-	Todo, // eb
-	Todo, // ec
-	Todo, // ed
+	LoadToMemory(A),        // ea LD (a16),A
+	Wrong,                  // eb
+	Wrong,                  // ec
+	Wrong,                  // ed
 	XorImmediate(A),        // ee XOR A,d8
 	Todo, // ef
 	Todo, // f0
 	Todo, // f1
 	LoadIndirectReg(A, C),  // f2 LD A,(C)
 	Todo, // f3
-	Todo, // f4
+	Wrong,                  // f4
 	Todo, // f5
 	OrImmediate(A),         // f6 OR A,d8
 	Todo, // f7
@@ -1204,8 +1218,8 @@ const static CPUHandler handlers[] = {
 	LoadDirect(SP, HL),     // f9 LD SP,HL
 	Todo, // fa
 	Todo, // fb
-	Todo, // fc
-	Todo, // fd
+	Wrong,                  // fc
+	Wrong,                  // fd
 	Todo, // fe
 	Todo  // ff
 };
