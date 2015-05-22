@@ -172,9 +172,9 @@ CPUHandler Increment(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		dstRes++;
-		cpu->Flags().Zero = *dstRes == 0;
+		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
 		cpu->cycles.add(1,4);
 	};
 }
@@ -193,9 +193,9 @@ CPUHandler Decrement(RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		dstRes--;
-		cpu->Flags().Zero = *dstRes == 0;
+		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 1;
-		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9;
+		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
 		cpu->cycles.add(1,4);
 	};
 }
@@ -216,18 +216,18 @@ void Add(CPU* cpu, uint8_t* a, uint8_t* b, bool useCarry) {
 	if (useCarry && cpu->Flags().Carry) {
 		*a++;
 	}
-	cpu->Flags().Carry = *a < orig;
-	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().Carry = *a < orig ? 1 : 0;
+	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
-	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9;
+	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9 ? 1 : 0;
 }
 
 void Add(CPU* cpu, uint16_t* a, uint16_t* b) {
 	uint16_t orig = *a;
 	*a += *b;
-	cpu->Flags().Carry = *a < orig;
+	cpu->Flags().Carry = *a < orig ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
-	cpu->Flags().BCD_HalfCarry = (*a & 0x000f) > 9;
+	cpu->Flags().BCD_HalfCarry = (*a & 0x000f) > 9 ? 1 : 0;
 }
 
 // Direct Add (8bit, register to register)
@@ -281,7 +281,7 @@ CPUHandler AddImmediateS(PID a) {
 		cpu->Flags().Zero = 0;
 		cpu->Flags().Carry = *aRes < orig;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = (*aRes & 0x000f) > 9;
+		cpu->Flags().BCD_HalfCarry = (*aRes & 0x000f) > 9 ? 1 : 0;
 		cpu->cycles.add(2, 16);
 	};
 }
@@ -294,9 +294,9 @@ void Subtract(CPU* cpu, uint8_t* a, uint8_t* b, bool useCarry) {
 		*a--;
 	}
 	cpu->Flags().Carry = *a > orig;
-	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().Zero = *a == 0 ? 0 : 1;
 	cpu->Flags().BCD_AddSub = 1;
-	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9;
+	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9 ? 1 : 0;
 }
 
 // Direct Subtract (8bit, register to register)
@@ -341,7 +341,7 @@ void And(CPU* cpu, uint8_t* a, uint8_t* b) {
 // Or function (called by OrDirect etc)
 void Or(CPU* cpu, uint8_t* a, uint8_t* b) {
 	*a |= *b;
-	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 0;
 	cpu->Flags().Carry = 0;
@@ -350,7 +350,7 @@ void Or(CPU* cpu, uint8_t* a, uint8_t* b) {
 // Or function (called by OrDirect etc)
 void Xor(CPU* cpu, uint8_t* a, uint8_t* b) {
 	*a ^= *b;
-	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 0;
 	cpu->Flags().Carry = 0;
@@ -500,7 +500,7 @@ void RotateLeft(CPU* cpu, uint8_t* val, bool throughCarry, bool shift) {
 	} else {
 		*val |= old;
 	}
-	cpu->Flags().Zero = *val == 0;
+	cpu->Flags().Zero = *val == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 0;
 }
@@ -518,7 +518,7 @@ void RotateRight(CPU* cpu, uint8_t* val, bool throughCarry, bool shift) {
 	} else {
 		*val |= old << 7;
 	}
-	cpu->Flags().Zero = *val == 0;
+	cpu->Flags().Zero = *val == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 0;
 }
@@ -553,7 +553,7 @@ CPUHandler RotateReg(RID reg, bool left, bool throughCarry, bool shift) {
 // Swap function (swaps nibbles)
 void Swap(CPU* cpu, uint8_t* value) {
 	*value = (*value >> 4) | (*value << 4);
-	cpu->Flags().Zero = *value == 0;
+	cpu->Flags().Zero = *value == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 0;
 	cpu->Flags().Carry = 0;
@@ -579,7 +579,7 @@ CPUHandler SwapIndirect(PID reg) {
 	};
 }
 
-// Set bit function (called by Set/Res
+// Set bit function (called by Set/Res etc)
 void Set(uint8_t* value, uint8_t offset, bool reset) {
 	if (reset) {
 		*value &= ~(1 << offset);
