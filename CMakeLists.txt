@@ -36,7 +36,7 @@ else()
 endif()
 
 # Set version's DEFINE
-add_definitions(-DVERSION=${MAJOR} -DCOMMIT=\"${CURRENTREV}\")
+add_definitions(-DVERSION=${MAJOR} -DCOMMIT=\"${CURRENTREV}\" -DDEBUG_OPS=1 -DDEBUG_ROM=1)
 
 # Remove console window on Windows
 #if(MSVC)

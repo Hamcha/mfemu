@@ -1,7 +1,6 @@
 #include <iostream>
 #include "ROM.h"
 #include "CPU.h"
-#define DEBUG 1
 
 int main(int argc, char **argv) {
 	std::cout << "mfemu v." << VERSION << " rev." << COMMIT << std::endl << std::endl;
@@ -29,7 +28,7 @@ int main(int argc, char **argv) {
 	}
 
 	std::cout << "Loaded ROM: " << title << std::endl;
-#if DEBUG
+#if DEBUG_ROM
 	file.debugPrintData();
 #endif
 

@@ -67,9 +67,6 @@ public:
 
 	uint16_t SP;    //! Stack Pointer
 	uint16_t PC;    //! Program Counter
-	union {
-		uint8_t Byte;
-	} Status; //! Status Register
 
 	CycleCount cycles;
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }
