@@ -278,9 +278,9 @@ CPUHandler LoadIndirectInc(const RID dst, const PID ind, const bool increment) {
 		uint8_t value = cpu->Read(*addr);
 		*res = value;
 		if (increment) {
-			*addr++;
+			*addr += 1;
 		} else {
-			*addr--;
+			*addr -= 1;
 		}
 		cpu->cycles.add(1, 8);
 
@@ -297,9 +297,9 @@ CPUHandler LoadIndirectInc(const PID ind, const RID src, const bool increment) {
 		uint16_t* addr = getPair(cpu, ind);
 		cpu->Write(*addr, *res);
 		if (increment) {
-			*addr++;
+			*addr += 1;
 		} else {
-			*addr--;
+			*addr -= 1;
 		}
 		cpu->cycles.add(1, 8);
 
@@ -360,7 +360,7 @@ CPUHandler LoadImmediate(const PID dst) {
 CPUHandler Increment(const RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
-		dstRes++;
+		*dstRes += 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 0;
 		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
@@ -374,7 +374,7 @@ CPUHandler Increment(const RID dst) {
 CPUHandler Increment(const PID dst) {
 	return [dst](CPU* cpu) {
 		uint16_t* dstRes = getPair(cpu, dst);
-		dstRes++;
+		*dstRes += 1;
 		cpu->cycles.add(1, 8);
 
 		debugPrintInstruction(cpu, "INC", Direct, dst);
@@ -385,7 +385,7 @@ CPUHandler Increment(const PID dst) {
 CPUHandler Decrement(const RID dst) {
 	return [dst](CPU* cpu) {
 		uint8_t* dstRes = getRegister(cpu, dst);
-		dstRes--;
+		*dstRes -= 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 1;
 		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
@@ -399,7 +399,7 @@ CPUHandler Decrement(const RID dst) {
 CPUHandler Decrement(const PID dst) {
 	return [dst](CPU* cpu) {
 		uint16_t* dstRes = getPair(cpu, dst);
-		dstRes--;
+		*dstRes -= 1;
 		cpu->cycles.add(1, 8);
 
 		debugPrintInstruction(cpu, "DEC", Direct, dst);
@@ -411,7 +411,7 @@ void Add(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 	uint8_t orig = *a;
 	*a += *b;
 	if (useCarry && cpu->Flags().Carry) {
-		*a++;
+		*a += 1;
 	}
 	cpu->Flags().Carry = *a < orig ? 1 : 0;
 	cpu->Flags().Zero = *a == 0 ? 1 : 0;
@@ -498,7 +498,7 @@ void Subtract(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 	uint8_t orig = *a;
 	*a -= *b;
 	if (useCarry && cpu->Flags().Carry) {
-		*a--;
+		*a -= 1;
 	}
 	cpu->Flags().Carry = *a > orig;
 	cpu->Flags().Zero = *a == 0 ? 0 : 1;
