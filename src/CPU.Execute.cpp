@@ -92,10 +92,10 @@ std::string getPairName(const PID id) {
 
 std::string getJumpConditionName(const JumpCondition condition) {
 	switch (condition) {
-	case CA: return "C";
-	case NC: return "NC";
-	case ZE: return "Z";
-	case NZ: return "NZ";
+	case CA: return " C";
+	case NC: return " NC";
+	case ZE: return " Z";
+	case NZ: return " NZ";
 	case NO: default: return "";
 	}
 }
@@ -540,6 +540,49 @@ CPUHandler SubImmediate(const RID a, const bool useCarry) {
 		cpu->cycles.add(2, 8);
 
 		debugPrintInstruction(cpu, "SUB", Direct, a, Comma, bRes);
+	};
+}
+
+// Compare function (used by CmpImmediate, CmpDirect etc)
+void Compare(CPU* cpu, uint8_t* a, uint8_t* b) {
+	uint8_t c = *a - *b;
+	cpu->Flags().Carry = c > *a;
+	cpu->Flags().Zero = c == 0 ? 0 : 1;
+	cpu->Flags().BCD_AddSub = 1;
+	cpu->Flags().BCD_HalfCarry = (c & 0x0f) > 9 ? 1 : 0;
+}
+
+CPUHandler CmpDirect(const RID a, const RID b) {
+	return [a, b](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t* bRes = getRegister(cpu, b);
+		Compare(cpu, aRes, bRes);
+		cpu->cycles.add(1, 4);
+
+		debugPrintInstruction(cpu, "CP ", Direct, a, Comma, Direct, b);
+	};
+}
+
+CPUHandler CmpIndirect(const RID a, const PID ind) {
+	return [a, ind](CPU* cpu) {
+		uint8_t*  aRes = getRegister(cpu, a);
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t   bRes = cpu->Read(*addr);
+		Compare(cpu, aRes, &bRes);
+		cpu->cycles.add(1, 8);
+
+		debugPrintInstruction(cpu, "CP ", Direct, a, Comma, Indirect, ind);
+	};
+}
+
+CPUHandler CmpImmediate(const RID a) {
+	return [a](CPU* cpu) {
+		uint8_t* aRes = getRegister(cpu, a);
+		uint8_t  bRes = cpu->Read(++cpu->PC);
+		Compare(cpu, aRes, &bRes);
+		cpu->cycles.add(1, 4);
+
+		debugPrintInstruction(cpu, "CP ", Direct, a, Comma, bRes);
 	};
 }
 
@@ -1386,25 +1429,25 @@ const static CPUHandler handlers[] = {
 	OrDirect(A, L),      // b5 OR  A,L
 	OrIndirect(A, HL),   // b6 OR  A,(HL)
 	OrDirect(A, A),      // b7 OR  A,A
-	Todo, // b8
-	Todo, // b9
-	Todo, // ba
-	Todo, // bb
-	Todo, // bc
-	Todo, // bd
-	Todo, // be
-	Todo, // bf
+	CmpDirect(A, B),     // b8 CP  A,B
+	CmpDirect(A, C),     // b9 CP  A,C
+	CmpDirect(A, D),     // ba CP  A,D
+	CmpDirect(A, E),     // bb CP  A,E
+	CmpDirect(A, H),     // bc CP  A,H
+	CmpDirect(A, L),     // bd CP  A,L
+	CmpIndirect(A, HL),  // be CP  A,(HL)
+	CmpDirect(A, A),     // bf CP  A,A
 	Todo, // c0
 	Todo, // c1
-	JumpAbsolute(NZ),       // c2 JP NZ,a16
-	JumpAbsolute(NO),       // c3 JP a16
+	JumpAbsolute(NZ),       // c2 JP  NZ,a16
+	JumpAbsolute(NO),       // c3 JP  a16
 	Todo, // c4
 	Todo, // c5
 	AddImmediate(A, false), // c6 ADD A,d8
 	Todo, // c7
 	Todo, // c8
 	Todo, // c9
-	JumpAbsolute(ZE),       // ca JP Z,a16
+	JumpAbsolute(ZE),       // ca JP  Z,a16
 	HandleCB,               // cb PREFIX: See cbhandlers
 	Todo, // cc
 	Todo, // cd
@@ -1412,7 +1455,7 @@ const static CPUHandler handlers[] = {
 	Todo, // cf
 	Todo, // d0
 	Todo, // d1
-	JumpAbsolute(NC),       // d2 JP NC,a16
+	JumpAbsolute(NC),       // d2 JP  NC,a16
 	Wrong,                  // d3
 	Todo, // d4
 	Todo, // d5
@@ -1420,7 +1463,7 @@ const static CPUHandler handlers[] = {
 	Todo, // d7
 	Todo, // d8
 	Todo, // d9
-	JumpAbsolute(CA),       // da JP C,a16
+	JumpAbsolute(CA),       // da JP  C,a16
 	Wrong,                  // db
 	Todo, // dc
 	Wrong,                  // dd
@@ -1428,7 +1471,7 @@ const static CPUHandler handlers[] = {
 	Todo, // df
 	Todo, // e0
 	Todo, // e1
-	LoadIndirectMem(C, A),  // e2 LD (C),A
+	LoadIndirectMem(C, A),  // e2 LD  (C),A
 	Wrong,                  // e3
 	Wrong,                  // e4
 	Todo, // e5
@@ -1436,7 +1479,7 @@ const static CPUHandler handlers[] = {
 	Todo, // e7
 	AddImmediateS(SP),      // e8 ADD SP,r8
 	JumpAbsolute(HL),       // e9 JP  (HL)
-	LoadToMemory(A),        // ea LD (a16),A
+	LoadToMemory(A),        // ea LD  (a16),A
 	Wrong,                  // eb
 	Wrong,                  // ec
 	Wrong,                  // ed
@@ -1444,19 +1487,19 @@ const static CPUHandler handlers[] = {
 	Todo, // ef
 	Todo, // f0
 	Todo, // f1
-	LoadIndirectReg(A, C),  // f2 LD A,(C)
+	LoadIndirectReg(A, C),  // f2 LD  A,(C)
 	Todo, // f3
 	Wrong,                  // f4
 	Todo, // f5
-	OrImmediate(A),         // f6 OR A,d8
+	OrImmediate(A),         // f6 OR  A,d8
 	Todo, // f7
 	Todo, // f8
-	LoadDirect(SP, HL),     // f9 LD SP,HL
+	LoadDirect(SP, HL),     // f9 LD  SP,HL
 	Todo, // fa
 	Todo, // fb
 	Wrong,                  // fc
 	Wrong,                  // fd
-	Todo, // fe
+	CmpImmediate(A),        // fe CP  A,d8
 	Todo  // ff
 };
 
