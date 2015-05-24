@@ -172,7 +172,11 @@ void debugPrintInstruction(CPU* cpu, const Args... args) {
 #endif
 }
 
-uint8_t getHalfCarry(uint8_t after, uint8_t before) {
+uint8_t getHalfCarry(const uint8_t after, const uint8_t before) {
+	return (before ^ after >> 4) & 0x01;
+}
+
+uint8_t getHalfCarry(const uint16_t after, const uint16_t before) {
 	return (before ^ after >> 4) & 0x01;
 }
 
@@ -420,6 +424,22 @@ CPUHandler LoadImmediate(const PID dst) {
 	};
 }
 
+// Indirect Immediate Load (8bit constant to 16bit register offset)
+CPUHandler LoadImmediateInd(const PID ind) {
+	return [ind](CPU* cpu) {
+		uint16_t* addr = getPair(cpu, ind);
+		// Get next byte
+		uint8_t value = cpu->Read(++cpu->PC);
+
+		// Write to address
+		cpu->Write(*addr, value);
+
+		cpu->cycles.add(2, 12);
+
+		debugPrintInstruction(cpu, "LD ", Indirect, ind, Comma, value);
+	};
+}
+
 // Increment register (8bit, immediate)
 CPUHandler Increment(const RID dst) {
 	return [dst](CPU* cpu) {
@@ -445,6 +465,23 @@ CPUHandler Increment(const PID dst) {
 	};
 }
 
+// Indirect Increment (16bit register offset)
+CPUHandler IncrementInd(const PID ind) {
+	return [ind](CPU* cpu) {
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t value = cpu->Read(*addr);
+		value += 1;
+		cpu->Write(*addr, value);
+
+		cpu->Flags().Zero = value == 0 ? 1 : 0;
+		cpu->Flags().BCD_AddSub = 0;
+		cpu->Flags().BCD_HalfCarry = getHalfCarry(value, value - 1);
+		cpu->cycles.add(1, 12);
+
+		debugPrintInstruction(cpu, "INC", Indirect, ind);
+	};
+}
+
 // Decrement register (8bit, immediate)
 CPUHandler Decrement(const RID dst) {
 	return [dst](CPU* cpu) {
@@ -467,6 +504,23 @@ CPUHandler Decrement(const PID dst) {
 		cpu->cycles.add(1, 8);
 
 		debugPrintInstruction(cpu, "DEC", Direct, dst);
+	};
+}
+
+// Indirect Decrement (16bit register offset)
+CPUHandler DecrementInd(const PID ind) {
+	return [ind](CPU* cpu) {
+		uint16_t* addr = getPair(cpu, ind);
+		uint8_t value = cpu->Read(*addr);
+		value -= 1;
+		cpu->Write(*addr, value);
+
+		cpu->Flags().Zero = value == 0 ? 1 : 0;
+		cpu->Flags().BCD_AddSub = 1;
+		cpu->Flags().BCD_HalfCarry = getHalfCarry(value, value + 1);
+		cpu->cycles.add(1, 12);
+
+		debugPrintInstruction(cpu, "DEC", Indirect, ind);
 	};
 }
 
@@ -1422,9 +1476,9 @@ const static CPUHandler handlers[] = {
 	LoadImmediate(SP),   // 31 LD  SP,d16
 	LoadIndirectInc(HL, A, false), // 32 LDD (HL),A
 	Increment(SP),       // 33 INC SP
-	Todo, // 34
-	Todo, // 35
-	Todo, // 36
+	IncrementInd(HL),    // 34 INC (HL)
+	DecrementInd(HL),    // 35 DEC (HL)
+	LoadImmediateInd(HL),// 36 LD  (HL),d8
 	SetCarry(false),     // 37 SCF
 	JumpRelative(CA),    // 38 JR  C,r8
 	AddDirect(HL, SP),   // 39 ADD HL,SP
