@@ -25,7 +25,6 @@ enum DebugFlags {
 	Comma, IndStart, IndFinish
 };
 
-
 uint8_t* getRegister(CPU* cpu, const RID id) {
 	switch (id) {
 	case A: return &(cpu->AF.Single.A);
@@ -171,6 +170,10 @@ void debugPrintInstruction(CPU* cpu, const Args... args) {
 	std::cout << std::setfill('0') << std::setw(4) << std::hex << cpu->PC << " |";
 	debugPrintArgument(cpu, args...);
 #endif
+}
+
+uint8_t getHalfCarry(uint8_t after, uint8_t before) {
+	return (before ^ after >> 4) & 0x01;
 }
 
 // Do nothing
@@ -350,6 +353,26 @@ CPUHandler LoadToMemory(const RID src) {
 	};
 }
 
+// Load to memory (register to 16bit constant)
+CPUHandler LoadToMemory(const PID src) {
+	return [src](CPU* cpu) {
+		// Get next bytes
+		uint8_t  low = cpu->Read(++cpu->PC);
+		uint8_t  high = cpu->Read(++cpu->PC);
+		uint16_t word = (high << 8) + low;
+		uint16_t* reg = getPair(cpu, src);
+
+		uint8_t highVal = *reg >> 8;
+		uint8_t lowVal = *reg & 0x0f;
+
+		cpu->Write(word, highVal);
+		cpu->Write(word + 1, lowVal);
+		cpu->cycles.add(3, 20);
+
+		debugPrintInstruction(cpu, "LD ", IndStart, word, IndFinish, Comma, Direct, src);
+	};
+}
+
 CPUHandler LoadFromMemory(const RID dst) {
 	return [dst](CPU* cpu) {
 		// Get next bytes
@@ -404,7 +427,7 @@ CPUHandler Increment(const RID dst) {
 		*dstRes += 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
+		cpu->Flags().BCD_HalfCarry = getHalfCarry(*dstRes, *dstRes - 1);
 		cpu->cycles.add(1, 4);
 
 		debugPrintInstruction(cpu, "INC", Direct, dst);
@@ -429,7 +452,7 @@ CPUHandler Decrement(const RID dst) {
 		*dstRes -= 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 1;
-		cpu->Flags().BCD_HalfCarry = (*dstRes & 0x0f) > 9 ? 1 : 0;
+		cpu->Flags().BCD_HalfCarry = getHalfCarry(*dstRes, *dstRes + 1);
 		cpu->cycles.add(1, 4);
 
 		debugPrintInstruction(cpu, "DEC", Direct, dst);
@@ -457,7 +480,7 @@ void Add(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 	cpu->Flags().Carry = *a < orig ? 1 : 0;
 	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
-	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9 ? 1 : 0;
+	cpu->Flags().BCD_HalfCarry = getHalfCarry(*a, orig);
 }
 
 void Add(CPU* cpu, uint16_t* a, uint16_t* b) {
@@ -465,7 +488,7 @@ void Add(CPU* cpu, uint16_t* a, uint16_t* b) {
 	*a += *b;
 	cpu->Flags().Carry = *a < orig ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
-	cpu->Flags().BCD_HalfCarry = (*a & 0x000f) > 9 ? 1 : 0;
+	cpu->Flags().BCD_HalfCarry = getHalfCarry(*a, orig);
 }
 
 // Direct Add (8bit, register to register)
@@ -527,7 +550,7 @@ CPUHandler AddImmediateS(const PID a) {
 		cpu->Flags().Zero = 0;
 		cpu->Flags().Carry = *aRes < orig;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = (*aRes & 0x000f) > 9 ? 1 : 0;
+		cpu->Flags().BCD_HalfCarry = getHalfCarry(*aRes, orig);
 		cpu->cycles.add(2, 16);
 
 		debugPrintInstruction(cpu, "ADDs", Direct, a, Comma, bRes);
@@ -544,7 +567,7 @@ void Subtract(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 	cpu->Flags().Carry = *a > orig;
 	cpu->Flags().Zero = *a == 0 ? 0 : 1;
 	cpu->Flags().BCD_AddSub = 1;
-	cpu->Flags().BCD_HalfCarry = (*a & 0x0f) > 9 ? 1 : 0;
+	cpu->Flags().BCD_HalfCarry = getHalfCarry(*a, orig);
 }
 
 // Direct Subtract (8bit, register to register)
@@ -590,7 +613,7 @@ void Compare(CPU* cpu, uint8_t* a, uint8_t* b) {
 	cpu->Flags().Carry = c > *a;
 	cpu->Flags().Zero = c == 0 ? 0 : 1;
 	cpu->Flags().BCD_AddSub = 1;
-	cpu->Flags().BCD_HalfCarry = (c & 0x0f) > 9 ? 1 : 0;
+	cpu->Flags().BCD_HalfCarry = getHalfCarry(c, *a);
 }
 
 CPUHandler CmpDirect(const RID a, const RID b) {
@@ -1020,6 +1043,57 @@ CPUHandler SetInt(bool enable) {
 	};
 }
 
+// Accumulator Decimal to BDC conversion (DAA)
+void DecimalToBCD(CPU* cpu) {
+	uint8_t* reg = getRegister(cpu, A);
+	uint8_t corr = 0;
+	uint8_t orig = *reg;
+
+	// if A > 0x99 or Carry flag, add 0x60 to corr and set Carry
+	if (*reg > 0x99 || cpu->Flags().Carry == 1) {
+		corr |= 0x60;
+		cpu->Flags().Carry = 1;
+	}
+
+	// If the lower 4 bits of A are greater than 9 then add 0x06 to corr
+	if ((*reg & 0x0f) > 9 || cpu->Flags().BCD_HalfCarry == 1) {
+		corr |= 0x06;
+	}
+
+	// If AddSub is set, Subtract, otherwise Add the correction factor
+	if (cpu->Flags().BCD_AddSub == 1) {
+		*reg -= corr;
+	} else {
+		*reg += corr;
+	}
+
+	cpu->Flags().BCD_HalfCarry = getHalfCarry(*reg, orig);
+	cpu->Flags().Zero = *reg == 0 ? 1 : 0;
+
+	cpu->cycles.add(1, 4);
+}
+
+// Set or Invert Carry flag (SCF/CCF)
+CPUHandler SetCarry(bool invert) {
+	return [invert](CPU* cpu) {
+		uint8_t val = 1;
+		if (invert) {
+			val = cpu->Flags().Carry == 1 ? 0 : 1;
+		}
+
+		cpu->Flags().Carry = val;
+		cpu->cycles.add(1, 4);
+	};
+}
+
+/// Complement Accumulator (CPL)
+void InvertA(CPU* cpu) {
+	uint8_t* reg = getRegister(cpu, A);
+	*reg = ~*reg;
+
+	cpu->cycles.add(1, 4);
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
@@ -1304,7 +1378,7 @@ const static CPUHandler handlers[] = {
 	Decrement(B),        // 05 DEC B
 	LoadImmediate(B),    // 06 LD  B,d8
 	RotateAcc(true, false), // 07 RLCA
-	Todo, // 08
+	LoadToMemory(SP),    // 08 LD  (a16),SP
 	AddDirect(HL, BC),   // 09 ADD HL,BC
 	LoadIndirect(A, BC), // 0a LD  A,(BC)
 	Decrement(BC),       // 0b DEC BC
@@ -1335,7 +1409,7 @@ const static CPUHandler handlers[] = {
 	Increment(H),        // 24 INC H
 	Decrement(H),        // 25 DEC H
 	LoadImmediate(H),    // 26 LD  H,d8
-	Todo, // 27
+	DecimalToBCD,        // 27 DAA
 	JumpRelative(ZE),    // 28 JR  Z,r8
 	AddDirect(HL, HL),   // 29 ADD HL,HL
 	LoadIndirectInc(A, HL, true), // 2a LDI A,(HL)
@@ -1343,7 +1417,7 @@ const static CPUHandler handlers[] = {
 	Increment(L),        // 2c INC L
 	Decrement(L),        // 2d DEC L
 	LoadImmediate(L),    // 2e LD  L,d8
-	Todo, // 2f
+	InvertA,             // 2f CPL
 	JumpRelative(NC),    // 30 JR  NC,r8
 	LoadImmediate(SP),   // 31 LD  SP,d16
 	LoadIndirectInc(HL, A, false), // 32 LDD (HL),A
@@ -1351,7 +1425,7 @@ const static CPUHandler handlers[] = {
 	Todo, // 34
 	Todo, // 35
 	Todo, // 36
-	Todo, // 37
+	SetCarry(false),     // 37 SCF
 	JumpRelative(CA),    // 38 JR  C,r8
 	AddDirect(HL, SP),   // 39 ADD HL,SP
 	LoadIndirectInc(A, HL, false), // 3a LDD A,(HL)
@@ -1359,7 +1433,7 @@ const static CPUHandler handlers[] = {
 	Increment(A),        // 3c INC A
 	Decrement(A),        // 3d DEC A
 	LoadImmediate(A),    // 3e LD  A,d8
-	Todo, // 3f
+	SetCarry(true),      // 3f CCF
 	LoadDirect(B, B),    // 40 LD B,B
 	LoadDirect(B, C),    // 41 LD B,C
 	LoadDirect(B, D),    // 42 LD B,D
