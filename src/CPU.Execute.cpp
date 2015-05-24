@@ -346,7 +346,23 @@ CPUHandler LoadToMemory(const RID src) {
 		cpu->Write(word, *reg);
 		cpu->cycles.add(3, 16);
 
-		debugPrintInstruction(cpu, "LD ", word, Comma, Direct, src);
+		debugPrintInstruction(cpu, "LD ", IndStart, word, IndFinish, Comma, Direct, src);
+	};
+}
+
+CPUHandler LoadFromMemory(const RID dst) {
+	return [dst](CPU* cpu) {
+		// Get next bytes
+		uint8_t  low = cpu->Read(++cpu->PC);
+		uint8_t  high = cpu->Read(++cpu->PC);
+		uint16_t addr = (high << 8) + low;
+		uint8_t  val = cpu->Read(addr);
+		uint8_t* reg = getRegister(cpu, dst);
+		*reg = val;
+
+		cpu->cycles.add(3, 16);
+
+		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, IndStart, addr, IndFinish);
 	};
 }
 
@@ -994,6 +1010,16 @@ CPUHandler BitIndirect(const PID ind, const uint8_t bit) {
 	};
 }
 
+// Enable/Disable Maskable Interrupts
+CPUHandler SetInt(bool enable) {
+	return [enable](CPU* cpu) {
+		cpu->maskable = enable;
+		cpu->cycles.add(1, 4);
+
+		debugPrintInstruction(cpu, enable ? "EI" : "DI");
+	};
+}
+
 // Unimplemented instruction
 void Todo(CPU* cpu) {
 	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
@@ -1513,15 +1539,15 @@ const static CPUHandler handlers[] = {
 	LoadHighReg(A),         // f0 LDH A,(a8)
 	Todo, // f1
 	LoadHighReg(A, C),      // f2 LD  A,(C)
-	Todo, // f3
+	SetInt(false),          // f3 DI
 	Wrong,                  // f4
 	Todo, // f5
 	OrImmediate(A),         // f6 OR  A,d8
 	Todo, // f7
 	Todo, // f8
 	LoadDirect(SP, HL),     // f9 LD  SP,HL
-	Todo, // fa
-	Todo, // fb
+	LoadFromMemory(A),      // fa LD  A,(a16)
+	SetInt(true),           // fb EI
 	Wrong,                  // fc
 	Wrong,                  // fd
 	CmpImmediate(A),        // fe CP  A,d8

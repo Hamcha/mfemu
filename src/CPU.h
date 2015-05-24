@@ -10,6 +10,10 @@ struct VRAMBank {
 	uint8_t bytes[8 * 1024];
 };
 
+struct ZRAMBank {
+	uint8_t bytes[128];
+};
+
 struct CycleCount {
 	int machine, cpu;
 
@@ -36,6 +40,8 @@ private:
 
 	std::vector<VRAMBank> VRAM;
 	uint8_t VRAMbankId = 0;
+
+	ZRAMBank ZRAM;
 
 public:
 	// Registers
@@ -67,6 +73,8 @@ public:
 
 	uint16_t SP;    //! Stack Pointer
 	uint16_t PC;    //! Program Counter
+
+	bool maskable;  //! Are maskable interrupts enabled?
 
 	CycleCount cycles;
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }

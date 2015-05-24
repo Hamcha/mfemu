@@ -85,8 +85,7 @@ uint8_t CPU::Read(uint16_t location) {
 
 	// ff80 - fffe => High RAM (HRAM)
 	if (location < 0xffff) {
-		//TODO
-		return 0;
+		return ZRAM.bytes[location - 0xff80];
 	}
 
 	// ffff is IME, IME is not accessible
@@ -141,7 +140,7 @@ void CPU::Write(uint16_t location, uint8_t value) {
 
 	// ff80 - fffe => High RAM (HRAM)
 	if (location < 0xffff) {
-		//TODO
+		ZRAM.bytes[location - 0xff80] = value;
 		return;
 	}
 }
@@ -158,6 +157,7 @@ CPU::CPU(ROM* _rom) {
 	running = true;
 	PC = 0;
 	cycles = { 0, 0 };
+	maskable = true;
 
 	// Push at least one ram bank (GB classic)
 	VRAMBank bank1;
