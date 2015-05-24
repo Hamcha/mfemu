@@ -244,7 +244,7 @@ CPUHandler LoadIndirect(const PID dst, const RID src) {
 }
 
 // Indirect Load (Register to 8bit Register offset)
-CPUHandler LoadIndirectMem(const RID ind, const RID reg) {
+CPUHandler LoadHighMem(const RID ind, const RID reg) {
 	return [ind, reg](CPU* cpu) {
 		uint8_t* value = getRegister(cpu, reg);
 		uint8_t* offset = getRegister(cpu, ind);
@@ -252,12 +252,12 @@ CPUHandler LoadIndirectMem(const RID ind, const RID reg) {
 		cpu->Write(0xff00 + *offset, *value);
 		cpu->cycles.add(2, 8);
 
-		debugPrintInstruction(cpu, "LD ", IndStart, 0xff00, "+", Direct, ind, IndFinish, Comma, Direct, reg);
+		debugPrintInstruction(cpu, "LD ", IndStart, (uint16_t) 0xff00, "+", Direct, ind, IndFinish, Comma, Direct, reg);
 	};
 }
 
 // Indirect Load (8bit Register offset to Register)
-CPUHandler LoadIndirectReg(const RID dst, const RID ind) {
+CPUHandler LoadHighReg(const RID dst, const RID ind) {
 	return [dst, ind](CPU* cpu) {
 		uint8_t* reg = getRegister(cpu, dst);
 		uint8_t* offset = getRegister(cpu, ind);
@@ -266,7 +266,32 @@ CPUHandler LoadIndirectReg(const RID dst, const RID ind) {
 		*reg = value;
 		cpu->cycles.add(2, 8);
 
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, IndStart, 0xff00, "+", Direct, ind, IndFinish);
+		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, IndStart, (uint16_t) 0xff00, "+", Direct, ind, IndFinish);
+	};
+}
+
+// Indirect Load (8bit constant offset to Register)
+CPUHandler LoadHighReg(const RID dst) {
+	return [dst](CPU* cpu) {
+		uint8_t* reg = getRegister(cpu, dst);
+		uint8_t addr = cpu->Read(++cpu->PC);
+		uint8_t value = cpu->Read(0xff00 + addr);
+		*reg = value;
+		cpu->cycles.add(2, 12);
+
+		debugPrintInstruction(cpu, "LDH", Direct, dst, Comma, IndStart, (uint16_t) 0xff00, "+", addr, IndFinish);
+	};
+}
+
+// Indirect Load (8bit constant offset to Register)
+CPUHandler LoadHighAbs(const RID src) {
+	return [src](CPU* cpu) {
+		uint8_t* reg = getRegister(cpu, src);
+		uint8_t addr = cpu->Read(++cpu->PC);
+		cpu->Write(0xff00 + addr, *reg);
+		cpu->cycles.add(2, 12);
+
+		debugPrintInstruction(cpu, "LDH", IndStart, (uint16_t) 0xff00, "+", Direct, addr, IndFinish, Comma, Direct, src);
 	};
 }
 
@@ -1469,9 +1494,9 @@ const static CPUHandler handlers[] = {
 	Wrong,                  // dd
 	SubImmediate(A, true),  // de SBC A,d8
 	Todo, // df
-	Todo, // e0
+	LoadHighAbs(A),         // e0 LDH (a8),A
 	Todo, // e1
-	LoadIndirectMem(C, A),  // e2 LD  (C),A
+	LoadHighMem(C, A),      // e2 LD  (C),A
 	Wrong,                  // e3
 	Wrong,                  // e4
 	Todo, // e5
@@ -1485,9 +1510,9 @@ const static CPUHandler handlers[] = {
 	Wrong,                  // ed
 	XorImmediate(A),        // ee XOR A,d8
 	Todo, // ef
-	Todo, // f0
+	LoadHighReg(A),         // f0 LDH A,(a8)
 	Todo, // f1
-	LoadIndirectReg(A, C),  // f2 LD  A,(C)
+	LoadHighReg(A, C),      // f2 LD  A,(C)
 	Todo, // f3
 	Wrong,                  // f4
 	Todo, // f5
