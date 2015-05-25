@@ -74,6 +74,20 @@ ROM::ROM(const std::vector<uint8_t> bytes) {
 	ram.reserve(ramcount);
 
 	//TODO load from .sav to RAM
+
+
+	// The title can be either 15 or 13 characters, depending on target console
+	std::string title;
+	if (header.colorFlag == GBSupported || header.colorFlag == GBCOnly) {
+		title = std::string(header.GBCTitle);
+	} else {
+		title = std::string(header.GBTitle);
+	}
+
+	std::cout << "Loaded ROM: " << title << std::endl;
+#if DEBUG_ROM
+	debugPrintData();
+#endif
 }
 
 ROM::~ROM() {}
