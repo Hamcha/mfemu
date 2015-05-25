@@ -141,13 +141,13 @@ void debugPrintArgument(CPU* cpu, const JumpCondition condition, const Args... a
 
 template<typename... Args>
 void debugPrintArgument(CPU* cpu, const uint8_t absolute, const Args... args) {
-	std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << absolute;
+	std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << (int)absolute;
 	debugPrintArgument(cpu, args...);
 }
 
 template<typename... Args>
 void debugPrintArgument(CPU* cpu, const uint16_t absolute, const Args... args) {
-	std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << absolute;
+	std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << (int)absolute;
 	debugPrintArgument(cpu, args...);
 }
 
