@@ -58,7 +58,7 @@ ROM::ROM(const std::vector<uint8_t> bytes) {
 
 	// Read banks from buffer
 	banks.reserve(bankCount);
-	for (int i = 1; i < bankCount; i++) {
+	for (int i = 1; i < bankCount; i += 1) {
 		ROMBank b;
 		std::copy(bytes.begin() + 16 * 1024 * i, bytes.begin() + 16 * 1024 * (i + 1), b.bytes);
 		banks.push_back(b);

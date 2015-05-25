@@ -1576,7 +1576,7 @@ const static CPUHandler cbhandlers[] = {
 };
 
 void HandleCB(CPU* cpu) {
-	uint8_t opcode = cpu->Read(cpu->PC);
+	uint8_t opcode = cpu->Read(cpu->PC + 1);
 	cbhandlers[opcode](cpu);
 	cpu->cycles.add(1, 4);
 	cpu->PC += 1;
