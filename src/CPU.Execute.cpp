@@ -440,6 +440,26 @@ CPUHandler LoadImmediateInd(const PID ind) {
 	};
 }
 
+// Load Direct with Offset (16bit constant + register to register)
+CPUHandler LoadOffset(const PID a, const PID b) {
+	return [a, b](CPU* cpu) {
+		uint16_t* aRes = getPair(cpu, a);
+		uint16_t* bRes = getPair(cpu, b);
+		uint16_t orig = *aRes;
+		int8_t offset = (int8_t) cpu->Read(++cpu->PC);
+
+		*aRes = *bRes + offset;
+
+		cpu->Flags().Zero = 0;
+		cpu->Flags().BCD_AddSub = 0;
+		cpu->Flags().BCD_HalfCarry = getHalfCarry(*aRes, orig);
+		cpu->Flags().Carry = *aRes < orig ? 1 : 0;
+		cpu->cycles.add(2, 12);
+
+		debugPrintInstruction(cpu, "LD ", Direct, a, Comma, Direct, b, "+", offset);
+	};
+}
+
 // Increment register (8bit, immediate)
 CPUHandler Increment(const RID dst) {
 	return [dst](CPU* cpu) {
@@ -1125,6 +1145,8 @@ void DecimalToBCD(CPU* cpu) {
 	cpu->Flags().Zero = *reg == 0 ? 1 : 0;
 
 	cpu->cycles.add(1, 4);
+
+	debugPrintInstruction(cpu, "DAA");
 }
 
 // Set or Invert Carry flag (SCF/CCF)
@@ -1137,6 +1159,8 @@ CPUHandler SetCarry(bool invert) {
 
 		cpu->Flags().Carry = val;
 		cpu->cycles.add(1, 4);
+
+		debugPrintInstruction(cpu, invert ? "CCF" : "SCF");
 	};
 }
 
@@ -1146,6 +1170,8 @@ void InvertA(CPU* cpu) {
 	*reg = ~*reg;
 
 	cpu->cycles.add(1, 4);
+
+	debugPrintInstruction(cpu, "CPL");
 }
 
 // Push 16bit value to stack (called by CALL, PUSH)
@@ -1159,7 +1185,7 @@ void Push(CPU* cpu, uint16_t value) {
 }
 
 // Pop 16bit value from stack (called by RET, POP)
-void Pop(CPU* cpu) {
+uint16_t Pop(CPU* cpu) {
 	uint8_t low = cpu->Read(cpu->SP);
 	uint8_t high = cpu->Read(cpu->SP + 1);
 	uint16_t word = (high << 8) | low;
@@ -1174,6 +1200,8 @@ CPUHandler PushReg(PID reg) {
 		uint16_t* val = getPair(cpu, reg);
 		Push(cpu, *val);
 		cpu->cycles.add(1, 16);
+
+		debugPrintInstruction(cpu, "PUSH", reg);
 	};
 }
 
@@ -1183,6 +1211,8 @@ CPUHandler PopReg(PID reg) {
 		uint16_t* val = getPair(cpu, reg);
 		*val = Pop(cpu);
 		cpu->cycles.add(1, 12);
+
+		debugPrintInstruction(cpu, "POP", reg);
 	};
 }
 
@@ -1201,6 +1231,8 @@ CPUHandler Call(JumpCondition condition) {
 		} else {
 			cpu->cycles.add(3, 12);
 		}
+
+		debugPrintInstruction(cpu, "CALL", condition, word);
 	};
 }
 
@@ -1214,6 +1246,8 @@ CPUHandler Return(JumpCondition condition) {
 		} else {
 			cpu->cycles.add(1, 8);
 		}
+
+		debugPrintInstruction(cpu, "RET", condition);
 	};
 }
 
@@ -1222,6 +1256,8 @@ void RETI(CPU* cpu) {
 	CPUHandler handler = Return(NO);
 	handler(cpu);
 	cpu->maskable = true;
+
+	debugPrintInstruction(cpu, "RETI");
 }
 
 // Push PC and restart
@@ -1230,13 +1266,9 @@ CPUHandler Restart(uint8_t base) {
 		Push(cpu, cpu->PC);
 		cpu->PC = base;
 		cpu->cycles.add(1, 16);
+
+		debugPrintInstruction(cpu, "RST", base);
 	};
-}
-
-
-// Unimplemented instruction
-void Todo(CPU* cpu) {
-	std::cout << "Unknown Opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(cpu->PC) << std::endl;
 }
 
 // Inexistent instruction
@@ -1758,7 +1790,7 @@ const static CPUHandler handlers[] = {
 	PushReg(AF),         // f5 PUSH AF
 	OrImmediate(A),      // f6 OR  A,d8
 	Restart(0x30),       // f7 RES 30h
-	Todo, // f8
+	LoadOffset(HL, SP),  // f8 LD  HL,SP+r8
 	LoadDirect(SP, HL),  // f9 LD  SP,HL
 	LoadFromMemory(A),   // fa LD  A,(a16)
 	SetInt(true),        // fb EI
