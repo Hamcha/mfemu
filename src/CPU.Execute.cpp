@@ -288,7 +288,7 @@ CPUHandler LoadHighReg(const RID dst) {
 
 		debugPrintInstruction(cpu, "LDH", Direct, dst, Comma, IndStart, (uint16_t) 0xff00, "+", addr, IndFinish);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -302,7 +302,7 @@ CPUHandler LoadHighAbs(const RID src) {
 
 		debugPrintInstruction(cpu, "LDH", IndStart, (uint16_t) 0xff00, "+", (uint8_t) addr, IndFinish, Comma, Direct, src);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -416,7 +416,7 @@ CPUHandler LoadImmediate(const RID dst) {
 
 		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, value);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -452,7 +452,7 @@ CPUHandler LoadImmediateInd(const PID ind) {
 
 		debugPrintInstruction(cpu, "LD ", Indirect, ind, Comma, value);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -474,7 +474,7 @@ CPUHandler LoadOffset(const PID a, const PID b) {
 
 		debugPrintInstruction(cpu, "LD ", Direct, a, Comma, Direct, b, "+", offset);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -630,7 +630,7 @@ CPUHandler AddImmediate(const RID a, const bool useCarry) {
 
 		debugPrintInstruction(cpu, (useCarry ? "ADC" : "ADD"), Direct, a, Comma, bRes);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -649,7 +649,7 @@ CPUHandler AddImmediateS(const PID a) {
 
 		debugPrintInstruction(cpu, "ADDs", Direct, a, Comma, bRes);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -701,7 +701,7 @@ CPUHandler SubImmediate(const RID a, const bool useCarry) {
 
 		debugPrintInstruction(cpu, "SUB", Direct, a, Comma, bRes);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -746,7 +746,7 @@ CPUHandler CmpImmediate(const RID a) {
 
 		debugPrintInstruction(cpu, "CP ", Direct, a, Comma, bRes);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -812,7 +812,7 @@ CPUHandler AndImmediate(const RID a) {
 
 		debugPrintInstruction(cpu, "AND", Direct, a, Comma, bRes);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -851,7 +851,7 @@ CPUHandler OrImmediate(const RID a) {
 
 		debugPrintInstruction(cpu, "OR ", Direct, a, Comma, bRes);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -890,7 +890,7 @@ CPUHandler XorImmediate(const RID a) {
 
 		debugPrintInstruction(cpu, "XOR", Direct, a, Comma, bRes);
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -908,7 +908,7 @@ CPUHandler JumpRelative(const JumpCondition condition) {
 			cpu->cycles.add(2, 8);
 		}
 
-		cpu->PC++;
+		cpu->PC += 1;
 	};
 }
 
@@ -1576,9 +1576,10 @@ const static CPUHandler cbhandlers[] = {
 };
 
 void HandleCB(CPU* cpu) {
-	uint8_t opcode = cpu->Read(++cpu->PC);
+	uint8_t opcode = cpu->Read(cpu->PC);
 	cbhandlers[opcode](cpu);
 	cpu->cycles.add(1, 4);
+	cpu->PC += 1;
 }
 
 const static CPUHandler handlers[] = {

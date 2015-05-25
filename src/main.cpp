@@ -5,7 +5,7 @@
 int main(int argc, char **argv) {
 	std::cout << "mfemu v." << VERSION << " rev." << COMMIT << std::endl << std::endl;
 	std::string romFile = "test.gb";
-	for (int i = 1; i < argc; ++i) {
+	for (int i = 1; i < argc; i += 1) {
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 			case 'v':
