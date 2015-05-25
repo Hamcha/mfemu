@@ -127,7 +127,7 @@ template<typename... Args>
 void debugPrintArgument(CPU* cpu, const DebugFlags flag, const Args... args) {
 	switch (flag) {
 	case Comma: std::cout << ","; break;
-	case IndStart: std::cout << "("; break;
+	case IndStart: std::cout << " ("; break;
 	case IndFinish: std::cout << " )"; break;
 	}
 	debugPrintArgument(cpu, args...);
@@ -298,7 +298,7 @@ CPUHandler LoadHighAbs(const RID src) {
 		cpu->Write(0xff00 + addr, *reg);
 		cpu->cycles.add(2, 12);
 
-		debugPrintInstruction(cpu, "LDH", IndStart, (uint16_t) 0xff00, "+", Direct, addr, IndFinish, Comma, Direct, src);
+		debugPrintInstruction(cpu, "LDH", IndStart, (uint16_t) 0xff00, "+", (uint8_t) addr, IndFinish, Comma, Direct, src);
 	};
 }
 
