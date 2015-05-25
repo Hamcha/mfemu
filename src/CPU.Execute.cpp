@@ -153,7 +153,7 @@ void debugPrintArgument(CPU* cpu, const uint16_t absolute, const Args... args) {
 
 template<typename... Args>
 void debugPrintArgument(CPU* cpu, const int absolute, const Args... args) {
-	std::cout << " " << absolute;
+	std::cout << " " << std::dec << absolute;
 	debugPrintArgument(cpu, args...);
 }
 
@@ -867,6 +867,8 @@ CPUHandler JumpRelative(const JumpCondition condition) {
 	return [condition](CPU* cpu) {
 		uint8_t u8 = cpu->Read(++cpu->PC);
 		int r8 = (int8_t) u8;
+		debugPrintInstruction(cpu, "JR ", condition, Comma, (int) r8);
+
 		if (shouldJump(cpu, condition)) {
 			cpu->PC += r8;
 			cpu->cycles.add(2, 12);
@@ -874,7 +876,6 @@ CPUHandler JumpRelative(const JumpCondition condition) {
 			cpu->cycles.add(2, 8);
 		}
 
-		debugPrintInstruction(cpu, "JR ", condition, Comma, (int) r8);
 	};
 }
 
@@ -885,6 +886,7 @@ CPUHandler JumpAbsolute(const JumpCondition condition) {
 		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
 		uint16_t word = (high << 8) | low;
+		debugPrintInstruction(cpu, "JP ", condition, Comma, word);
 
 		if (shouldJump(cpu, condition)) {
 			cpu->PC = word;
@@ -893,17 +895,17 @@ CPUHandler JumpAbsolute(const JumpCondition condition) {
 			cpu->cycles.add(3, 12);
 		}
 
-		debugPrintInstruction(cpu, "JP ", condition, Comma, word);
 	};
 }
 
 // Immediate Absolute Jump (register)
 CPUHandler JumpAbsolute(const PID src) {
 	return [src](CPU* cpu) {
+		debugPrintInstruction(cpu, "JP ", ZE, Comma, Indirect, src);
+
 		cpu->PC = *getPair(cpu, src);
 		cpu->cycles.add(1, 4);
 
-		debugPrintInstruction(cpu, "JP ", ZE, Comma, Indirect, src);
 	};
 }
 
@@ -1201,7 +1203,7 @@ CPUHandler PushReg(PID reg) {
 		Push(cpu, *val);
 		cpu->cycles.add(1, 16);
 
-		debugPrintInstruction(cpu, "PUSH", reg);
+		debugPrintInstruction(cpu, "PUSH", Direct, reg);
 	};
 }
 
@@ -1212,7 +1214,7 @@ CPUHandler PopReg(PID reg) {
 		*val = Pop(cpu);
 		cpu->cycles.add(1, 12);
 
-		debugPrintInstruction(cpu, "POP", reg);
+		debugPrintInstruction(cpu, "POP", Direct, reg);
 	};
 }
 
@@ -1224,6 +1226,8 @@ CPUHandler Call(JumpCondition condition) {
 		uint8_t  high = cpu->Read(++cpu->PC);
 		uint16_t word = (high << 8) | low;
 
+		debugPrintInstruction(cpu, "CALL", condition, word);
+
 		if (shouldJump(cpu, condition)) {
 			Push(cpu, cpu->PC);
 			cpu->PC = word;
@@ -1232,13 +1236,14 @@ CPUHandler Call(JumpCondition condition) {
 			cpu->cycles.add(3, 12);
 		}
 
-		debugPrintInstruction(cpu, "CALL", condition, word);
 	};
 }
 
 // Conditional Return function
 CPUHandler Return(JumpCondition condition) {
 	return [condition](CPU* cpu) {
+		debugPrintInstruction(cpu, "RET", condition);
+
 		if (shouldJump(cpu, condition)) {
 			uint16_t addr = Pop(cpu);
 			cpu->PC = addr;
@@ -1247,17 +1252,17 @@ CPUHandler Return(JumpCondition condition) {
 			cpu->cycles.add(1, 8);
 		}
 
-		debugPrintInstruction(cpu, "RET", condition);
 	};
 }
 
 // Return then enable interrupts
 void RETI(CPU* cpu) {
+	debugPrintInstruction(cpu, "RETI");
+
 	CPUHandler handler = Return(NO);
 	handler(cpu);
 	cpu->maskable = true;
 
-	debugPrintInstruction(cpu, "RETI");
 }
 
 // Push PC and restart
