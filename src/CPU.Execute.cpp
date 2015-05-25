@@ -347,7 +347,7 @@ CPUHandler LoadToMemory(const RID src) {
 		// Get next bytes
 		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
-		uint16_t word = (high << 8) + low;
+		uint16_t word = (high << 8) | low;
 		uint8_t* reg = getRegister(cpu, src);
 
 		cpu->Write(word, *reg);
@@ -363,7 +363,7 @@ CPUHandler LoadToMemory(const PID src) {
 		// Get next bytes
 		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
-		uint16_t word = (high << 8) + low;
+		uint16_t word = (high << 8) | low;
 		uint16_t* reg = getPair(cpu, src);
 
 		uint8_t highVal = *reg >> 8;
@@ -382,7 +382,7 @@ CPUHandler LoadFromMemory(const RID dst) {
 		// Get next bytes
 		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
-		uint16_t addr = (high << 8) + low;
+		uint16_t addr = (high << 8) | low;
 		uint8_t  val = cpu->Read(addr);
 		uint8_t* reg = getRegister(cpu, dst);
 		*reg = val;
@@ -415,7 +415,7 @@ CPUHandler LoadImmediate(const PID dst) {
 		// Get next bytes
 		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
-		uint16_t word = (high << 8) + low;
+		uint16_t word = (high << 8) | low;
 
 		*dstRes = word;
 		cpu->cycles.add(3, 12);
@@ -864,7 +864,7 @@ CPUHandler JumpAbsolute(const JumpCondition condition) {
 		// Get next bytes
 		uint8_t  low = cpu->Read(++cpu->PC);
 		uint8_t  high = cpu->Read(++cpu->PC);
-		uint16_t word = (high << 8) + low;
+		uint16_t word = (high << 8) | low;
 
 		if (shouldJump(cpu, condition)) {
 			cpu->PC = word;
@@ -1147,6 +1147,83 @@ void InvertA(CPU* cpu) {
 
 	cpu->cycles.add(1, 4);
 }
+
+// Push 16bit value to stack (called by CALL, PUSH)
+void Push(CPU* cpu, uint16_t value) {
+	uint8_t high = value >> 8;
+	uint8_t low = value & 0x0f;
+
+	cpu->Write(cpu->SP - 1, high);
+	cpu->Write(cpu->SP - 2, low);
+	cpu->SP -= 2;
+}
+
+// Pop 16bit value from stack (called by RET, POP)
+void Pop(CPU* cpu) {
+	uint8_t low = cpu->Read(cpu->SP);
+	uint8_t high = cpu->Read(cpu->SP + 1);
+	uint16_t word = (high << 8) | low;
+	cpu->SP += 2;
+
+	return word;
+}
+
+// Push from 16bit Register
+CPUHandler PushReg(PID reg) {
+	return [reg](CPU* cpu) {
+		uint16_t* val = getPair(cpu, reg);
+		Push(cpu, *val);
+		cpu->cycles.add(1, 16);
+	};
+}
+
+// Pop to 16bit Register
+CPUHandler PopReg(PID reg) {
+	return [reg](CPU* cpu) {
+		uint16_t* val = getPair(cpu, reg);
+		*val = Pop(cpu);
+		cpu->cycles.add(1, 12);
+	};
+}
+
+// Conditional Call function
+CPUHandler Call(JumpCondition condition) {
+	return [condition](CPU* cpu){
+		// Get next bytes
+		uint8_t  low = cpu->Read(++cpu->PC);
+		uint8_t  high = cpu->Read(++cpu->PC);
+		uint16_t word = (high << 8) | low;
+
+		if (shouldJump(cpu, condition)) {
+			Push(cpu, cpu->PC);
+			cpu->PC = word;
+			cpu->cycles.add(3, 24);
+		} else {
+			cpu->cycles.add(3, 12);
+		}
+	};
+}
+
+// Conditional Return function
+CPUHandler Return(JumpCondition condition) {
+	return [condition](CPU* cpu) {
+		if (shouldJump(cpu, condition)) {
+			uint16_t addr = Pop(cpu);
+			cpu->PC = addr;
+			cpu->cycles.add(1, condition == NO ? 16 : 20);
+		} else {
+			cpu->cycles.add(1, 8);
+		}
+	};
+}
+
+// Return then enable interrupts
+void RETI(CPU* cpu) {
+	CPUHandler handler = Return(NO);
+	handler(cpu);
+	cpu->maskable = true;
+}
+
 
 // Unimplemented instruction
 void Todo(CPU* cpu) {
@@ -1616,69 +1693,69 @@ const static CPUHandler handlers[] = {
 	CmpDirect(A, L),     // bd CP  A,L
 	CmpIndirect(A, HL),  // be CP  A,(HL)
 	CmpDirect(A, A),     // bf CP  A,A
-	Todo, // c0
-	Todo, // c1
-	JumpAbsolute(NZ),       // c2 JP  NZ,a16
-	JumpAbsolute(NO),       // c3 JP  a16
-	Todo, // c4
-	Todo, // c5
+	Return(NZ),          // c0 RET NZ
+	PopReg(BC),          // c1 POP BC
+	JumpAbsolute(NZ),    // c2 JP  NZ,a16
+	JumpAbsolute(NO),    // c3 JP  a16
+	Call(NZ),            // c4 CALL NZ,a16
+	PushReg(BC),         // c5 PUSH BC
 	AddImmediate(A, false), // c6 ADD A,d8
 	Todo, // c7
-	Todo, // c8
-	Todo, // c9
-	JumpAbsolute(ZE),       // ca JP  Z,a16
-	HandleCB,               // cb PREFIX: See cbhandlers
-	Todo, // cc
-	Todo, // cd
+	Return(ZE),          // c8 RET Z
+	Return(NO),          // c9 RET
+	JumpAbsolute(ZE),    // ca JP  Z,a16
+	HandleCB,            // cb PREFIX: See cbhandlers
+	Call(ZE),            // cc CALL Z,a16
+	Call(NO),            // cd CALL a16
 	AddImmediate(A, true),  // ce ADC A,d8
 	Todo, // cf
-	Todo, // d0
-	Todo, // d1
-	JumpAbsolute(NC),       // d2 JP  NC,a16
-	Wrong,                  // d3
-	Todo, // d4
-	Todo, // d5
+	Return(NC),          // d0 RET NC
+	PopReg(DE),          // d1 POP DE
+	JumpAbsolute(NC),    // d2 JP  NC,a16
+	Wrong,               // d3 --
+	Call(NC),            // d4 CALL NC,a16
+	PushReg(DE),         // d5 PUSH DE
 	SubImmediate(A, false), // d6 SUB A,d8
 	Todo, // d7
-	Todo, // d8
-	Todo, // d9
-	JumpAbsolute(CA),       // da JP  C,a16
-	Wrong,                  // db
-	Todo, // dc
-	Wrong,                  // dd
+	Return(CA),          // d8 RET C
+	RETI,                // d9 RETI
+	JumpAbsolute(CA),    // da JP  C,a16
+	Wrong,               // db --
+	Call(CA),            // dc CALL C,a16
+	Wrong,               // dd --
 	SubImmediate(A, true),  // de SBC A,d8
 	Todo, // df
-	LoadHighAbs(A),         // e0 LDH (a8),A
-	Todo, // e1
-	LoadHighMem(C, A),      // e2 LD  (C),A
-	Wrong,                  // e3
-	Wrong,                  // e4
-	Todo, // e5
-	AndImmediate(A),        // e6 AND A,d8
+	LoadHighAbs(A),      // e0 LDH (a8),A
+	PopReg(HL),          // e1 POP HL
+	LoadHighMem(C, A),   // e2 LD  (C),A
+	Wrong,               // e3 --
+	Wrong,               // e4 --
+	PushReg(HL),         // e5 PUSH HL
+	AndImmediate(A),     // e6 AND A,d8
 	Todo, // e7
-	AddImmediateS(SP),      // e8 ADD SP,r8
-	JumpAbsolute(HL),       // e9 JP  (HL)
-	LoadToMemory(A),        // ea LD  (a16),A
-	Wrong,                  // eb
-	Wrong,                  // ec
-	Wrong,                  // ed
-	XorImmediate(A),        // ee XOR A,d8
+	AddImmediateS(SP),   // e8 ADD SP,r8
+	JumpAbsolute(HL),    // e9 JP  (HL)
+	LoadToMemory(A),     // ea LD  (a16),A
+	Wrong,               // eb --
+	Wrong,               // ec --
+	Wrong,               // ed --
+	XorImmediate(A),     // ee XOR A,d8
 	Todo, // ef
-	LoadHighReg(A),         // f0 LDH A,(a8)
-	Todo, // f1
-	LoadHighReg(A, C),      // f2 LD  A,(C)
-	SetInt(false),          // f3 DI
-	Wrong,                  // f4
-	Todo, // f5
-	OrImmediate(A),         // f6 OR  A,d8
+	LoadHighReg(A),      // f0 LDH A,(a8)
+	PopReg(AF),          // f1 POP AF
+	LoadHighReg(A, C),   // f2 LD  A,(C)
+	SetInt(false),       // f3 DI
+	Wrong,               // f4 --
+	PushReg(AF),         // f5 PUSH AF
+	OrImmediate(A),      // f6 OR  A,d8
 	Todo, // f7
 	Todo, // f8
-	LoadDirect(SP, HL),     // f9 LD  SP,HL
-	LoadFromMemory(A),      // fa LD  A,(a16)
-	SetInt(true),           // fb EI
-	Wrong,                  // fc
-	Wrong,                  // fd
-	CmpImmediate(A),        // fe CP  A,d8
+	LoadDirect(SP, HL),  // f9 LD  SP,HL
+	LoadFromMemory(A),   // fa LD  A,(a16)
+	SetInt(true),        // fb EI
+	Wrong,               // fc --
+	Wrong,               // fd --
+	CmpImmediate(A),     // fe CP  A,d8
 	Todo  // ff
 };
 
