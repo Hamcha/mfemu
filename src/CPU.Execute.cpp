@@ -1224,6 +1224,15 @@ void RETI(CPU* cpu) {
 	cpu->maskable = true;
 }
 
+// Push PC and restart
+CPUHandler Restart(uint8_t base) {
+	return [base](CPU* cpu) {
+		Push(cpu, cpu->PC);
+		cpu->PC = base;
+		cpu->cycles.add(1, 16);
+	};
+}
+
 
 // Unimplemented instruction
 void Todo(CPU* cpu) {
@@ -1700,7 +1709,7 @@ const static CPUHandler handlers[] = {
 	Call(NZ),            // c4 CALL NZ,a16
 	PushReg(BC),         // c5 PUSH BC
 	AddImmediate(A, false), // c6 ADD A,d8
-	Todo, // c7
+	Restart(0x00),       // c7 RST 00h
 	Return(ZE),          // c8 RET Z
 	Return(NO),          // c9 RET
 	JumpAbsolute(ZE),    // ca JP  Z,a16
@@ -1708,7 +1717,7 @@ const static CPUHandler handlers[] = {
 	Call(ZE),            // cc CALL Z,a16
 	Call(NO),            // cd CALL a16
 	AddImmediate(A, true),  // ce ADC A,d8
-	Todo, // cf
+	Restart(0x08),       // cf RST 08h
 	Return(NC),          // d0 RET NC
 	PopReg(DE),          // d1 POP DE
 	JumpAbsolute(NC),    // d2 JP  NC,a16
@@ -1716,7 +1725,7 @@ const static CPUHandler handlers[] = {
 	Call(NC),            // d4 CALL NC,a16
 	PushReg(DE),         // d5 PUSH DE
 	SubImmediate(A, false), // d6 SUB A,d8
-	Todo, // d7
+	Restart(0x10),       // d7 RST 10h
 	Return(CA),          // d8 RET C
 	RETI,                // d9 RETI
 	JumpAbsolute(CA),    // da JP  C,a16
@@ -1724,7 +1733,7 @@ const static CPUHandler handlers[] = {
 	Call(CA),            // dc CALL C,a16
 	Wrong,               // dd --
 	SubImmediate(A, true),  // de SBC A,d8
-	Todo, // df
+	Restart(0x18),       // df RST 18h
 	LoadHighAbs(A),      // e0 LDH (a8),A
 	PopReg(HL),          // e1 POP HL
 	LoadHighMem(C, A),   // e2 LD  (C),A
@@ -1732,7 +1741,7 @@ const static CPUHandler handlers[] = {
 	Wrong,               // e4 --
 	PushReg(HL),         // e5 PUSH HL
 	AndImmediate(A),     // e6 AND A,d8
-	Todo, // e7
+	Restart(0x20),       // e7 RST 20h
 	AddImmediateS(SP),   // e8 ADD SP,r8
 	JumpAbsolute(HL),    // e9 JP  (HL)
 	LoadToMemory(A),     // ea LD  (a16),A
@@ -1740,7 +1749,7 @@ const static CPUHandler handlers[] = {
 	Wrong,               // ec --
 	Wrong,               // ed --
 	XorImmediate(A),     // ee XOR A,d8
-	Todo, // ef
+	Restart(0x28),       // ef RST 28h
 	LoadHighReg(A),      // f0 LDH A,(a8)
 	PopReg(AF),          // f1 POP AF
 	LoadHighReg(A, C),   // f2 LD  A,(C)
@@ -1748,7 +1757,7 @@ const static CPUHandler handlers[] = {
 	Wrong,               // f4 --
 	PushReg(AF),         // f5 PUSH AF
 	OrImmediate(A),      // f6 OR  A,d8
-	Todo, // f7
+	Restart(0x30),       // f7 RES 30h
 	Todo, // f8
 	LoadDirect(SP, HL),  // f9 LD  SP,HL
 	LoadFromMemory(A),   // fa LD  A,(a16)
@@ -1756,7 +1765,7 @@ const static CPUHandler handlers[] = {
 	Wrong,               // fc --
 	Wrong,               // fd --
 	CmpImmediate(A),     // fe CP  A,d8
-	Todo  // ff
+	Restart(0x38)        // ff RST 38h
 };
 
 
