@@ -40,7 +40,7 @@ Emulator::~Emulator() {
 }
 
 void Emulator::Run() {
-	while(cpu.running) {
+	while (cpu.running) {
 		SDL_RenderClear(renderer);
 		cpu.Step();
 	}

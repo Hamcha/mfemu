@@ -5,6 +5,7 @@
 #include "CPU.h"
 
 class Emulator {
+	friend class Debugger;
 private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;

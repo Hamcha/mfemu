@@ -92,7 +92,6 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 
 ROM::~ROM() {}
 
-#if DEBUG_ROM
 void ROM::debugPrintData() {
 	std::cout << "== ROM INFO ==" << std::endl;
 	// The title can be either 15 or 13 characters, depending on target console
@@ -132,4 +131,3 @@ void ROM::debugPrintData() {
 
 	std::cout << "== END ROM INFO ==" << std::endl;
 }
-#endif
