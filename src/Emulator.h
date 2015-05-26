@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <string>
 #include "CPU.h"
 
@@ -10,12 +10,12 @@ private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
-	bool InitSDL();
+	bool initSDL();
 public:
 	ROM rom;
 	CPU cpu;
 
-	explicit Emulator(const std::string& romfile);
+	explicit Emulator(const std::string& romfile, bool graphics = true));
 	~Emulator();
 
 	void Run();

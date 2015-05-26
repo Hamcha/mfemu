@@ -8,9 +8,7 @@ namespace Debug {
 
 enum DebugOpts : uint8_t {
 	DBG_INTERACTIVE = 1,
-	DBG_OPTS        = 1 << 1,
-	DBG_ROM         = 1 << 2,
-	DBG_NOGRAPHICS  = 1 << 3,
+	DBG_NOGRAPHICS  = 1 << 1,
 };
 
 enum DebugInstr {
@@ -19,6 +17,7 @@ enum DebugInstr {
 	CMD_STEP,
 	CMD_BREAK,
 	CMD_CONTINUE,
+	CMD_HELP,
 	CMD_QUIT
 };
 
@@ -35,10 +34,10 @@ private:
 	uint8_t opts;
 	std::set<uint16_t> breakPoints;
 
-	Debug::DebugCmd getCommand();
+	Debug::DebugCmd getCommand(const char* prompt);
 	void setBreakpoint(uint16_t addr);
 public:
-	Debugger(Emulator *_emulator, Debug::DebugOpts _opts);
+	Debugger(Emulator *_emulator, uint8_t _opts);
 	~Debugger();
 
 	void Run();

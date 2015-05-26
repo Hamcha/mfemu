@@ -1,9 +1,11 @@
 #include <iostream>
 #include "Emulator.h"
+#include "Debugger.h"
 
 enum MainFlags {
 	F_DEFAULT,
-	F_ROMINFO
+	F_ROMINFO,
+	F_DEBUG
 };
 
 int main(int argc, char **argv) {
@@ -21,8 +23,11 @@ int main(int argc, char **argv) {
 				// only print ROM information and exit
 				flags = F_ROMINFO;
 				break;
+			case 'd':
+				flags = F_DEBUG;
+				break;
 			default:
-				std::cout << "Usage: " << argv[0] << " [-hiv] [file.gb]" << std::endl;
+				std::cout << "Usage: " << argv[0] << " [-hivd] [file.gb]" << std::endl;
 				return 0;
 			}
 		}
@@ -35,10 +40,14 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	// Create CPU and load ROM into it
-	Emulator emulator(romFile);
-
-	std::cout << "Starting emulation..." << std::endl;
-
-	emulator.Run();
+	if (flags == F_DEBUG) {
+		Emulator emulator(romFile, false);
+		Debugger debugger(&emulator, Debug::DBG_NOGRAPHICS);	
+		debugger.Run();
+	} else {
+		// Create CPU and load ROM into it
+		Emulator emulator(romFile);
+		std::cout << "Starting emulation..." << std::endl;
+		emulator.Run();
+	}
 }
