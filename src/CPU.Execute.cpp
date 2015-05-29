@@ -158,7 +158,7 @@ void debugPrintArgument(CPU* cpu, const int absolute, const Args... args) {
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, const std::string absolute, const Args... args) {
+void debugPrintArgument(CPU* cpu, const std::string& absolute, const Args... args) {
 	std::cout << " " << absolute;
 	debugPrintArgument(cpu, args...);
 }

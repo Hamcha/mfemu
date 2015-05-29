@@ -6,7 +6,7 @@
 #include <cstring>
 
 // From https://stackoverflow.com/questions/15138353/reading-the-binary-file-into-the-vector-of-unsigned-chars
-ROM ROM::FromFile(const std::string filename) {
+ROM ROM::FromFile(const std::string& filename) {
 	// Make file stream
 	std::ifstream file(filename, std::ios::binary);
 	if (!file.good()) {
@@ -28,7 +28,7 @@ ROM ROM::FromFile(const std::string filename) {
 	return rom;
 }
 
-ROM::ROM(const std::vector<uint8_t> bytes) {
+ROM::ROM(const std::vector<uint8_t>& bytes) {
 	// Get header bytes from buffer
 	const int headerSize = sizeof(ROMHeader);
 	uint8_t headerBytes[headerSize];

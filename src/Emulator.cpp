@@ -25,7 +25,7 @@ bool Emulator::InitSDL() {
     return true;
 }
 
-Emulator::Emulator(std::string romfile)
+Emulator::Emulator(const std::string& romfile)
     : rom(ROM::FromFile(romfile)), cpu(&rom) {
     if (!InitSDL()) {
         std::cout << "Emulator could not start correctly, check error above.." << std::endl;

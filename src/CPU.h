@@ -90,7 +90,7 @@ public:
 	void Step();
 
 	//! Create CPU from ROM file
-	CPU(ROM* _rom);
+	explicit CPU(ROM* _rom);
 
 	~CPU();
 };

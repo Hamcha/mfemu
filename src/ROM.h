@@ -122,10 +122,10 @@ public:
 	uint8_t ramBankId = 0;      //!< Current RAM bank id
 
 	//! Load ROM from file
-	static ROM FromFile(const std::string filename);
+	static ROM FromFile(const std::string& filename);
 
 	//! Load ROM from memory
-	ROM(const std::vector<uint8_t> bytes);
+	explicit ROM(const std::vector<uint8_t>& bytes);
 
 #if DEBUG_ROM
 	//! Print ROM data (for debugging)

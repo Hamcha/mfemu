@@ -151,12 +151,12 @@ void CPU::Step() {
 	PC += 1;
 }
 
-CPU::CPU(ROM* _rom) {
+CPU::CPU(ROM* _rom)
+	: cycles({0,0}) {
 	// Setup variables
 	rom = _rom;
 	running = true;
 	PC = 0;
-	cycles = { 0, 0 };
 	maskable = true;
 
 	// Push at least one ram bank (GB classic)
