@@ -51,4 +51,6 @@ int main(int argc, char **argv) {
 		std::cout << "Starting emulation..." << std::endl;
 		emulator.Run();
 	}
+
+	return 0;
 }
