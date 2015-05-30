@@ -70,7 +70,7 @@ void Debugger::Run() {
 				std::cout << "Breakpoint reached: " << std::hex << (int)PC << std::endl;
 				continue;
 			}
-			uint16_t opcode = emulator->cpu.Read(PC);
+			uint8_t opcode = emulator->cpu.Read(PC);
 			emulator->cpu.Execute(opcode);
 			if (!(opts & DBG_NOGRAPHICS))
 				SDL_RenderClear(emulator->renderer);
