@@ -64,9 +64,8 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 	}
 
 	// Setup RAM banks
-	int ramcount;
+	int ramcount = 0;
 	switch (header.RAMSize) {
-	case RAM_NONE: ramcount = 0; break;
 	case RAM_2KB: case RAM_8KB: ramcount = 1; break;
 	case RAM_32KB: ramcount = 4; break;
 	}
@@ -117,7 +116,7 @@ void ROM::debugPrintData() {
 	std::cout << "ROM Size: " << std::hex << header.ROMSize << std::endl;
 	std::cout << "RAM Size: " << std::hex << header.RAMSize << std::endl;
 
-	// Manifacturer code(s)
+	// Manufacturer code(s)
 	if (header.oldLicenseeCode != 0x33) {
 		std::cout << "Licensee code (old): " << std::hex << (int) header.oldLicenseeCode << std::endl;
 	} else {

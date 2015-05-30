@@ -30,8 +30,9 @@ int main(int argc, char **argv) {
 				std::cout << "Usage: " << argv[0] << " [-hivd] [file.gb]" << std::endl;
 				return 0;
 			}
+		} else {
+			romFile = std::string(argv[i]);
 		}
-		romFile = std::string(argv[i]);
 	}
 
 	if (flags == F_ROMINFO) {
