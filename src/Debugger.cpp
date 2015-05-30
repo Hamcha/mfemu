@@ -1,7 +1,6 @@
 #include "Debugger.h"
 #include <iostream>
 #include <cctype>
-#include <functional>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -25,6 +24,9 @@ void Debugger::Run() {
 				std::cout << "Starting emulation..." << std::endl;
 				emulator->cpu.running = true;
 				break;
+			case CMD_PRINT:
+				printInstruction(emulator->cpu.PC);
+				break;
 			case CMD_BREAK: {
 				std::stringstream ss(cmd.args.front());
 				uint16_t arg;
@@ -34,8 +36,11 @@ void Debugger::Run() {
 			}
 			case CMD_STEP:
 				if (emulator->cpu.running) {
-					SDL_RenderClear(emulator->renderer);
+					if (!(opts & DBG_NOGRAPHICS)) {
+						SDL_RenderClear(emulator->renderer);
+					}
 					emulator->cpu.Step();
+					printInstruction(emulator->cpu.PC);
 				} else {
 					std::cerr << "CPU is not running: type `run` to start emulation." << std::endl;
 				}
@@ -50,6 +55,7 @@ void Debugger::Run() {
 			case CMD_HELP:
 				std::cout 
 					<< "run           Start emulation" << std::endl
+					<< "print         Print current instruction" << std::endl
 					<< "break <addr>  Set breakpoint at <addr>" << std::endl
 					<< "step          Fetch and execute a single instruction" << std::endl
 					<< "continue      Resume execution" << std::endl
@@ -113,23 +119,26 @@ DebugCmd Debugger::getCommand(const char* prompt) {
 		ss >> instr;
 	}
 
-	if (instr == "run")
+	if (instr == "run") {
 		cmd.instr = CMD_RUN;
-	else if (instr == "break") {
+	} else if (instr == "print") {
+		cmd.instr = CMD_PRINT;
+	} else if (instr == "break") {
 		cmd.instr = CMD_BREAK;
 		std::string arg;
 		ss >> arg;
 		cmd.args.push_back(arg);
-	} else if (instr == "quit" || instr == "exit")
+	} else if (instr == "quit" || instr == "exit") {
 		cmd.instr = CMD_QUIT;
-	else if (instr == "step")
+	} else if (instr == "step") {
 		cmd.instr = CMD_STEP;
-	else if (instr == "cont" || instr == "continue")
+	} else if (instr == "cont" || instr == "continue") {
 		cmd.instr = CMD_CONTINUE;
-	else if (instr == "help" || instr == "?")
+	} else if (instr == "help" || instr == "?") {
 		cmd.instr = CMD_HELP;
-	else 
+	} else {
 		cmd.instr = CMD_INVALID;
+	}
 
 	latest = cmd;
 	return cmd;

@@ -2,9 +2,12 @@
 
 #include <list>
 #include <set>
+#include <functional>
 #include "Emulator.h"
 
 namespace Debug {
+
+typedef std::function<void(CPU* cpu, uint16_t addr)> InstructionPrinter;
 
 enum DebugOpts : uint8_t {
 	DBG_INTERACTIVE = 1,
@@ -14,6 +17,7 @@ enum DebugOpts : uint8_t {
 enum DebugInstr {
 	CMD_INVALID,
 	CMD_RUN,
+	CMD_PRINT,
 	CMD_STEP,
 	CMD_BREAK,
 	CMD_CONTINUE,
@@ -36,6 +40,7 @@ private:
 
 	Debug::DebugCmd getCommand(const char* prompt);
 	void setBreakpoint(uint16_t addr);
+	void printInstruction(uint16_t addr);
 public:
 	Debugger(Emulator *_emulator, uint8_t _opts);
 	~Debugger();

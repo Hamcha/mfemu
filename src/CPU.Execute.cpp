@@ -1,29 +1,8 @@
 #include "CPU.h"
+#include "CPU.Defines.h"
 #include <iostream>
-#include <iomanip>
-#include <functional>
 #include <string>
-
-typedef std::function<void(CPU* cpu)> CPUHandler;
-
-enum RID {
-	A, B, C, D, E, H, L
-};
-enum PID {
-	AF, BC, DE, HL, SP, PC
-};
-enum JumpCondition {
-	NO, NZ, ZE, NC, CA
-};
-enum RotationType {
-	ThC, Shf, Rep, Rot
-};
-enum DebugRegisterType {
-	Direct, Indirect
-};
-enum DebugFlags {
-	Comma, IndStart, IndFinish
-};
+#include <iomanip>
 
 uint8_t* getRegister(CPU* cpu, const RID id) {
 	switch (id) {
@@ -61,117 +40,6 @@ bool shouldJump(CPU* cpu, const JumpCondition condition) {
 	return false;
 }
 
-
-#if DEBUG_OPS
-
-std::string getRegisterName(const RID id) {
-	switch (id) {
-	case A: return "A";
-	case B: return "B";
-	case C: return "C";
-	case D: return "D";
-	case E: return "E";
-	case H: return "H";
-	case L: return "L";
-	}
-	return "<REG>";
-}
-
-std::string getPairName(const PID id) {
-	switch (id) {
-	case AF: return "AF";
-	case BC: return "BC";
-	case DE: return "DE";
-	case HL: return "HL";
-	case SP: return "SP";
-	case PC: return "PC";
-	}
-	return "<PAIR>";
-}
-
-std::string getJumpConditionName(const JumpCondition condition) {
-	switch (condition) {
-	case CA: return " C";
-	case NC: return " NC";
-	case ZE: return " Z";
-	case NZ: return " NZ";
-	case NO: default: return "";
-	}
-}
-
-void debugPrintArgument(CPU* cpu) {
-	std::cout << std::endl;
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const DebugRegisterType type, const RID registerId, const Args... args) {
-	std::string registerName = getRegisterName(registerId);
-	if (type == Indirect) {
-		registerName = "(" + registerName + ")";
-	}
-	std::cout << " " << registerName;
-	debugPrintArgument(cpu, args...);
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const DebugRegisterType type, const PID pairId, const Args... args) {
-	std::string pairName = getPairName(pairId);
-	if (type == Indirect) {
-		pairName = "(" + pairName + ")";
-	}
-	std::cout << " " << pairName;
-	debugPrintArgument(cpu, args...);
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const DebugFlags flag, const Args... args) {
-	switch (flag) {
-	case Comma: std::cout << ","; break;
-	case IndStart: std::cout << " ("; break;
-	case IndFinish: std::cout << " )"; break;
-	}
-	debugPrintArgument(cpu, args...);
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const JumpCondition condition, const Args... args) {
-	std::cout << getJumpConditionName(condition);
-	debugPrintArgument(cpu, args...);
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint8_t absolute, const Args... args) {
-	std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << (int)absolute;
-	debugPrintArgument(cpu, args...);
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint16_t absolute, const Args... args) {
-	std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << (int)absolute;
-	debugPrintArgument(cpu, args...);
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const int absolute, const Args... args) {
-	std::cout << " " << std::dec << absolute;
-	debugPrintArgument(cpu, args...);
-}
-
-template<typename... Args>
-void debugPrintArgument(CPU* cpu, const std::string& absolute, const Args... args) {
-	std::cout << " " << absolute;
-	debugPrintArgument(cpu, args...);
-}
-#endif
-
-template<typename... Args>
-void debugPrintInstruction(CPU* cpu, const Args... args) {
-#if DEBUG_OPS
-	std::cout << std::setfill('0') << std::setw(4) << std::hex << cpu->PC << " |";
-	debugPrintArgument(cpu, args...);
-#endif
-}
-
 uint8_t getHalfCarry(const uint8_t after, const uint8_t before) {
 	return (before ^ after >> 4) & 0x01;
 }
@@ -183,8 +51,6 @@ uint8_t getHalfCarry(const uint16_t after, const uint16_t before) {
 // Do nothing
 void Nop(CPU* cpu) {
 	cpu->cycles.add(1, 4);
-
-	debugPrintInstruction(cpu, "NOP");
 }
 
 // Stop or halt the processor
@@ -196,8 +62,6 @@ CPUHandler Halt(const bool waitInterrupt) {
 
 		cpu->cycles.add(mcycles, 4);
 		cpu->running = false;
-
-		debugPrintInstruction(cpu, waitInterrupt ? "HALT" : "STOP");
 	};
 }
 
@@ -208,8 +72,6 @@ CPUHandler LoadDirect(const RID dst, const RID src) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		*dstRes = *srcRes;
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, Direct, src);
 	};
 }
 
@@ -220,8 +82,6 @@ CPUHandler LoadDirect(const PID dst, const PID src) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		*dstRes = *srcRes;
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, Direct, src);
 	};
 }
 
@@ -233,8 +93,6 @@ CPUHandler LoadIndirect(const RID dst, const PID ind) {
 		uint8_t value = cpu->Read(*addr);
 		*res = value;
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, Indirect, ind);
 	};
 }
 
@@ -245,8 +103,6 @@ CPUHandler LoadIndirect(const PID dst, const RID src) {
 		uint16_t* addr = getPair(cpu, dst);
 		cpu->Write(*addr, *value);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "LD ", Indirect, dst, Comma, Direct, src);
 	};
 }
 
@@ -258,8 +114,6 @@ CPUHandler LoadHighMem(const RID ind, const RID reg) {
 
 		cpu->Write(0xff00 + *offset, *value);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "LD ", IndStart, (uint16_t) 0xff00, "+", Direct, ind, IndFinish, Comma, Direct, reg);
 	};
 }
 
@@ -272,8 +126,6 @@ CPUHandler LoadHighReg(const RID dst, const RID ind) {
 		uint8_t value = cpu->Read(0xff00 + *offset);
 		*reg = value;
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, IndStart, (uint16_t) 0xff00, "+", Direct, ind, IndFinish);
 	};
 }
 
@@ -285,9 +137,6 @@ CPUHandler LoadHighReg(const RID dst) {
 		uint8_t value = cpu->Read(0xff00 + addr);
 		*reg = value;
 		cpu->cycles.add(2, 12);
-
-		debugPrintInstruction(cpu, "LDH", Direct, dst, Comma, IndStart, (uint16_t) 0xff00, "+", addr, IndFinish);
-
 		cpu->PC += 1;
 	};
 }
@@ -299,9 +148,6 @@ CPUHandler LoadHighAbs(const RID src) {
 		uint8_t addr = cpu->Read(cpu->PC + 1);
 		cpu->Write(0xff00 + addr, *reg);
 		cpu->cycles.add(2, 12);
-
-		debugPrintInstruction(cpu, "LDH", IndStart, (uint16_t) 0xff00, "+", (uint8_t) addr, IndFinish, Comma, Direct, src);
-
 		cpu->PC += 1;
 	};
 }
@@ -322,7 +168,6 @@ CPUHandler LoadIndirectInc(const RID dst, const PID ind, const bool increment) {
 
 		std::string op = "LD";
 		op += (increment ? "I" : "D");
-		debugPrintInstruction(cpu, op, Direct, dst, Comma, Indirect, ind);
 	};
 }
 
@@ -341,7 +186,6 @@ CPUHandler LoadIndirectInc(const PID ind, const RID src, const bool increment) {
 
 		std::string op = "LD";
 		op += (increment ? "I" : "D");
-		debugPrintInstruction(cpu, op, Indirect, ind, Comma, Direct, src);
 	};
 }
 
@@ -356,9 +200,6 @@ CPUHandler LoadToMemory(const RID src) {
 
 		cpu->Write(word, *reg);
 		cpu->cycles.add(3, 16);
-
-		debugPrintInstruction(cpu, "LD ", IndStart, word, IndFinish, Comma, Direct, src);
-
 		cpu->PC += 2;
 	};
 }
@@ -378,9 +219,6 @@ CPUHandler LoadToMemory(const PID src) {
 		cpu->Write(word, highVal);
 		cpu->Write(word + 1, lowVal);
 		cpu->cycles.add(3, 20);
-
-		debugPrintInstruction(cpu, "LD ", IndStart, word, IndFinish, Comma, Direct, src);
-
 		cpu->PC += 2;
 	};
 }
@@ -396,9 +234,6 @@ CPUHandler LoadFromMemory(const RID dst) {
 		*reg = val;
 
 		cpu->cycles.add(3, 16);
-
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, IndStart, addr, IndFinish);
-
 		cpu->PC += 2;
 	};
 }
@@ -413,9 +248,6 @@ CPUHandler LoadImmediate(const RID dst) {
 		// Assign to register
 		*dstRes = value;
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, value);
-
 		cpu->PC += 1;
 	};
 }
@@ -431,9 +263,6 @@ CPUHandler LoadImmediate(const PID dst) {
 
 		*dstRes = word;
 		cpu->cycles.add(3, 12);
-
-		debugPrintInstruction(cpu, "LD ", Direct, dst, Comma, word);
-
 		cpu->PC += 2;
 	};
 }
@@ -449,9 +278,6 @@ CPUHandler LoadImmediateInd(const PID ind) {
 		cpu->Write(*addr, value);
 
 		cpu->cycles.add(2, 12);
-
-		debugPrintInstruction(cpu, "LD ", Indirect, ind, Comma, value);
-
 		cpu->PC += 1;
 	};
 }
@@ -471,9 +297,6 @@ CPUHandler LoadOffset(const PID a, const PID b) {
 		cpu->Flags().BCD_HalfCarry = getHalfCarry(*aRes, orig);
 		cpu->Flags().Carry = *aRes < orig ? 1 : 0;
 		cpu->cycles.add(2, 12);
-
-		debugPrintInstruction(cpu, "LD ", Direct, a, Comma, Direct, b, "+", offset);
-
 		cpu->PC += 1;
 	};
 }
@@ -487,8 +310,6 @@ CPUHandler Increment(const RID dst) {
 		cpu->Flags().BCD_AddSub = 0;
 		cpu->Flags().BCD_HalfCarry = getHalfCarry(*dstRes, *dstRes - 1);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "INC", Direct, dst);
 	};
 }
 
@@ -498,8 +319,6 @@ CPUHandler Increment(const PID dst) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		*dstRes += 1;
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "INC", Direct, dst);
 	};
 }
 
@@ -515,8 +334,6 @@ CPUHandler IncrementInd(const PID ind) {
 		cpu->Flags().BCD_AddSub = 0;
 		cpu->Flags().BCD_HalfCarry = getHalfCarry(value, value - 1);
 		cpu->cycles.add(1, 12);
-
-		debugPrintInstruction(cpu, "INC", Indirect, ind);
 	};
 }
 
@@ -529,8 +346,6 @@ CPUHandler Decrement(const RID dst) {
 		cpu->Flags().BCD_AddSub = 1;
 		cpu->Flags().BCD_HalfCarry = getHalfCarry(*dstRes, *dstRes + 1);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "DEC", Direct, dst);
 	};
 }
 
@@ -540,8 +355,6 @@ CPUHandler Decrement(const PID dst) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		*dstRes -= 1;
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "DEC", Direct, dst);
 	};
 }
 
@@ -557,8 +370,6 @@ CPUHandler DecrementInd(const PID ind) {
 		cpu->Flags().BCD_AddSub = 1;
 		cpu->Flags().BCD_HalfCarry = getHalfCarry(value, value + 1);
 		cpu->cycles.add(1, 12);
-
-		debugPrintInstruction(cpu, "DEC", Indirect, ind);
 	};
 }
 
@@ -590,8 +401,6 @@ CPUHandler AddDirect(const RID a, const RID b, const bool useCarry) {
 		uint8_t* bRes = getRegister(cpu, b);
 		Add(cpu, aRes, bRes, useCarry);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, (useCarry ? "ADC" : "ADD"), Direct, a, Comma, Direct, b);
 	};
 }
 
@@ -602,8 +411,6 @@ CPUHandler AddDirect(const PID a, const PID b) {
 		uint16_t* bRes = getPair(cpu, b);
 		Add(cpu, aRes, bRes);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "ADD", Direct, a, Comma, Direct, b);
 	};
 }
 
@@ -615,8 +422,6 @@ CPUHandler AddIndirect(const RID a, const PID ind, const bool useCarry) {
 		uint8_t   bRes = cpu->Read(*addr);
 		Add(cpu, aRes, &bRes, useCarry);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, (useCarry ? "ADC" : "ADD"), Direct, a, Comma, Indirect, ind);
 	};
 }
 
@@ -627,9 +432,6 @@ CPUHandler AddImmediate(const RID a, const bool useCarry) {
 		uint8_t  bRes = cpu->Read(cpu->PC + 1);
 		Add(cpu, aRes, &bRes, useCarry);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, (useCarry ? "ADC" : "ADD"), Direct, a, Comma, bRes);
-
 		cpu->PC += 1;
 	};
 }
@@ -646,9 +448,6 @@ CPUHandler AddImmediateS(const PID a) {
 		cpu->Flags().BCD_AddSub = 0;
 		cpu->Flags().BCD_HalfCarry = getHalfCarry(*aRes, orig);
 		cpu->cycles.add(2, 16);
-
-		debugPrintInstruction(cpu, "ADDs", Direct, a, Comma, bRes);
-
 		cpu->PC += 1;
 	};
 }
@@ -673,8 +472,6 @@ CPUHandler SubDirect(const RID a, const RID b, const bool useCarry) {
 		uint8_t* bRes = getRegister(cpu, b);
 		Subtract(cpu, aRes, bRes, useCarry);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, (useCarry ? "SBC" : "SUB"), Direct, a, Comma, Direct, b);
 	};
 }
 
@@ -686,8 +483,6 @@ CPUHandler SubIndirect(const RID a, const PID ind, const bool useCarry) {
 		uint8_t   bRes = cpu->Read(*addr);
 		Subtract(cpu, aRes, &bRes, useCarry);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, (useCarry ? "SBC" : "SUB"), Direct, a, Comma, Indirect, ind);
 	};
 }
 
@@ -698,9 +493,6 @@ CPUHandler SubImmediate(const RID a, const bool useCarry) {
 		uint8_t  bRes = cpu->Read(cpu->PC + 1);
 		Subtract(cpu, aRes, &bRes, false);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "SUB", Direct, a, Comma, bRes);
-
 		cpu->PC += 1;
 	};
 }
@@ -720,8 +512,6 @@ CPUHandler CmpDirect(const RID a, const RID b) {
 		uint8_t* bRes = getRegister(cpu, b);
 		Compare(cpu, aRes, bRes);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "CP ", Direct, a, Comma, Direct, b);
 	};
 }
 
@@ -732,8 +522,6 @@ CPUHandler CmpIndirect(const RID a, const PID ind) {
 		uint8_t   bRes = cpu->Read(*addr);
 		Compare(cpu, aRes, &bRes);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "CP ", Direct, a, Comma, Indirect, ind);
 	};
 }
 
@@ -743,9 +531,6 @@ CPUHandler CmpImmediate(const RID a) {
 		uint8_t  bRes = cpu->Read(cpu->PC + 1);
 		Compare(cpu, aRes, &bRes);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "CP ", Direct, a, Comma, bRes);
-
 		cpu->PC += 1;
 	};
 }
@@ -784,8 +569,6 @@ CPUHandler AndDirect(const RID a, const RID b) {
 		uint8_t* bRes = getRegister(cpu, b);
 		And(cpu, aRes, bRes);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "AND", Direct, a, Comma, Direct, b);
 	};
 }
 
@@ -797,8 +580,6 @@ CPUHandler AndIndirect(const RID a, const PID ind) {
 		uint8_t   bRes = cpu->Read(*addr);
 		And(cpu, aRes, &bRes);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "AND", Direct, a, Comma, Indirect, ind);
 	};
 }
 
@@ -809,9 +590,6 @@ CPUHandler AndImmediate(const RID a) {
 		uint8_t  bRes = cpu->Read(cpu->PC + 1);
 		And(cpu, aRes, &bRes);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "AND", Direct, a, Comma, bRes);
-
 		cpu->PC += 1;
 	};
 }
@@ -823,8 +601,6 @@ CPUHandler OrDirect(const RID a, const RID b) {
 		uint8_t* bRes = getRegister(cpu, b);
 		Or(cpu, aRes, bRes);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "OR ", Direct, a, Comma, Direct, b);
 	};
 }
 
@@ -836,8 +612,6 @@ CPUHandler OrIndirect(const RID a, const PID ind) {
 		uint8_t   bRes = cpu->Read(*addr);
 		Or(cpu, aRes, &bRes);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "OR ", Direct, a, Comma, Indirect, ind);
 	};
 }
 
@@ -848,9 +622,6 @@ CPUHandler OrImmediate(const RID a) {
 		uint8_t  bRes = cpu->Read(cpu->PC + 1);
 		Or(cpu, aRes, &bRes);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "OR ", Direct, a, Comma, bRes);
-
 		cpu->PC += 1;
 	};
 }
@@ -862,8 +633,6 @@ CPUHandler XorDirect(const RID a, const RID b) {
 		uint8_t* bRes = getRegister(cpu, b);
 		Xor(cpu, aRes, bRes);
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, "XOR", Direct, a, Comma, Direct, b);
 	};
 }
 
@@ -875,8 +644,6 @@ CPUHandler XorIndirect(const RID a, const PID ind) {
 		uint8_t   bRes = cpu->Read(*addr);
 		Xor(cpu, aRes, &bRes);
 		cpu->cycles.add(1, 8);
-
-		debugPrintInstruction(cpu, "XOR", Direct, a, Comma, Indirect, ind);
 	};
 }
 
@@ -887,9 +654,6 @@ CPUHandler XorImmediate(const RID a) {
 		uint8_t  bRes = cpu->Read(cpu->PC + 1);
 		Xor(cpu, aRes, &bRes);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "XOR", Direct, a, Comma, bRes);
-
 		cpu->PC += 1;
 	};
 }
@@ -899,7 +663,6 @@ CPUHandler JumpRelative(const JumpCondition condition) {
 	return [condition](CPU* cpu) {
 		uint8_t u8 = cpu->Read(cpu->PC + 1);
 		int r8 = (int8_t) u8;
-		debugPrintInstruction(cpu, "JR ", condition, Comma, (int) r8);
 
 		if (shouldJump(cpu, condition)) {
 			cpu->PC += r8;
@@ -919,7 +682,6 @@ CPUHandler JumpAbsolute(const JumpCondition condition) {
 		uint8_t  low = cpu->Read(cpu->PC + 1);
 		uint8_t  high = cpu->Read(cpu->PC + 2);
 		uint16_t word = (high << 8) | low;
-		debugPrintInstruction(cpu, "JP ", condition, Comma, word);
 
 		if (shouldJump(cpu, condition)) {
 			cpu->PC = word - 1;
@@ -935,11 +697,8 @@ CPUHandler JumpAbsolute(const JumpCondition condition) {
 // Immediate Absolute Jump (register)
 CPUHandler JumpAbsolute(const PID src) {
 	return [src](CPU* cpu) {
-		debugPrintInstruction(cpu, "JP ", ZE, Comma, Indirect, src);
-
 		cpu->PC = *getPair(cpu, src) - 1;
 		cpu->cycles.add(1, 4);
-
 	};
 }
 
@@ -990,13 +749,6 @@ CPUHandler RotateAcc(const bool left, const bool throughCarry) {
 		}
 		cpu->Flags().Zero = 0;
 		cpu->cycles.add(1, 4);
-
-		std::string op = "R";
-		if (left) op += "L";
-		else op += "R";
-		if (!throughCarry) op += "C";
-		op += "A";
-		debugPrintInstruction(cpu, op);
 	};
 }
 
@@ -1010,15 +762,6 @@ CPUHandler RotateReg(const RID reg, const bool left, const RotationType type) {
 			RotateRight(cpu, val, type);
 		}
 		cpu->cycles.add(2, 8);
-
-		std::string op;
-		switch (type) {
-		case Shf: op = (left ? "SLA" : "SRL"); break;
-		case Rot: op = (left ? "RLC" : "RRC"); break;
-		case ThC: op = (left ? "RL" : "RR"); break;
-		case Rep: op = "SRA"; break;
-		}
-		debugPrintInstruction(cpu, op, Direct, reg);
 	};
 }
 
@@ -1034,15 +777,6 @@ CPUHandler RotateInd(const PID ind, const bool left, const RotationType type) {
 		}
 		cpu->Write(*addr, value);
 		cpu->cycles.add(2, 16);
-
-		std::string op;
-		switch (type) {
-		case Shf: op = (left ? "SLA" : "SRL"); break;
-		case Rot: op = (left ? "RLC" : "RRC"); break;
-		case ThC: op = (left ? "RL" : "RR"); break;
-		case Rep: op = "SRA"; break;
-		}
-		debugPrintInstruction(cpu, op, Indirect, ind);
 	};
 }
 
@@ -1061,8 +795,6 @@ CPUHandler SwapDirect(const RID reg) {
 		uint8_t* val = getRegister(cpu, reg);
 		Swap(cpu, val);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "SWAP", Direct, reg);
 	};
 }
 
@@ -1074,8 +806,6 @@ CPUHandler SwapIndirect(const PID reg) {
 		Swap(cpu, &value);
 		cpu->Write(*addr, value);
 		cpu->cycles.add(2, 16);
-
-		debugPrintInstruction(cpu, "SWAP", Indirect, reg);
 	};
 }
 
@@ -1094,8 +824,6 @@ CPUHandler SetDirect(const RID reg, const uint8_t bit, const bool reset) {
 		uint8_t* val = getRegister(cpu, reg);
 		Set(val, bit, reset);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, (reset ? "RST" : "SET"), (int) bit, Comma, Direct, reg);
 	};
 }
 
@@ -1107,8 +835,6 @@ CPUHandler SetIndirect(const PID ind, const uint8_t bit, const bool reset) {
 		Set(&value, bit, reset);
 		cpu->Write(*addr, value);
 		cpu->cycles.add(2, 16);
-
-		debugPrintInstruction(cpu, (reset ? "RST" : "SET"), (int) bit, Comma, Indirect, ind);
 	};
 }
 
@@ -1126,8 +852,6 @@ CPUHandler BitDirect(const RID reg, const uint8_t bit) {
 		uint8_t* value = getRegister(cpu, reg);
 		Bit(cpu, *value, bit);
 		cpu->cycles.add(2, 8);
-
-		debugPrintInstruction(cpu, "BIT", (int) bit, Comma, Direct, reg);
 	};
 }
 
@@ -1138,8 +862,6 @@ CPUHandler BitIndirect(const PID ind, const uint8_t bit) {
 		uint8_t value = cpu->Read(*addr);
 		Bit(cpu, value, bit);
 		cpu->cycles.add(2, 16);
-
-		debugPrintInstruction(cpu, "BIT", (int) bit, Comma, Indirect, ind);
 	};
 }
 
@@ -1148,8 +870,6 @@ CPUHandler SetInt(bool enable) {
 	return [enable](CPU* cpu) {
 		cpu->maskable = enable;
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, enable ? "EI" : "DI");
 	};
 }
 
@@ -1181,8 +901,6 @@ void DecimalToBCD(CPU* cpu) {
 	cpu->Flags().Zero = *reg == 0 ? 1 : 0;
 
 	cpu->cycles.add(1, 4);
-
-	debugPrintInstruction(cpu, "DAA");
 }
 
 // Set or Invert Carry flag (SCF/CCF)
@@ -1195,8 +913,6 @@ CPUHandler SetCarry(bool invert) {
 
 		cpu->Flags().Carry = val;
 		cpu->cycles.add(1, 4);
-
-		debugPrintInstruction(cpu, invert ? "CCF" : "SCF");
 	};
 }
 
@@ -1206,8 +922,6 @@ void InvertA(CPU* cpu) {
 	*reg = ~*reg;
 
 	cpu->cycles.add(1, 4);
-
-	debugPrintInstruction(cpu, "CPL");
 }
 
 // Push 16bit value to stack (called by CALL, PUSH)
@@ -1236,8 +950,6 @@ CPUHandler PushReg(PID reg) {
 		uint16_t* val = getPair(cpu, reg);
 		Push(cpu, *val);
 		cpu->cycles.add(1, 16);
-
-		debugPrintInstruction(cpu, "PUSH", Direct, reg);
 	};
 }
 
@@ -1247,8 +959,6 @@ CPUHandler PopReg(PID reg) {
 		uint16_t* val = getPair(cpu, reg);
 		*val = Pop(cpu);
 		cpu->cycles.add(1, 12);
-
-		debugPrintInstruction(cpu, "POP", Direct, reg);
 	};
 }
 
@@ -1259,8 +969,6 @@ CPUHandler Call(JumpCondition condition) {
 		uint8_t  low = cpu->Read(cpu->PC + 1);
 		uint8_t  high = cpu->Read(cpu->PC + 2);
 		uint16_t word = (high << 8) | low;
-
-		debugPrintInstruction(cpu, "CALL", condition, word);
 
 		if (shouldJump(cpu, condition)) {
 			Push(cpu, cpu->PC);
@@ -1277,8 +985,6 @@ CPUHandler Call(JumpCondition condition) {
 // Conditional Return function
 CPUHandler Return(JumpCondition condition) {
 	return [condition](CPU* cpu) {
-		debugPrintInstruction(cpu, "RET", condition);
-
 		if (shouldJump(cpu, condition)) {
 			uint16_t addr = Pop(cpu);
 			cpu->PC = addr - 1;
@@ -1292,8 +998,6 @@ CPUHandler Return(JumpCondition condition) {
 
 // Return then enable interrupts
 void RETI(CPU* cpu) {
-	debugPrintInstruction(cpu, "RETI");
-
 	CPUHandler handler = Return(NO);
 	handler(cpu);
 	cpu->maskable = true;
@@ -1306,8 +1010,6 @@ CPUHandler Restart(uint8_t base) {
 		Push(cpu, cpu->PC);
 		cpu->PC = base - 1;
 		cpu->cycles.add(1, 16);
-
-		debugPrintInstruction(cpu, "RST", base);
 	};
 }
 
