@@ -24,8 +24,7 @@ ROM ROM::FromFile(const std::string& filename) {
 	bytes.reserve(fileSize);
 	bytes.insert(bytes.begin(), std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
 
-	ROM rom(bytes);
-	return rom;
+	return ROM(bytes);
 }
 
 ROM::ROM(const std::vector<uint8_t>& bytes) {
@@ -97,7 +96,7 @@ void ROM::debugPrintData() {
 	// The title can be either 15 or 13 characters, depending on target console
 	if (header.colorFlag == GBSupported || header.colorFlag == GBCOnly) {
 		std::cout << "Title (GBC format): " << std::string(header.GBCTitle) << std::endl;
-		std::cout << "Manifacturer Code: " << std::string(header.manCode) << std::endl;
+		std::cout << "Manufacturer Code: " << std::string(header.manCode) << std::endl;
 	} else {
 		std::cout << "Title (GB format): " << std::string(header.GBTitle) << std::endl;
 	}
