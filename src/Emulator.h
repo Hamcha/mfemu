@@ -15,7 +15,7 @@ public:
 	ROM rom;
 	CPU cpu;
 
-	explicit Emulator(const std::string& romfile, bool graphics = true));
+	explicit Emulator(const std::string& romfile, bool graphics = true);
 	~Emulator();
 
 	void Run();
