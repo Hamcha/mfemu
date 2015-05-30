@@ -1,5 +1,7 @@
 #include "Debugger.h"
 #include <iostream>
+#include <cctype>
+#include <functional>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
