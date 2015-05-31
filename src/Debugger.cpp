@@ -4,8 +4,24 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
+#include <utility>
+#include <map>
 
 using namespace Debug;
+
+// { cmd_string => { command, n.args } }
+static std::map<std::string, std::pair<DebugInstr, int>> debugInstructions = {
+	{ "run",      std::make_pair(CMD_RUN,      0) },
+	{ "print",    std::make_pair(CMD_PRINT,    0) },
+	{ "break",    std::make_pair(CMD_BREAK,    1) },
+	{ "quit",     std::make_pair(CMD_QUIT,     0) },
+	{ "exit",     std::make_pair(CMD_QUIT,     0) },
+	{ "step",     std::make_pair(CMD_STEP,     0) },
+	{ "cont",     std::make_pair(CMD_CONTINUE, 0) },
+	{ "continue", std::make_pair(CMD_CONTINUE, 0) },
+	{ "help",     std::make_pair(CMD_HELP,     0) },
+	{ "?",        std::make_pair(CMD_HELP,     0) }
+};
 
 Debugger::Debugger(Emulator *_emulator, uint8_t _opts) {
 	emulator = _emulator;
@@ -119,23 +135,14 @@ DebugCmd Debugger::getCommand(const char* prompt) {
 		ss >> instr;
 	}
 
-	if (instr == "run") {
-		cmd.instr = CMD_RUN;
-	} else if (instr == "print") {
-		cmd.instr = CMD_PRINT;
-	} else if (instr == "break") {
-		cmd.instr = CMD_BREAK;
-		std::string arg;
-		ss >> arg;
-		cmd.args.push_back(arg);
-	} else if (instr == "quit" || instr == "exit") {
-		cmd.instr = CMD_QUIT;
-	} else if (instr == "step") {
-		cmd.instr = CMD_STEP;
-	} else if (instr == "cont" || instr == "continue") {
-		cmd.instr = CMD_CONTINUE;
-	} else if (instr == "help" || instr == "?") {
-		cmd.instr = CMD_HELP;
+	auto inst_pair = debugInstructions.find(instr);
+	if (inst_pair != debugInstructions.end()) {
+		cmd.instr = inst_pair->second.first;
+		for (int i = 0; i < inst_pair->second.second; ++i) {
+			std::string arg;
+			ss >> arg;
+			cmd.args.push_back(arg);
+		}
 	} else {
 		cmd.instr = CMD_INVALID;
 	}
