@@ -10,7 +10,7 @@
 using namespace Debug;
 
 // { cmd_string => { command, n.args } }
-static std::map<std::string, std::pair<DebugInstr, int>> debugInstructions = {
+static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions = {
 	{ "run",      std::make_pair(CMD_RUN,      0) },
 	{ "print",    std::make_pair(CMD_PRINT,    0) },
 	{ "break",    std::make_pair(CMD_BREAK,    1) },
