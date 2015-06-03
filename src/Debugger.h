@@ -12,6 +12,7 @@ typedef std::function<void(CPU* cpu, uint16_t addr)> InstructionPrinter;
 enum DebugOpts : uint8_t {
 	DBG_INTERACTIVE = 1,
 	DBG_NOGRAPHICS  = 1 << 1,
+	DBG_PRINTINSTR  = 1 << 2
 };
 
 enum DebugInstr {
@@ -23,6 +24,7 @@ enum DebugInstr {
 	CMD_STEP,
 	CMD_BREAK,
 	CMD_CONTINUE,
+	CMD_VERB,
 	CMD_HELP,
 	CMD_QUIT
 };
@@ -50,4 +52,6 @@ public:
 	~Debugger();
 
 	void Run();
+
+	Emulator* getEmulator() const { return emulator; }
 };
