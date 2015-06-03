@@ -6,8 +6,46 @@
 #include <iomanip>
 #include <utility>
 #include <map>
+#if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+#include <unistd.h>
+#include <csignal>
+#elif _WIN32 || _WIN64
+#include <windows.h>
+#endif
 
 using namespace Debug;
+
+static Debugger *_debugger = nullptr;
+
+// While the debugger is running, trap the SIGINT to pause the emulation.
+static void interrupt_handler(int s) {
+	if (_debugger == nullptr) return;
+	if (_debugger->getEmulator()->cpu.running) {
+		_debugger->getEmulator()->cpu.running = false;
+		std::clog << "Emulation paused. Type 'run' to resume." << std::endl;
+		return;
+	}
+	exit(s);
+}
+
+#if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+static void setup_signal_trap() {
+	struct sigaction sigintHandler;
+	sigintHandler.sa_handler = interrupt_handler;
+	sigemptyset(&sigintHandler.sa_mask);
+	sigintHandler.sa_flags = 0;
+	sigaction(SIGINT, &sigintHandler, NULL);
+}
+#elif _WIN32 || _WIN64
+static BOOL InterruptHandlerProxy(DWORD ctrlType) {
+	switch (ctrlType) {
+	case CTRL_C_EVENT:
+		interrupt_handler();
+		return TRUE;
+	}
+	return FALSE;
+}
+#endif
 
 // { cmd_string => { command, n.args } }
 static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions = {
@@ -19,6 +57,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "step",     std::make_pair(CMD_STEP,     0) },
 	{ "cont",     std::make_pair(CMD_CONTINUE, 0) },
 	{ "continue", std::make_pair(CMD_CONTINUE, 0) },
+	{ "verb",     std::make_pair(CMD_VERB,     1) },
 	{ "help",     std::make_pair(CMD_HELP,     0) },
 	{ "?",        std::make_pair(CMD_HELP,     0) }
 };
@@ -32,12 +71,21 @@ Debugger::~Debugger() {}
 
 void Debugger::Run() {
 	emulator->cpu.running = false;
+
+	// Trap SIGINT to pause the execution
+	_debugger = this;
+#if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+	setup_signal_trap();
+#elif _WIN32 || _WIN64
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)InterruptHandlerProxy, TRUE);
+#endif
+
 	while (true) {
 		if (!emulator->cpu.running || opts & DBG_INTERACTIVE) {
 			DebugCmd cmd = getCommand("(mfemu)");
 			switch (cmd.instr) {
 			case CMD_RUN:
-				std::cout << "Starting emulation..." << std::endl;
+				std::clog << "Starting emulation..." << std::endl;
 				emulator->cpu.running = true;
 				break;
 			case CMD_PRINT:
@@ -75,11 +123,23 @@ void Debugger::Run() {
 					<< "break <addr>  Set breakpoint at <addr>" << std::endl
 					<< "step          Fetch and execute a single instruction" << std::endl
 					<< "continue      Resume execution" << std::endl
+					<< "verb <on|off> Toggle instruction printing" << std::endl
 					<< "help          Print a help message" << std::endl
 					<< "quit          Quit the debugger" << std::endl;
 				break;
+			case CMD_VERB:
+				if (cmd.args.front() == "on") {
+					opts |= DBG_PRINTINSTR;
+					std::clog << "Verbosity is on." << std::endl;
+				} else if (cmd.args.front() == "off") {
+					opts &= ~DBG_PRINTINSTR;
+					std::clog << "Verbosity is off." << std::endl;
+				} else {
+					std::cerr << "Error: expected 'on' or 'off' after 'verb'." << std::endl;
+				}
+				break;
 			case CMD_QUIT:
-				std::cerr << "...quitting." << std::endl;
+				std::clog << "...quitting." << std::endl;
 				return;
 			default:
 				std::cerr << "Invalid command" << std::endl;
@@ -93,6 +153,8 @@ void Debugger::Run() {
 				continue;
 			}
 			uint8_t opcode = emulator->cpu.Read(PC);
+			if (opts & DBG_PRINTINSTR)
+				printInstruction(PC);
 			emulator->cpu.Execute(opcode);
 			if (!(opts & DBG_NOGRAPHICS))
 				SDL_RenderClear(emulator->renderer);
@@ -153,5 +215,5 @@ DebugCmd Debugger::getCommand(const char* prompt) {
 
 void Debugger::setBreakpoint(uint16_t addr) {
 	breakPoints.insert(addr);
-	std::cout << "Set breakpoint to " << std::setfill('0') << std::setw(4) << std::hex << (int)addr << std::endl;
+	std::clog << "Set breakpoint to " << std::setfill('0') << std::setw(4) << std::hex << (int)addr << std::endl;
 }
