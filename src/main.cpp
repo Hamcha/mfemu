@@ -5,8 +5,7 @@
 enum MainFlags : uint8_t {
 	F_DEFAULT      = 1,
 	F_ROMINFO      = 1 << 1,
-	F_DEBUG        = 1 << 2,
-	F_DEBUGVERBOSE = 1 << 3
+	F_DEBUG        = 1 << 2
 };
 
 int main(int argc, char **argv) {
@@ -27,16 +26,12 @@ int main(int argc, char **argv) {
 			case 'd':
 				flags = F_DEBUG;
 				break;
-			case 'D':
-				flags = F_DEBUG | F_DEBUGVERBOSE;
-				break;
 			default:
-				std::cout << "Usage: " << argv[0] << " [-hivd] <file.gb>" << std::endl;
-				std::cout << "\t-h: get this help" << std::endl;
-				std::cout << "\t-v: print version and exit" << std::endl;
-				std::cout << "\t-i: print ROM info and exit" << std::endl;
-				std::cout << "\t-d: run the debugger on the given rom" << std::endl;
-				std::cout << "\t-D: run the debugger in verbose mode (implies -d)" << std::endl;
+				std::cout << "Usage: " << argv[0] << " [-hivd] <file.gb>" << std::endl
+					<< "\t-h: get this help" << std::endl
+					<< "\t-v: print version and exit" << std::endl
+					<< "\t-i: print ROM info and exit" << std::endl
+					<< "\t-d: run the debugger on the given rom" << std::endl;
 				return 0;
 			}
 		} else {
@@ -53,8 +48,6 @@ int main(int argc, char **argv) {
 	if (flags & F_DEBUG) {
 		Emulator emulator(romFile, false);
 		uint8_t debugger_flags = Debug::DBG_NOGRAPHICS;
-		if (flags & F_DEBUGVERBOSE)
-			debugger_flags |= Debug::DBG_PRINTINSTR;
 		Debugger debugger(&emulator, debugger_flags);
 		debugger.Run();
 	} else {

@@ -21,8 +21,8 @@ static Debugger *_debugger = nullptr;
 static void interrupt_handler(int s) {
 	if (_debugger == nullptr) return;
 	if (_debugger->getEmulator()->cpu.running) {
-		_debugger->getEmulator()->cpu.running = false;
 		std::clog << "Emulation paused. Type 'run' to resume." << std::endl;
+		_debugger->getEmulator()->cpu.running = false;
 		return;
 	}
 	exit(s);
@@ -132,7 +132,7 @@ void Debugger::Run() {
 					<< "break <addr>  Set breakpoint at <addr>" << std::endl
 					<< "step          Fetch and execute a single instruction" << std::endl
 					<< "continue      Resume execution" << std::endl
-					<< "verb <on|off> Toggle instruction printing" << std::endl
+					<< "track         Toggle instruction printing" << std::endl
 					<< "help          Print a help message" << std::endl
 					<< "quit          Quit the debugger" << std::endl;
 				break;
@@ -151,7 +151,9 @@ void Debugger::Run() {
 				continue;
 			}
 
-			printInstruction(emulator->cpu.PC);
+			if (track) {
+				printInstruction(emulator->cpu.PC);
+			}
 			emulator->cpu.Step();
 			if (!(opts & DBG_NOGRAPHICS)) {
 				SDL_RenderClear(emulator->renderer);

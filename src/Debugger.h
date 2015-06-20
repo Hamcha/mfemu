@@ -24,7 +24,6 @@ enum DebugInstr {
 	CMD_STEP,
 	CMD_BREAK,
 	CMD_CONTINUE,
-	CMD_VERB,
 	CMD_HELP,
 	CMD_QUIT
 };
