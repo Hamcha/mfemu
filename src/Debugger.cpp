@@ -50,7 +50,7 @@ static BOOL InterruptHandlerProxy(DWORD ctrlType) {
 // { cmd_string => { command, n.args } }
 static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions = {
 	{ "run",      std::make_pair(CMD_RUN,       0) },
-	{ "print",    std::make_pair(CMD_PRINT,     0) },
+	{ "print",    std::make_pair(CMD_PRINT,     1) },
 	{ "reg",      std::make_pair(CMD_REGISTERS, 0) },
 	{ "stack",    std::make_pair(CMD_STACK,     0) },
 	{ "track",    std::make_pair(CMD_TRACK,     0) },
@@ -91,9 +91,15 @@ void Debugger::Run() {
 				std::clog << "Starting emulation..." << std::endl;
 				emulator->cpu.running = true;
 				break;
-			case CMD_PRINT:
-				printInstruction(emulator->cpu.PC);
+			case CMD_PRINT: {
+				uint16_t arg = emulator->cpu.PC;
+				if (cmd.args.front().length() > 0) {
+					std::stringstream ss(cmd.args.front());
+					ss >> std::hex >> arg;
+				}
+				printInstruction(arg);
 				break;
+			}
 			case CMD_REGISTERS:
 				printRegisters();
 				break;
