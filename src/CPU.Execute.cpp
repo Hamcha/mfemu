@@ -214,7 +214,7 @@ CPUHandler LoadToMemory(const PID src) {
 		uint16_t* reg = getPair(cpu, src);
 
 		uint8_t highVal = *reg >> 8;
-		uint8_t lowVal = *reg & 0x0f;
+		uint8_t lowVal = *reg & 0x00ff;
 
 		cpu->Write(word, highVal);
 		cpu->Write(word + 1, lowVal);
@@ -927,7 +927,7 @@ void InvertA(CPU* cpu) {
 // Push 16bit value to stack (called by CALL, PUSH)
 void Push(CPU* cpu, uint16_t value) {
 	uint8_t high = value >> 8;
-	uint8_t low = value & 0x0f;
+	uint8_t low = value & 0x00ff;
 
 	cpu->Write(cpu->SP - 1, high);
 	cpu->Write(cpu->SP - 2, low);
