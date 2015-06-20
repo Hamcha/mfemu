@@ -20,6 +20,7 @@ enum DebugInstr {
 	CMD_RUN,
 	CMD_PRINT,
 	CMD_REGISTERS,
+	CMD_STACK,
 	CMD_TRACK,
 	CMD_STEP,
 	CMD_BREAK,
@@ -46,6 +47,7 @@ private:
 	void setBreakpoint(uint16_t addr);
 	void printInstruction(uint16_t addr);
 	void printRegisters();
+	void printStack();
 public:
 	Debugger(Emulator *_emulator, uint8_t _opts);
 	~Debugger();

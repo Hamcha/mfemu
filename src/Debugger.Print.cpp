@@ -671,8 +671,8 @@ void Debugger::printRegisters() {
 	std::cout
 		<< ":-----------------------------------------------------:" << std::endl
 		<< "| A  |Flag| B  | C  | D  | E  | H  | L  |  SP  |  PC  |" << std::endl
-		<< "|----+----+----+----+----+----+----+----+------+------|" << std::endl;
-	std::cout << std::hex
+		<< "|----+----+----+----+----+----+----+----+------+------|" << std::endl
+		<< std::hex
 		<<  "| " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.A
 		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.Flags.Byte
 		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.BC.Single.B
@@ -684,4 +684,21 @@ void Debugger::printRegisters() {
 		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.SP
 		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.PC << " |" << std::endl
 		<< ":-----------------------------------------------------:" << std::endl;
+}
+
+void Debugger::printStack() {
+	uint16_t sp = emulator->cpu.SP;
+	bool current = true;
+	int iter = 0;
+	const int limit = 5;
+	while (sp < 0xffff && iter < limit) {
+		if (current) {
+			std::cout << "--> ";
+			current = false;
+		} else {
+			std::cout << "    ";
+		}
+		std::cout << std::hex << std::setfill('0') << std::setw(4) << sp << " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.Read(sp) << std::endl;
+		sp++; iter++;
+	}
 }

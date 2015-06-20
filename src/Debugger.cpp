@@ -52,7 +52,8 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "run",      std::make_pair(CMD_RUN,       0) },
 	{ "print",    std::make_pair(CMD_PRINT,     0) },
 	{ "reg",      std::make_pair(CMD_REGISTERS, 0) },
-	{ "track",    std::make_pair(CMD_TRACK, 0)     },
+	{ "stack",    std::make_pair(CMD_STACK,     0) },
+	{ "track",    std::make_pair(CMD_TRACK,     0) },
 	{ "break",    std::make_pair(CMD_BREAK,     1) },
 	{ "quit",     std::make_pair(CMD_QUIT,      0) },
 	{ "exit",     std::make_pair(CMD_QUIT,      0) },
@@ -96,6 +97,9 @@ void Debugger::Run() {
 			case CMD_REGISTERS:
 				printRegisters();
 				break;
+			case CMD_STACK:
+				printStack();
+				break;
 			case CMD_TRACK:
 				track = !track;
 				std::cout << "Tracking has been " << (track ? "ENABLED" : "DISABLED") << std::endl;
@@ -129,6 +133,8 @@ void Debugger::Run() {
 				std::cout 
 					<< "run           Start emulation" << std::endl
 					<< "print         Print current instruction" << std::endl
+					<< "reg           Print registers" << std::endl
+					<< "stack         Print stack" << std::endl
 					<< "break <addr>  Set breakpoint at <addr>" << std::endl
 					<< "step          Fetch and execute a single instruction" << std::endl
 					<< "continue      Resume execution" << std::endl
