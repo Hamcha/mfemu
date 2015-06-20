@@ -18,6 +18,7 @@ enum DebugInstr {
 	CMD_INVALID,
 	CMD_RUN,
 	CMD_PRINT,
+	CMD_REGISTERS,
 	CMD_STEP,
 	CMD_BREAK,
 	CMD_CONTINUE,
@@ -41,6 +42,7 @@ private:
 	Debug::DebugCmd getCommand(const char* prompt);
 	void setBreakpoint(uint16_t addr);
 	void printInstruction(uint16_t addr);
+	void printRegisters();
 public:
 	Debugger(Emulator *_emulator, uint8_t _opts);
 	~Debugger();

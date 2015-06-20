@@ -26,10 +26,10 @@ const uint8_t bootstrap[] = {
 
 uint8_t CPU::Read(uint16_t location) {
 	// 0000 - 0100 => Bootstrap ROM (only if turned on)
-	if (location < 0x0100) {
-		//TODO Check if it's turned off
+	if (usingBootstrap && location < 0x0100) {
 		return bootstrap[location];
 	}
+
 
 	// 0100 - 3fff => Fixed bank from cartridge
 	if (location < 0x4000) {
@@ -146,6 +146,10 @@ void CPU::Write(uint16_t location, uint8_t value) {
 }
 
 void CPU::Step() {
+	if (usingBootstrap && PC >= 0x0100) {
+		usingBootstrap = false;
+	}
+
 	uint8_t opcode = Read(PC);
 	Execute(opcode);
 	PC += 1;
@@ -158,6 +162,7 @@ CPU::CPU(ROM* _rom)
 	running = true;
 	PC = 0;
 	maskable = true;
+	usingBootstrap = true;
 
 	// Push at least one ram bank (GB classic)
 	VRAMBank bank1;

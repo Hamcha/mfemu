@@ -75,6 +75,7 @@ public:
 	uint16_t PC;    //! Program Counter
 
 	bool maskable;  //! Are maskable interrupts enabled?
+	bool usingBootstrap; //! Is the bootstrap ROM enabled?
 
 	CycleCount cycles;
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }

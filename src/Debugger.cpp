@@ -11,16 +11,17 @@ using namespace Debug;
 
 // { cmd_string => { command, n.args } }
 static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions = {
-	{ "run",      std::make_pair(CMD_RUN,      0) },
-	{ "print",    std::make_pair(CMD_PRINT,    0) },
-	{ "break",    std::make_pair(CMD_BREAK,    1) },
-	{ "quit",     std::make_pair(CMD_QUIT,     0) },
-	{ "exit",     std::make_pair(CMD_QUIT,     0) },
-	{ "step",     std::make_pair(CMD_STEP,     0) },
-	{ "cont",     std::make_pair(CMD_CONTINUE, 0) },
-	{ "continue", std::make_pair(CMD_CONTINUE, 0) },
-	{ "help",     std::make_pair(CMD_HELP,     0) },
-	{ "?",        std::make_pair(CMD_HELP,     0) }
+	{ "run",      std::make_pair(CMD_RUN,       0) },
+	{ "print",    std::make_pair(CMD_PRINT,     0) },
+	{ "reg",      std::make_pair(CMD_REGISTERS, 0) },
+	{ "break",    std::make_pair(CMD_BREAK,     1) },
+	{ "quit",     std::make_pair(CMD_QUIT,      0) },
+	{ "exit",     std::make_pair(CMD_QUIT,      0) },
+	{ "step",     std::make_pair(CMD_STEP,      0) },
+	{ "cont",     std::make_pair(CMD_CONTINUE,  0) },
+	{ "continue", std::make_pair(CMD_CONTINUE,  0) },
+	{ "help",     std::make_pair(CMD_HELP,      0) },
+	{ "?",        std::make_pair(CMD_HELP,      0) }
 };
 
 Debugger::Debugger(Emulator *_emulator, uint8_t _opts) {
@@ -42,6 +43,9 @@ void Debugger::Run() {
 				break;
 			case CMD_PRINT:
 				printInstruction(emulator->cpu.PC);
+				break;
+			case CMD_REGISTERS:
+				printRegisters();
 				break;
 			case CMD_BREAK: {
 				std::stringstream ss(cmd.args.front());
@@ -92,12 +96,11 @@ void Debugger::Run() {
 				std::cout << "Breakpoint reached: " << std::hex << (int)PC << std::endl;
 				continue;
 			}
-			uint8_t opcode = emulator->cpu.Read(PC);
-			emulator->cpu.Execute(opcode);
-			if (!(opts & DBG_NOGRAPHICS))
-				SDL_RenderClear(emulator->renderer);
 
-			++emulator->cpu.PC;
+			emulator->cpu.Step();
+			if (!(opts & DBG_NOGRAPHICS)) {
+				SDL_RenderClear(emulator->renderer);
+			}
 		}
 	}
 }
