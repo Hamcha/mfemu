@@ -27,6 +27,8 @@ bool Emulator::initSDL() {
 
 Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
 	: rom(ROM::FromFile(romfile)), cpu(&rom) {
+	window = nullptr;
+	renderer = nullptr;
 	if (graphics && !initSDL()) {
 		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
 		return;
@@ -34,8 +36,12 @@ Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
 }
 
 Emulator::~Emulator() {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
+	if (renderer != nullptr) {
+		SDL_DestroyRenderer(renderer);
+	}
+	if (window != nullptr) {
+		SDL_DestroyWindow(window);
+	}
 	SDL_Quit();
 }
 
