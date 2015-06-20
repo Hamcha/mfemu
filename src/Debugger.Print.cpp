@@ -133,7 +133,7 @@ void debugPrintArgument(CPU* cpu, const uint16_t addr, const std::string& absolu
 template<typename... Args>
 Debug::InstructionPrinter debugPrintInstruction(const Args... args) {
 	return[args...](CPU* cpu, const uint16_t addr) {
-		std::cout << std::setfill('0') << std::setw(4) << std::hex << (int) cpu->Read(addr) << " |";
+		std::cout << std::setfill('0') << std::setw(4) << std::hex << (int) addr << " |";
 		debugPrintArgument(cpu, addr, args...);
 	};
 }
@@ -664,14 +664,14 @@ const static Debug::InstructionPrinter handlers[] = {
 
 void Debugger::printInstruction(uint16_t addr) {
 	uint8_t opcode = emulator->cpu.Read(addr);
-	handlers[opcode](&(emulator->cpu), addr + 1);
+	handlers[opcode](&(emulator->cpu), addr);
 }
 
 void Debugger::printRegisters() {
 	std::cout
-		<< "+-----------------------------------------------------+" << std::endl
+		<< ":-----------------------------------------------------:" << std::endl
 		<< "| A  |Flag| B  | C  | D  | E  | H  | L  |  SP  |  PC  |" << std::endl
-		<< "+----+----+----+----+----+----+----+----+------+------+" << std::endl;
+		<< "|----+----+----+----+----+----+----+----+------+------|" << std::endl;
 	std::cout << std::hex
 		<<  "| " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.A
 		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.Flags.Byte
@@ -683,5 +683,5 @@ void Debugger::printRegisters() {
 		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.HL.Single.L
 		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.SP
 		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.PC << " |" << std::endl
-		<< "+-----------------------------------------------------+" << std::endl;
+		<< ":-----------------------------------------------------:" << std::endl;
 }
