@@ -19,6 +19,7 @@ enum DebugInstr {
 	CMD_RUN,
 	CMD_PRINT,
 	CMD_REGISTERS,
+	CMD_TRACK,
 	CMD_STEP,
 	CMD_BREAK,
 	CMD_CONTINUE,
@@ -38,6 +39,7 @@ private:
 	Emulator *emulator;
 	uint8_t opts;
 	std::set<uint16_t> breakPoints;
+	bool track;
 
 	Debug::DebugCmd getCommand(const char* prompt);
 	void setBreakpoint(uint16_t addr);

@@ -14,6 +14,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "run",      std::make_pair(CMD_RUN,       0) },
 	{ "print",    std::make_pair(CMD_PRINT,     0) },
 	{ "reg",      std::make_pair(CMD_REGISTERS, 0) },
+	{ "track",    std::make_pair(CMD_TRACK, 0)     },
 	{ "break",    std::make_pair(CMD_BREAK,     1) },
 	{ "quit",     std::make_pair(CMD_QUIT,      0) },
 	{ "exit",     std::make_pair(CMD_QUIT,      0) },
@@ -27,6 +28,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 Debugger::Debugger(Emulator *_emulator, uint8_t _opts) {
 	emulator = _emulator;
 	opts = _opts;
+	track = false;
 }
 
 Debugger::~Debugger() {}
@@ -46,6 +48,10 @@ void Debugger::Run() {
 				break;
 			case CMD_REGISTERS:
 				printRegisters();
+				break;
+			case CMD_TRACK:
+				track = !track;
+				std::cout << "Tracking has been " << (track ? "ENABLED" : "DISABLED") << std::endl;
 				break;
 			case CMD_BREAK: {
 				std::stringstream ss(cmd.args.front());
@@ -97,6 +103,7 @@ void Debugger::Run() {
 				continue;
 			}
 
+			printInstruction(emulator->cpu.PC);
 			emulator->cpu.Step();
 			if (!(opts & DBG_NOGRAPHICS)) {
 				SDL_RenderClear(emulator->renderer);
