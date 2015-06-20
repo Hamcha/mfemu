@@ -70,6 +70,10 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 	case RAM_32KB: ramcount = 4; break;
 	}
 	ram.reserve(ramcount);
+	for (int i = 0; i < ramcount; i++) {
+		RAMBank bank;
+		ram.push_back(bank);
+	}
 
 	//TODO load from .sav to RAM
 

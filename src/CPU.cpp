@@ -164,9 +164,13 @@ CPU::CPU(ROM* _rom)
 	maskable = true;
 	usingBootstrap = true;
 
-	// Push at least one ram bank (GB classic)
-	VRAMBank bank1;
-	VRAM.push_back(bank1);
+	// Push at least one VRAM bank (GB classic)
+	VRAMBank vbank1;
+	VRAM.push_back(vbank1);
+
+	// Push at least one WRAM bank (GB classic)
+	WRAMBank wbank1;
+	WRAMbanks.push_back(wbank1);
 }
 
 CPU::~CPU() {}
