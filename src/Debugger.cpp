@@ -152,7 +152,8 @@ void Debugger::Run() {
 			case CMD_HELP:
 				std::cout 
 					<< "run           Start emulation\r\n"
-					<< "print         Print current instruction\r\n"
+					<< "print         Print current instruction (or any given one via argument)\r\n"
+					<< "mem           Print value at a specified memory location\r\n"
 					<< "reg           Print registers\r\n"
 					<< "stack         Print stack\r\n"
 					<< "break <addr>  Set breakpoint at <addr>\r\n"
