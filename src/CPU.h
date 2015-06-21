@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <SDL.h>
 #include "MMU.h"
 
 struct CycleCount {
@@ -34,27 +35,47 @@ public:
 	union {
 		uint16_t Pair;
 		struct {
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			uint8_t A;
 			union {
 				uint8_t Byte;
 				FlagStruct Values;
 			} Flags;
+#else
+			union {
+					uint8_t Byte;
+					FlagStruct Values;
+			} Flags;
 			uint8_t A;
+#endif
 		} Single;
 	} AF;
 
 	union {
 		uint16_t Pair;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		struct { uint8_t B, C; } Single;
+#else
 		struct { uint8_t C, B; } Single;
+#endif
 	} BC;
 
 	union {
 		uint16_t Pair;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		struct { uint8_t D, E; } Single;
+#else
 		struct { uint8_t E, D; } Single;
+#endif
 	} DE;
 
 	union {
 		uint16_t Pair;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		struct { uint8_t H, L; } Single;
+#else
 		struct { uint8_t L, H; } Single;
+#endif
 	} HL;
 
 	uint16_t SP;    //! Stack Pointer
