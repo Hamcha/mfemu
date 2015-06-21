@@ -12,7 +12,8 @@ typedef std::function<void(CPU* cpu, MMU* mmu, uint16_t addr)> InstructionPrinte
 enum DebugOpts : uint8_t {
 	DBG_INTERACTIVE = 1,
 	DBG_NOGRAPHICS  = 1 << 1,
-	DBG_PRINTINSTR  = 1 << 2
+	DBG_PRINTINSTR  = 1 << 2,
+	DBG_NOSTART     = 1 << 3
 };
 
 enum DebugInstr {

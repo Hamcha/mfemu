@@ -29,6 +29,7 @@ Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
 	: rom(ROM::FromFile(romfile)), mmu(&rom), cpu(&mmu) {
 	window = nullptr;
 	renderer = nullptr;
+	running = true;
 	if (graphics && !initSDL()) {
 		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
 		return;
@@ -46,7 +47,7 @@ Emulator::~Emulator() {
 }
 
 void Emulator::Run() {
-	while (cpu.running) {
+	while (running) {
 		Step();
 	}
 	std::cout << "CPU Halted" << std::endl;
@@ -55,4 +56,15 @@ void Emulator::Run() {
 void Emulator::Step() {
 	CycleCount c = cpu.Step();
 	gpu.Step(c.machine);
+}
+
+void Emulator::Update() {
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+		case SDL_QUIT:
+			running = false;
+			break;
+		}
+	}
 }

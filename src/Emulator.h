@@ -20,9 +20,12 @@ public:
 	CPU cpu;
 	GPU gpu;
 
+	bool running;
+
 	explicit Emulator(const std::string& romfile, bool graphics = true);
 	~Emulator();
 
 	void Run();
 	void Step();
+	void Update();
 };

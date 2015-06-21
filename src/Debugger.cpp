@@ -15,7 +15,7 @@
 
 using namespace Debug;
 
-static Debugger *_debugger = nullptr;
+static Debugger* _debugger = nullptr;
 
 // While the debugger is running, trap the SIGINT to pause the emulation.
 static void interrupt_handler(int s) {
@@ -66,7 +66,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "?",        std::make_pair(CMD_HELP,      0) }
 };
 
-Debugger::Debugger(Emulator *_emulator, uint8_t _opts) {
+Debugger::Debugger(Emulator* _emulator, uint8_t _opts) {
 	emulator = _emulator;
 	opts = _opts;
 	track = false;
@@ -75,7 +75,7 @@ Debugger::Debugger(Emulator *_emulator, uint8_t _opts) {
 Debugger::~Debugger() {}
 
 void Debugger::Run() {
-	emulator->cpu.running = false;
+	emulator->cpu.running = (opts & DBG_NOSTART) == DBG_NOSTART;
 
 	// Trap SIGINT to pause the execution
 	_debugger = this;
@@ -85,7 +85,9 @@ void Debugger::Run() {
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE)InterruptHandlerProxy, TRUE);
 #endif
 
-	while (true) {
+	while (emulator->running) {
+		emulator->Update();
+
 		if (!emulator->cpu.running || opts & DBG_INTERACTIVE) {
 			DebugCmd cmd = getCommand("(mfemu)");
 			switch (cmd.instr) {
