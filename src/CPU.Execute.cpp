@@ -460,7 +460,7 @@ void Subtract(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 		*a -= 1;
 	}
 	cpu->Flags().Carry = *a > orig;
-	cpu->Flags().Zero = *a == 0 ? 0 : 1;
+	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 1;
 	cpu->Flags().BCD_HalfCarry = getHalfCarry(*a, orig);
 }
@@ -501,7 +501,7 @@ CPUHandler SubImmediate(const RID a, const bool useCarry) {
 void Compare(CPU* cpu, uint8_t* a, uint8_t* b) {
 	uint8_t c = *a - *b;
 	cpu->Flags().Carry = c > *a;
-	cpu->Flags().Zero = c == 0 ? 0 : 1;
+	cpu->Flags().Zero = c == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 1;
 	cpu->Flags().BCD_HalfCarry = getHalfCarry(c, *a);
 }
@@ -538,7 +538,7 @@ CPUHandler CmpImmediate(const RID a) {
 // And function (called by AndDirect etc)
 void And(CPU* cpu, uint8_t* a, uint8_t* b) {
 	*a &= *b;
-	cpu->Flags().Zero = *a == 0;
+	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
 	cpu->Flags().BCD_HalfCarry = 1;
 	cpu->Flags().Carry = 0;

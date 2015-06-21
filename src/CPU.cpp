@@ -146,10 +146,6 @@ void CPU::Write(uint16_t location, uint8_t value) {
 }
 
 void CPU::Step() {
-	if (usingBootstrap && PC >= 0x0100) {
-		usingBootstrap = false;
-	}
-
 	uint8_t opcode = Read(PC);
 	Execute(opcode);
 	PC += 1;

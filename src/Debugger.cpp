@@ -53,6 +53,8 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "print",    std::make_pair(CMD_PRINT,     1) },
 	{ "reg",      std::make_pair(CMD_REGISTERS, 0) },
 	{ "stack",    std::make_pair(CMD_STACK,     0) },
+	{ "flags",    std::make_pair(CMD_FLAGS,     0) },
+	{ "mem",      std::make_pair(CMD_MEMORY,    1) },
 	{ "track",    std::make_pair(CMD_TRACK,     0) },
 	{ "break",    std::make_pair(CMD_BREAK,     1) },
 	{ "quit",     std::make_pair(CMD_QUIT,      0) },
@@ -105,6 +107,16 @@ void Debugger::Run() {
 				break;
 			case CMD_STACK:
 				printStack();
+				break;
+			case CMD_MEMORY: {
+				std::stringstream ss(cmd.args.front());
+				uint16_t arg;
+				ss >> std::hex >> arg;
+				std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) emulator->cpu.Read(arg) << std::endl;
+				break;
+			}
+			case CMD_FLAGS:
+				printFlags();
 				break;
 			case CMD_TRACK:
 				track = !track;

@@ -702,3 +702,13 @@ void Debugger::printStack() {
 		sp++; iter++;
 	}
 }
+
+void Debugger::printFlags() {
+	FlagStruct* flags = &emulator->cpu.AF.Single.Flags.Values;
+	std::cout
+		<< ":---------------:" << std::endl
+		<< "| Z | N | H | C |" << std::endl
+		<< "|---+---+---+---|" << std::endl
+		<< "| " << (int) flags->Zero << " | " << (int) flags->BCD_AddSub << " | " << (int) flags->BCD_HalfCarry << " | " << (int) flags->Carry << " |" << std::endl
+		<< ":---------------:" << std::endl;
+}

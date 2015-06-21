@@ -48,27 +48,27 @@ public:
 	union {
 		uint16_t Pair;
 		struct {
-			uint8_t A;
 			union {
 				uint8_t Byte;
 				FlagStruct Values;
 			} Flags;
+			uint8_t A;
 		} Single;
 	} AF;
 
 	union {
 		uint16_t Pair;
-		struct { uint8_t B, C; } Single;
+		struct { uint8_t C, B; } Single;
 	} BC;
 
 	union {
 		uint16_t Pair;
-		struct { uint8_t D, E; } Single;
+		struct { uint8_t E, D; } Single;
 	} DE;
 
 	union {
 		uint16_t Pair;
-		struct { uint8_t H, L; } Single;
+		struct { uint8_t L, H; } Single;
 	} HL;
 
 	uint16_t SP;    //! Stack Pointer
