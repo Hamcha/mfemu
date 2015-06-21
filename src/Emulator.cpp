@@ -26,7 +26,7 @@ bool Emulator::initSDL() {
 }
 
 Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
-	: rom(ROM::FromFile(romfile)), cpu(&rom) {
+	: rom(ROM::FromFile(romfile)), mmu(&rom), cpu(&mmu) {
 	window = nullptr;
 	renderer = nullptr;
 	if (graphics && !initSDL()) {
@@ -53,5 +53,6 @@ void Emulator::Run() {
 }
 
 void Emulator::Step() {
-	cpu.Step();
+	CycleCount c = cpu.Step();
+	gpu.Step(c.machine);
 }

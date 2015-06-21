@@ -1,24 +1,19 @@
 #pragma once
 
-#include "ROM.h"
-
-struct WRAMBank {
-	uint8_t bytes[4 * 1024];
-};
-
-struct VRAMBank {
-	uint8_t bytes[8 * 1024];
-};
-
-struct ZRAMBank {
-	uint8_t bytes[128];
-};
+#include <cstdint>
+#include "MMU.h"
 
 struct CycleCount {
 	int machine, cpu;
 
+	CycleCount(int m, int c) {
+		machine = m; cpu = c;
+	}
 	void add(int m, int c) {
 		machine += m; cpu += c;
+	}
+	void add(CycleCount c) {
+		add(c.machine, c.cpu);
 	}
 };
 
@@ -32,16 +27,7 @@ struct FlagStruct {
 
 class CPU {
 private:
-	ROM* rom;
-
-	WRAMBank WRAM;
-	std::vector<WRAMBank> WRAMbanks;
-	uint8_t WRAMbankId = 0;
-
-	std::vector<VRAMBank> VRAM;
-	uint8_t VRAMbankId = 0;
-
-	ZRAMBank ZRAM;
+	MMU* mmu;
 
 public:
 	// Registers
@@ -73,25 +59,21 @@ public:
 
 	uint16_t SP;    //! Stack Pointer
 	uint16_t PC;    //! Program Counter
-
 	bool maskable;  //! Are maskable interrupts enabled?
-	bool usingBootstrap; //! Is the bootstrap ROM enabled?
 
 	CycleCount cycles;
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }
 
-	uint8_t Read(uint16_t location);
-	void Write(uint16_t location, uint8_t value);
-	void Execute(uint8_t opcode);
+	CycleCount Execute(uint8_t opcode);
 
 	//! Is running? (Not Halted/Paused)
 	bool running;
 
 	//! Execute single step (instruction)
-	void Step();
+	CycleCount Step();
 
 	//! Create CPU from ROM file
-	explicit CPU(ROM* _rom);
+	explicit CPU(MMU* _mmu);
 
 	~CPU();
 };

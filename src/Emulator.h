@@ -2,7 +2,10 @@
 
 #include <SDL.h>
 #include <string>
+#include "ROM.h"
+#include "MMU.h"
 #include "CPU.h"
+#include "GPU.h"
 
 class Emulator {
 	friend class Debugger;
@@ -13,7 +16,9 @@ private:
 	bool initSDL();
 public:
 	ROM rom;
+	MMU mmu;
 	CPU cpu;
+	GPU gpu;
 
 	explicit Emulator(const std::string& romfile, bool graphics = true);
 	~Emulator();

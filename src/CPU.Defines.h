@@ -3,7 +3,7 @@
 #include "CPU.h"
 #include <functional>
 
-typedef std::function<void(CPU* cpu)> CPUHandler;
+typedef std::function<CycleCount(CPU* cpu, MMU* mmu)> CPUHandler;
 
 enum RID {
 	A, B, C, D, E, H, L

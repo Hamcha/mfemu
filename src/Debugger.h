@@ -7,7 +7,7 @@
 
 namespace Debug {
 
-typedef std::function<void(CPU* cpu, uint16_t addr)> InstructionPrinter;
+typedef std::function<void(CPU* cpu, MMU* mmu, uint16_t addr)> InstructionPrinter;
 
 enum DebugOpts : uint8_t {
 	DBG_INTERACTIVE = 1,

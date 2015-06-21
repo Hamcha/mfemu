@@ -51,50 +51,50 @@ std::string getJumpConditionName(const JumpCondition condition) {
 	}
 }
 
-void debugPrintArgument(CPU* cpu, const uint16_t addr) {
+void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr) {
 	std::cout << "\r\n";
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint16_t addr, const DebugRegisterType type, const RID registerId, const Args... args) {
+void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegisterType type, const RID registerId, const Args... args) {
 	std::string registerName = getRegisterName(registerId);
 	if (type == Indirect) {
 		registerName = "(" + registerName + ")";
 	}
 	std::cout << " " << registerName;
-	debugPrintArgument(cpu, addr, args...);
+	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint16_t addr, const DebugRegisterType type, const PID pairId, const Args... args) {
+void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegisterType type, const PID pairId, const Args... args) {
 	std::string pairName = getPairName(pairId);
 	if (type == Indirect) {
 		pairName = "(" + pairName + ")";
 	}
 	std::cout << " " << pairName;
-	debugPrintArgument(cpu, addr, args...);
+	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint16_t addr, const DebugFlags flag, const Args... args) {
+void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugFlags flag, const Args... args) {
 	switch (flag) {
 	case Comma: std::cout << ","; break;
 	case IndStart: std::cout << " ("; break;
 	case IndFinish: std::cout << " )"; break;
 	}
-	debugPrintArgument(cpu, addr, args...);
+	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint16_t addr, const JumpCondition condition, const Args... args) {
+void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const JumpCondition condition, const Args... args) {
 	std::cout << getJumpConditionName(condition);
-	debugPrintArgument(cpu, addr, args...);
+	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint16_t addr, const DebugIntType type, const int data, const Args... args) {
-	uint8_t  low = cpu->Read(addr + data);
-	uint8_t  high = cpu->Read(addr + data + 1);
+void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntType type, const int data, const Args... args) {
+	uint8_t  low = mmu->Read(addr + data);
+	uint8_t  high = mmu->Read(addr + data + 1);
 	uint16_t word = (high << 8) | low;
 
 	switch (type) {
@@ -102,7 +102,7 @@ void debugPrintArgument(CPU* cpu, const uint16_t addr, const DebugIntType type, 
 		std::cout << " " << std::dec << data;
 		break;
 	case Offset8:
-		std::cout << " " << std::dec << (int) cpu->Read(addr + data);
+		std::cout << " " << std::dec << (int) mmu->Read(addr + data);
 		break;
 	case Offset16:
 		std::cout << " " << std::dec << (int) word;
@@ -114,27 +114,27 @@ void debugPrintArgument(CPU* cpu, const uint16_t addr, const DebugIntType type, 
 		std::cout << " $" << std::setfill('0') << std::setw(2) << std::hex << (int) data;
 		break;
 	case HexOffset8:
-		std::cout << " $" << std::setfill('0') << std::setw(2) << std::hex << (int) cpu->Read(addr + data);
+		std::cout << " $" << std::setfill('0') << std::setw(2) << std::hex << (int) mmu->Read(addr + data);
 		break;
 	case HexOffset16:
 		std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << (int) word;
 		break;
 
 	}
-	debugPrintArgument(cpu, addr, args...);
+	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, const uint16_t addr, const std::string& absolute, const Args... args) {
+void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const std::string& absolute, const Args... args) {
 	std::cout << " " << absolute;
-	debugPrintArgument(cpu, addr, args...);
+	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
 template<typename... Args>
 Debug::InstructionPrinter debugPrintInstruction(const Args... args) {
-	return[args...](CPU* cpu, const uint16_t addr) {
+	return[args...](CPU* cpu, MMU* mmu, const uint16_t addr) {
 		std::cout << std::setfill('0') << std::setw(4) << std::hex << (int) addr << " |";
-		debugPrintArgument(cpu, addr, args...);
+		debugPrintArgument(cpu, mmu, addr, args...);
 	};
 }
 
@@ -398,9 +398,9 @@ const static Debug::InstructionPrinter cbhandlers[] = {
 	debugPrintInstruction("SET", Absolute, 7, Comma, Direct, A)  // ff SET 7,A
 };
 
-void HandleCB(CPU* cpu, uint16_t addr) {
-	uint8_t opcode = cpu->Read(addr + 1);
-	cbhandlers[opcode](cpu, addr + 1);
+void HandleCB(CPU* cpu, MMU* mmu, uint16_t addr) {
+	uint8_t opcode = mmu->Read(addr + 1);
+	cbhandlers[opcode](cpu, mmu, addr + 1);
 }
 
 const static Debug::InstructionPrinter handlers[] = {
@@ -663,8 +663,8 @@ const static Debug::InstructionPrinter handlers[] = {
 };
 
 void Debugger::printInstruction(uint16_t addr) {
-	uint8_t opcode = emulator->cpu.Read(addr);
-	handlers[opcode](&(emulator->cpu), addr);
+	uint8_t opcode = emulator->mmu.Read(addr);
+	handlers[opcode](&(emulator->cpu), &(emulator->mmu), addr);
 }
 
 void Debugger::printRegisters() {
@@ -698,7 +698,7 @@ void Debugger::printStack() {
 		} else {
 			std::cout << "    ";
 		}
-		std::cout << std::hex << std::setfill('0') << std::setw(4) << sp << " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.Read(sp) << std::endl;
+		std::cout << std::hex << std::setfill('0') << std::setw(4) << sp << " | " << std::setfill('0') << std::setw(2) << (int) emulator->mmu.Read(sp) << std::endl;
 		sp++; iter++;
 	}
 }

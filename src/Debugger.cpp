@@ -112,7 +112,7 @@ void Debugger::Run() {
 				std::stringstream ss(cmd.args.front());
 				uint16_t arg;
 				ss >> std::hex >> arg;
-				std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) emulator->cpu.Read(arg) << std::endl;
+				std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) emulator->mmu.Read(arg) << std::endl;
 				break;
 			}
 			case CMD_FLAGS:
