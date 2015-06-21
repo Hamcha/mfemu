@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ROM.h"
+#include "GPU.h"
 
 struct WRAMBank {
 	uint8_t bytes[4 * 1024];
@@ -29,9 +30,14 @@ private:
 
 	bool usingBootstrap; //! Is the bootstrap ROM enabled?
 
-public:
-	MMU(ROM* romData);
+	uint8_t ReadIO(const uint16_t location);
+	void WriteIO(const uint16_t location, const uint8_t value);
 
-	uint8_t Read(uint16_t location);
-	void Write(uint16_t location, uint8_t value);
+public:
+	GPU* gpu;
+
+	MMU(ROM* romData, GPU* _gpu);
+
+	uint8_t Read(const uint16_t location);
+	void Write(const uint16_t location, const uint8_t value);
 };

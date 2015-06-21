@@ -24,7 +24,7 @@ const uint8_t bootstrap[] = {
 	0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50
 };
 
-uint8_t MMU::Read(uint16_t location) {
+uint8_t MMU::Read(const uint16_t location) {
 	// 0000 - 0100 => Bootstrap ROM (only if turned on)
 	if (usingBootstrap && location < 0x0100) {
 		return bootstrap[location];
@@ -79,8 +79,7 @@ uint8_t MMU::Read(uint16_t location) {
 
 	// ff00 - ff7f => I/O Registers
 	if (location < 0xff80) {
-		//TODO
-		return 0;
+		return ReadIO(location - 0xff00);
 	}
 
 	// ff80 - fffe => High RAM (HRAM)
@@ -88,11 +87,11 @@ uint8_t MMU::Read(uint16_t location) {
 		return ZRAM.bytes[location - 0xff80];
 	}
 
-	// ffff is IME, IME is not accessible
+	// ffff TODO CPU Interrupt mask
 	return 0;
 }
 
-void MMU::Write(uint16_t location, uint8_t value) {
+void MMU::Write(const uint16_t location, const uint8_t value) {
 	// 0000 - 7fff => ROM (Not writable)
 	if (location < 0x8000) { return; }
 
@@ -143,11 +142,14 @@ void MMU::Write(uint16_t location, uint8_t value) {
 		ZRAM.bytes[location - 0xff80] = value;
 		return;
 	}
+
+	// TODO Interrupt mask on CPU (ffff)
 }
 
-MMU::MMU(ROM* romData) {
+MMU::MMU(ROM* romData, GPU* _gpu) {
 	// Setup variables
 	rom = romData;
+	gpu = _gpu;
 	usingBootstrap = true;
 
 	// Push at least one VRAM bank (GB classic)

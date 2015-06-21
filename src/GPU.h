@@ -4,12 +4,15 @@
 
 class GPU {
 private:
+	SDL_Renderer* renderer;
+	SDL_Surface* surface;
+
+public:
 	int mode;
 	int cycleCount;
 	int line;
-	SDL_Renderer* renderer;
 
-public:
 	void Step(int cycles);
 	GPU(SDL_Renderer* _renderer);
+	~GPU();
 };

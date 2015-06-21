@@ -26,7 +26,7 @@ bool Emulator::initSDL() {
 }
 
 Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
-	: rom(ROM::FromFile(romfile)), mmu(&rom), cpu(&mmu), gpu(renderer) {
+	: rom(ROM::FromFile(romfile)), gpu(renderer), mmu(&rom, &gpu), cpu(&mmu) {
 	window = nullptr;
 	renderer = nullptr;
 	running = true;
