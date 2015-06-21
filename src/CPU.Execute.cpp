@@ -987,7 +987,7 @@ CPUHandler Return(JumpCondition condition) {
 	return [condition](CPU* cpu) {
 		if (shouldJump(cpu, condition)) {
 			uint16_t addr = Pop(cpu);
-			cpu->PC = addr - 1;
+			cpu->PC = addr;
 			cpu->cycles.add(1, condition == NO ? 16 : 20);
 		} else {
 			cpu->cycles.add(1, 8);
