@@ -47,8 +47,11 @@ Emulator::~Emulator() {
 
 void Emulator::Run() {
 	while (cpu.running) {
-		SDL_RenderClear(renderer);
-		cpu.Step();
+		Step();
 	}
 	std::cout << "CPU Halted" << std::endl;
+}
+
+void Emulator::Step() {
+	cpu.Step();
 }

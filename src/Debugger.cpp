@@ -149,15 +149,15 @@ void Debugger::Run() {
 				break;
 			case CMD_HELP:
 				std::cout 
-					<< "run           Start emulation" << std::endl
-					<< "print         Print current instruction" << std::endl
-					<< "reg           Print registers" << std::endl
-					<< "stack         Print stack" << std::endl
-					<< "break <addr>  Set breakpoint at <addr>" << std::endl
-					<< "step          Fetch and execute a single instruction" << std::endl
-					<< "continue      Resume execution" << std::endl
-					<< "track         Toggle instruction printing" << std::endl
-					<< "help          Print a help message" << std::endl
+					<< "run           Start emulation\r\n"
+					<< "print         Print current instruction\r\n"
+					<< "reg           Print registers\r\n"
+					<< "stack         Print stack\r\n"
+					<< "break <addr>  Set breakpoint at <addr>\r\n"
+					<< "step          Fetch and execute a single instruction\r\n"
+					<< "continue      Resume execution\r\n"
+					<< "track         Toggle instruction printing\r\n"
+					<< "help          Print a help message\r\n"
 					<< "quit          Quit the debugger" << std::endl;
 				break;
 			case CMD_QUIT:
@@ -178,10 +178,7 @@ void Debugger::Run() {
 			if (track) {
 				printInstruction(emulator->cpu.PC);
 			}
-			emulator->cpu.Step();
-			if (!(opts & DBG_NOGRAPHICS)) {
-				SDL_RenderClear(emulator->renderer);
-			}
+			emulator->Step();
 		}
 	}
 }

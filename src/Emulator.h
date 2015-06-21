@@ -19,4 +19,5 @@ public:
 	~Emulator();
 
 	void Run();
+	void Step();
 };

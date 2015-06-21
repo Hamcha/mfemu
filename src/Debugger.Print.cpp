@@ -52,7 +52,7 @@ std::string getJumpConditionName(const JumpCondition condition) {
 }
 
 void debugPrintArgument(CPU* cpu, const uint16_t addr) {
-	std::cout << std::endl;
+	std::cout << "\r\n";
 }
 
 template<typename... Args>
@@ -669,9 +669,9 @@ void Debugger::printInstruction(uint16_t addr) {
 
 void Debugger::printRegisters() {
 	std::cout
-		<< ":-----------------------------------------------------:" << std::endl
-		<< "| A  |Flag| B  | C  | D  | E  | H  | L  |  SP  |  PC  |" << std::endl
-		<< "|----+----+----+----+----+----+----+----+------+------|" << std::endl
+		<< ":-----------------------------------------------------:\r\n"
+		<< "| A  |Flag| B  | C  | D  | E  | H  | L  |  SP  |  PC  |\r\n"
+		<< "|----+----+----+----+----+----+----+----+------+------|\r\n"
 		<< std::hex
 		<<  "| " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.A
 		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.Flags.Byte
@@ -682,7 +682,7 @@ void Debugger::printRegisters() {
 		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.HL.Single.H
 		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.HL.Single.L
 		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.SP
-		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.PC << " |" << std::endl
+		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.PC << " |\r\n"
 		<< ":-----------------------------------------------------:" << std::endl;
 }
 
@@ -706,9 +706,9 @@ void Debugger::printStack() {
 void Debugger::printFlags() {
 	FlagStruct* flags = &emulator->cpu.AF.Single.Flags.Values;
 	std::cout
-		<< ":---------------:" << std::endl
-		<< "| Z | N | H | C |" << std::endl
-		<< "|---+---+---+---|" << std::endl
-		<< "| " << (int) flags->Zero << " | " << (int) flags->BCD_AddSub << " | " << (int) flags->BCD_HalfCarry << " | " << (int) flags->Carry << " |" << std::endl
+		<< ":---------------:\r\n"
+		<< "| Z | N | H | C |\r\n"
+		<< "|---+---+---+---|\r\n"
+		<< "| " << (int) flags->Zero << " | " << (int) flags->BCD_AddSub << " | " << (int) flags->BCD_HalfCarry << " | " << (int) flags->Carry << " |\r\n"
 		<< ":---------------:" << std::endl;
 }

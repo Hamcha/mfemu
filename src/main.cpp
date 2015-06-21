@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (flags & F_DEBUG) {
-		Emulator emulator(romFile, false);
+		Emulator emulator(romFile);
 		uint8_t debugger_flags = Debug::DBG_NOGRAPHICS;
 		Debugger debugger(&emulator, debugger_flags);
 		debugger.Run();
