@@ -75,7 +75,7 @@ Debugger::Debugger(Emulator* _emulator, uint8_t _opts) {
 Debugger::~Debugger() {}
 
 void Debugger::Run() {
-	emulator->cpu.running = (opts & DBG_NOSTART) == DBG_NOSTART;
+	emulator->cpu.running = (opts & DBG_NOSTART) != DBG_NOSTART;
 
 	// Trap SIGINT to pause the execution
 	_debugger = this;
