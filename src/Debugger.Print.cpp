@@ -97,6 +97,7 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntT
 	uint8_t  high = mmu->Read(addr + data + 1);
 	uint16_t word = (high << 8) | low;
 
+	std::ios::fmtflags fmt(std::cout.flags());
 	switch (type) {
 	case Absolute:
 		std::cout << " " << std::dec << data;
@@ -121,6 +122,7 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntT
 		break;
 
 	}
+	std::cout.flags(fmt);
 	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
@@ -133,7 +135,9 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const std::stri
 template<typename... Args>
 Debug::InstructionPrinter debugPrintInstruction(const Args... args) {
 	return[args...](CPU* cpu, MMU* mmu, const uint16_t addr) {
+		std::ios::fmtflags fmt(std::cout.flags());
 		std::cout << std::setfill('0') << std::setw(4) << std::hex << (int) addr << " |";
+		std::cout.flags(fmt);
 		debugPrintArgument(cpu, mmu, addr, args...);
 	};
 }
@@ -668,6 +672,7 @@ void Debugger::printInstruction(uint16_t addr) {
 }
 
 void Debugger::printRegisters() {
+	std::ios::fmtflags fmt(std::cout.flags());
 	std::cout
 		<< ":-----------------------------------------------------:\r\n"
 		<< "| A  |Flag| B  | C  | D  | E  | H  | L  |  SP  |  PC  |\r\n"
@@ -684,6 +689,7 @@ void Debugger::printRegisters() {
 		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.SP
 		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.PC << " |\r\n"
 		<< ":-----------------------------------------------------:" << std::endl;
+	std::cout.flags(fmt);
 }
 
 void Debugger::printStack() {
@@ -691,6 +697,8 @@ void Debugger::printStack() {
 	bool current = true;
 	int iter = 0;
 	const int limit = 5;
+
+	std::ios::fmtflags fmt(std::cout.flags());
 	while (sp < 0xffff && iter < limit) {
 		if (current) {
 			std::cout << "--> ";
@@ -701,6 +709,7 @@ void Debugger::printStack() {
 		std::cout << std::hex << std::setfill('0') << std::setw(4) << sp << " | " << std::setfill('0') << std::setw(2) << (int) emulator->mmu.Read(sp) << std::endl;
 		sp++; iter++;
 	}
+	std::cout.flags(fmt);
 }
 
 void Debugger::printFlags() {

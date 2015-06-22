@@ -114,7 +114,9 @@ void Debugger::Run() {
 				std::stringstream ss(cmd.args.front());
 				uint16_t arg;
 				ss >> std::hex >> arg;
+				std::ios::fmtflags fmt(std::cout.flags());
 				std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) emulator->mmu.Read(arg) << std::endl;
+				std::cout.flags(fmt);
 				break;
 			}
 			case CMD_FLAGS:
@@ -174,7 +176,9 @@ void Debugger::Run() {
 			uint16_t PC = emulator->cpu.PC;
 			if (breakPoints.find(PC) != breakPoints.end()) {
 				opts |= DBG_INTERACTIVE;
+				std::ios::fmtflags fmt(std::cout.flags());
 				std::cout << "Breakpoint reached: " << std::hex << (int)PC << std::endl;
+				std::cout.flags(fmt);
 				continue;
 			}
 
@@ -237,5 +241,7 @@ DebugCmd Debugger::getCommand(const char* prompt) {
 
 void Debugger::setBreakpoint(uint16_t addr) {
 	breakPoints.insert(addr);
+	std::ios::fmtflags fmt(std::clog.flags());
 	std::clog << "Set breakpoint to " << std::setfill('0') << std::setw(4) << std::hex << (int)addr << std::endl;
+	std::clog.flags(fmt);
 }

@@ -60,8 +60,8 @@ CPUHandler Halt(const bool waitInterrupt) {
 		// STOP takes two machine cycles
 		int mcycles = waitInterrupt ? 1 : 2;
 
-		return CycleCount(mcycles, 4);
 		cpu->running = false;
+		return CycleCount(mcycles, 4);
 	};
 }
 
