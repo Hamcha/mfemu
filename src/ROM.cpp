@@ -66,8 +66,12 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 	// Setup RAM banks
 	int ramcount = 0;
 	switch (header.RAMSize) {
-	case RAM_2KB: case RAM_8KB: ramcount = 1; break;
-	case RAM_32KB: ramcount = 4; break;
+	case RAM_NONE:
+		ramcount = 0; break;
+	case RAM_2KB: case RAM_8KB:
+		ramcount = 1; break;
+	case RAM_32KB:
+		ramcount = 4; break;
 	}
 	ram.reserve(ramcount);
 	for (int i = 0; i < ramcount; i++) {
@@ -80,8 +84,8 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 
 	// The title can be either 15 or 13 characters, depending on target console
 	std::string title;
-	if (header.colorFlag == GBSupported || header.colorFlag == GBCOnly) {
-		title = std::string(header.GBCTitle);
+	if (header.GBC.colorFlag == GBSupported || header.GBC.colorFlag == GBCOnly) {
+		title = std::string(header.GBC.title);
 	} else {
 		title = std::string(header.GBTitle);
 	}
@@ -97,17 +101,17 @@ ROM::~ROM() {}
 void ROM::debugPrintData() {
 	std::cout << "== ROM INFO ==" << std::endl;
 	// The title can be either 15 or 13 characters, depending on target console
-	if (header.colorFlag == GBSupported || header.colorFlag == GBCOnly) {
-		std::cout << "Title (GBC format): " << std::string(header.GBCTitle) << std::endl;
-		std::cout << "Manufacturer Code: " << std::string(header.manCode) << std::endl;
+	if (header.GBC.colorFlag == GBSupported || header.GBC.colorFlag == GBCOnly) {
+		std::cout << "Title (GBC format): " << std::string(header.GBC.title) << std::endl;
+		std::cout << "Manufacturer Code: " << std::string(header.GBC.manCode) << std::endl;
 	} else {
 		std::cout << "Title (GB format): " << std::string(header.GBTitle) << std::endl;
 	}
 
 	// GBC features support
 	std::string gbFlag = "GBC not supported";
-	if (header.colorFlag == GBSupported) gbFlag = "GBC features supported";
-	if (header.colorFlag == GBCOnly) gbFlag = "GBC Only";
+	if (header.GBC.colorFlag == GBSupported) gbFlag = "GBC features supported";
+	if (header.GBC.colorFlag == GBCOnly) gbFlag = "GBC Only";
 	std::cout << "GBC support: " << gbFlag << std::endl;
 
 	// SGB features support

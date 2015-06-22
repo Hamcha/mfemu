@@ -82,10 +82,10 @@ struct ROMHeader {
 	union {
 		char GBTitle[0x10];       //!< Gameboy title, 15 characters   (0134 - 0143)
 		struct {                  // or
-			char GBCTitle[0x0b];  //!< GBC title, 11 characters       (0134 - 013e)
+			char title[0x0b];     //!< GBC title, 11 characters       (0134 - 013e)
 			char manCode[0x04];   //!< Manufacturer Code, 3 chars     (013f - 0142)
-			GBCFlag colorFlag;          //!< Gameboy Color flag             (0143)
-		};
+			GBCFlag colorFlag;    //!< Gameboy Color flag             (0143)
+		} GBC;
 	};
 	char newLicenseeCode[0x02];   //!< New licensee code, 2 chars     (0144 - 0145)
 	SGBFlag superFlag;            //!< Super Gameboy flag             (0146)
