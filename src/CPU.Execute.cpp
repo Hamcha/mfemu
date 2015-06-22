@@ -984,7 +984,9 @@ CPUHandler Restart(uint8_t base) {
 
 // Inexistent instruction
 CycleCount Wrong(CPU* cpu, MMU* mmu) {
+	std::ios::fmtflags fmt(std::cout.flags());
 	std::cout << "Called inexistent opcode: " << std::setfill('0') << std::setw(2) << std::hex << (int) mmu->Read(cpu->PC) << std::endl;
+	std::cout.flags(fmt);
 	return CycleCount(0, 0);
 }
 
