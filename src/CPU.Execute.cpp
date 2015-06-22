@@ -49,14 +49,14 @@ uint8_t getHalfCarry(const uint16_t after, const uint16_t before) {
 }
 
 // Do nothing
-CycleCount Nop(CPU* cpu, MMU* mmu) {
+CycleCount Nop(CPU*, MMU*) {
 	return CycleCount(1, 4);
 }
 
 // Stop or halt the processor
 CPUHandler Halt(const bool waitInterrupt) {
 	//Todo handle waitInterrupt (for HALT)
-	return [waitInterrupt](CPU *cpu, MMU* mmu) {
+	return [waitInterrupt](CPU *cpu, MMU*) {
 		// STOP takes two machine cycles
 		int mcycles = waitInterrupt ? 1 : 2;
 
@@ -67,7 +67,7 @@ CPUHandler Halt(const bool waitInterrupt) {
 
 // Direct Load (8bit Register to 8bit Register)
 CPUHandler LoadDirect(const RID dst, const RID src) {
-	return [src, dst](CPU* cpu, MMU* mmu) {
+	return [src, dst](CPU* cpu, MMU*) {
 		uint8_t* srcRes = getRegister(cpu, src);
 		uint8_t* dstRes = getRegister(cpu, dst);
 		*dstRes = *srcRes;
@@ -77,7 +77,7 @@ CPUHandler LoadDirect(const RID dst, const RID src) {
 
 // Direct Load (16bit Register to 16bit Register)
 CPUHandler LoadDirect(const PID dst, const PID src) {
-	return [src, dst](CPU* cpu, MMU* mmu) {
+	return [src, dst](CPU* cpu, MMU*) {
 		uint16_t* srcRes = getPair(cpu, src);
 		uint16_t* dstRes = getPair(cpu, dst);
 		*dstRes = *srcRes;
@@ -288,7 +288,7 @@ CPUHandler LoadOffset(const PID a, const PID b) {
 
 // Increment register (8bit, immediate)
 CPUHandler Increment(const RID dst) {
-	return [dst](CPU* cpu, MMU* mmu) {
+	return [dst](CPU* cpu, MMU*) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		*dstRes += 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
@@ -300,7 +300,7 @@ CPUHandler Increment(const RID dst) {
 
 // Increment register (16bit, immediate)
 CPUHandler Increment(const PID dst) {
-	return [dst](CPU* cpu, MMU* mmu) {
+	return [dst](CPU* cpu, MMU*) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		*dstRes += 1;
 		return CycleCount(1, 8);
@@ -324,7 +324,7 @@ CPUHandler IncrementInd(const PID ind) {
 
 // Decrement register (8bit, immediate)
 CPUHandler Decrement(const RID dst) {
-	return [dst](CPU* cpu, MMU* mmu) {
+	return [dst](CPU* cpu, MMU*) {
 		uint8_t* dstRes = getRegister(cpu, dst);
 		*dstRes -= 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
@@ -336,7 +336,7 @@ CPUHandler Decrement(const RID dst) {
 
 // Decrement register (16bit, immediate)
 CPUHandler Decrement(const PID dst) {
-	return [dst](CPU* cpu, MMU* mmu) {
+	return [dst](CPU* cpu, MMU*) {
 		uint16_t* dstRes = getPair(cpu, dst);
 		*dstRes -= 1;
 		return CycleCount(1, 8);
@@ -381,7 +381,7 @@ void Add(CPU* cpu, uint16_t* a, uint16_t* b) {
 
 // Direct Add (8bit, register to register)
 CPUHandler AddDirect(const RID a, const RID b, const bool useCarry) {
-	return [a, b, useCarry](CPU* cpu, MMU* mmu) {
+	return [a, b, useCarry](CPU* cpu, MMU*) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Add(cpu, aRes, bRes, useCarry);
@@ -391,7 +391,7 @@ CPUHandler AddDirect(const RID a, const RID b, const bool useCarry) {
 
 // Direct Add (16bit, register to register)
 CPUHandler AddDirect(const PID a, const PID b) {
-	return[a, b](CPU* cpu, MMU* mmu) {
+	return[a, b](CPU* cpu, MMU*) {
 		uint16_t* aRes = getPair(cpu, a);
 		uint16_t* bRes = getPair(cpu, b);
 		Add(cpu, aRes, bRes);
@@ -450,7 +450,7 @@ void Subtract(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 
 // Direct Subtract (8bit, register to register)
 CPUHandler SubDirect(const RID a, const RID b, const bool useCarry) {
-	return [a, b, useCarry](CPU* cpu, MMU* mmu) {
+	return [a, b, useCarry](CPU* cpu, MMU*) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Subtract(cpu, aRes, bRes, useCarry);
@@ -489,7 +489,7 @@ void Compare(CPU* cpu, uint8_t* a, uint8_t* b) {
 }
 
 CPUHandler CmpDirect(const RID a, const RID b) {
-	return [a, b](CPU* cpu, MMU* mmu) {
+	return [a, b](CPU* cpu, MMU*) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Compare(cpu, aRes, bRes);
@@ -545,7 +545,7 @@ void Xor(CPU* cpu, uint8_t* a, uint8_t* b) {
 
 // Direct AND (register to register)
 CPUHandler AndDirect(const RID a, const RID b) {
-	return [a, b](CPU* cpu, MMU* mmu) {
+	return [a, b](CPU* cpu, MMU*) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		And(cpu, aRes, bRes);
@@ -576,7 +576,7 @@ CPUHandler AndImmediate(const RID a) {
 
 // Direct OR (register to register)
 CPUHandler OrDirect(const RID a, const RID b) {
-	return [a, b](CPU* cpu, MMU* mmu) {
+	return [a, b](CPU* cpu, MMU*) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Or(cpu, aRes, bRes);
@@ -607,7 +607,7 @@ CPUHandler OrImmediate(const RID a) {
 
 // Direct XOR (register to register)
 CPUHandler XorDirect(const RID a, const RID b) {
-	return [a, b](CPU* cpu, MMU* mmu) {
+	return [a, b](CPU* cpu, MMU*) {
 		uint8_t* aRes = getRegister(cpu, a);
 		uint8_t* bRes = getRegister(cpu, b);
 		Xor(cpu, aRes, bRes);
@@ -643,7 +643,7 @@ CPUHandler JumpRelative(const JumpCondition condition) {
 		int r8 = (int8_t) u8;
 
 		if (shouldJump(cpu, condition)) {
-			cpu->PC += r8;
+			cpu->PC = (uint16_t)((int32_t) cpu->PC + r8);
 			return CycleCount(2, 12);
 		} else {
 			return CycleCount(2, 8);
@@ -670,7 +670,7 @@ CPUHandler JumpAbsolute(const JumpCondition condition) {
 
 // Immediate Absolute Jump (register)
 CPUHandler JumpAbsolute(const PID src) {
-	return [src](CPU* cpu, MMU* mmu) {
+	return [src](CPU* cpu, MMU*) {
 		cpu->PC = *getPair(cpu, src) - 1;
 		return CycleCount(1, 4);
 	};
@@ -714,7 +714,7 @@ void RotateRight(CPU* cpu, uint8_t* val, const RotationType type) {
 
 // Rotate Accumulator
 CPUHandler RotateAcc(const bool left, const bool throughCarry) {
-	return [left, throughCarry](CPU* cpu, MMU* mmu) {
+	return [left, throughCarry](CPU* cpu, MMU*) {
 		uint8_t* acc = getRegister(cpu, A);
 		if (left) {
 			RotateLeft(cpu, acc, throughCarry ? ThC : Rot);
@@ -728,7 +728,7 @@ CPUHandler RotateAcc(const bool left, const bool throughCarry) {
 
 // Rotate Register
 CPUHandler RotateReg(const RID reg, const bool left, const RotationType type) {
-	return [reg, left, type](CPU* cpu, MMU* mmu) {
+	return [reg, left, type](CPU* cpu, MMU*) {
 		uint8_t* val = getRegister(cpu, reg);
 		if (left) {
 			RotateLeft(cpu, val, type);
@@ -765,7 +765,7 @@ void Swap(CPU* cpu, uint8_t* value) {
 
 // Direct Swap (register)
 CPUHandler SwapDirect(const RID reg) {
-	return [reg](CPU* cpu, MMU* mmu) {
+	return [reg](CPU* cpu, MMU*) {
 		uint8_t* val = getRegister(cpu, reg);
 		Swap(cpu, val);
 		return CycleCount(2, 8);
@@ -794,7 +794,7 @@ void Set(uint8_t* value, const uint8_t offset, const bool reset) {
 
 // Direct Set/Reset (register)
 CPUHandler SetDirect(const RID reg, const uint8_t bit, const bool reset) {
-	return [reg, bit, reset](CPU* cpu, MMU* mmu) {
+	return [reg, bit, reset](CPU* cpu, MMU*) {
 		uint8_t* val = getRegister(cpu, reg);
 		Set(val, bit, reset);
 		return CycleCount(2, 8);
@@ -822,7 +822,7 @@ void Bit(CPU* cpu, const uint8_t value, const uint8_t offset) {
 
 // Direct Get bit (register)
 CPUHandler BitDirect(const RID reg, const uint8_t bit) {
-	return [reg, bit](CPU* cpu, MMU* mmu) {
+	return [reg, bit](CPU* cpu, MMU*) {
 		uint8_t* value = getRegister(cpu, reg);
 		Bit(cpu, *value, bit);
 		return CycleCount(2, 8);
@@ -841,14 +841,14 @@ CPUHandler BitIndirect(const PID ind, const uint8_t bit) {
 
 // Enable/Disable Maskable Interrupts
 CPUHandler SetInt(bool enable) {
-	return [enable](CPU* cpu, MMU* mmu) {
+	return [enable](CPU* cpu, MMU*) {
 		cpu->maskable = enable;
 		return CycleCount(1, 4);
 	};
 }
 
 // Accumulator Decimal to BDC conversion (DAA)
-CycleCount DecimalToBCD(CPU* cpu, MMU* mmu) {
+CycleCount DecimalToBCD(CPU* cpu, MMU*) {
 	uint8_t* reg = getRegister(cpu, A);
 	uint8_t corr = 0;
 	uint8_t orig = *reg;
@@ -879,7 +879,7 @@ CycleCount DecimalToBCD(CPU* cpu, MMU* mmu) {
 
 // Set or Invert Carry flag (SCF/CCF)
 CPUHandler SetCarry(bool invert) {
-	return [invert](CPU* cpu, MMU* mmu) {
+	return [invert](CPU* cpu, MMU*) {
 		uint8_t val = 1;
 		if (invert) {
 			val = cpu->Flags().Carry == 1 ? 0 : 1;
@@ -891,7 +891,7 @@ CPUHandler SetCarry(bool invert) {
 }
 
 /// Complement Accumulator (CPL)
-CycleCount InvertA(CPU* cpu, MMU* mmu) {
+CycleCount InvertA(CPU* cpu, MMU*) {
 	uint8_t* reg = getRegister(cpu, A);
 	*reg = ~*reg;
 

@@ -4,7 +4,7 @@
 
 typedef std::function<uint8_t(MMU* mmu)> IOHandler;
 
-const static IOHandler empty = [](MMU* mmu) { return 0; };
+const static IOHandler empty = [](MMU*) { return 0; };
 const static IOHandler getters[] = {
 	empty, // ff00 Joypad port
 	empty, // ff01 Serial IO data

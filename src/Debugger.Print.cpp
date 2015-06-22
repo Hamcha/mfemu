@@ -51,7 +51,7 @@ std::string getJumpConditionName(const JumpCondition condition) {
 	}
 }
 
-void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr) {
+void debugPrintArgument(CPU*, MMU*, const uint16_t) {
 	std::cout << "\r\n";
 }
 
@@ -93,8 +93,8 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const JumpCondi
 
 template<typename... Args>
 void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntType type, const int data, const Args... args) {
-	uint8_t  low = mmu->Read(addr + data);
-	uint8_t  high = mmu->Read(addr + data + 1);
+	uint8_t  low = mmu->Read(addr + (uint16_t) data);
+	uint8_t  high = mmu->Read(addr + (uint16_t) data + 1);
 	uint16_t word = (high << 8) | low;
 
 	std::ios::fmtflags fmt(std::cout.flags());
@@ -103,7 +103,7 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntT
 		std::cout << " " << std::dec << data;
 		break;
 	case Offset8:
-		std::cout << " " << std::dec << (int) mmu->Read(addr + data);
+		std::cout << " " << std::dec << (int) mmu->Read(addr + (uint16_t) data);
 		break;
 	case Offset16:
 		std::cout << " " << std::dec << (int) word;
@@ -115,7 +115,7 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntT
 		std::cout << " $" << std::setfill('0') << std::setw(2) << std::hex << (int) data;
 		break;
 	case HexOffset8:
-		std::cout << " $" << std::setfill('0') << std::setw(2) << std::hex << (int) mmu->Read(addr + data);
+		std::cout << " $" << std::setfill('0') << std::setw(2) << std::hex << (int) mmu->Read(addr + (uint16_t) data);
 		break;
 	case HexOffset16:
 		std::cout << " $" << std::setfill('0') << std::setw(4) << std::hex << (int) word;

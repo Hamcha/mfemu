@@ -54,10 +54,13 @@ void GPU::Step(int cycles) {
 	}
 }
 
-GPU::GPU(SDL_Renderer* _renderer) {
+GPU::GPU() {
 	line = 0;
 	cycleCount = 0;
 	mode = 0;
+}
+
+void GPU::initScreen(SDL_Renderer* _renderer) {
 	renderer = _renderer;
 	texture = SDL_CreateTexture(renderer,
 								SDL_PIXELFORMAT_ARGB8888,

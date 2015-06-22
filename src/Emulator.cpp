@@ -26,7 +26,7 @@ bool Emulator::initSDL() {
 }
 
 Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
-	: rom(ROM::FromFile(romfile)), gpu(renderer), mmu(&rom, &gpu), cpu(&mmu) {
+	: rom(ROM::FromFile(romfile)), mmu(&rom, &gpu), cpu(&mmu) {
 	window = nullptr;
 	renderer = nullptr;
 	running = true;
@@ -34,6 +34,7 @@ Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
 		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
 		return;
 	}
+	gpu.initScreen(renderer);
 }
 
 Emulator::~Emulator() {
