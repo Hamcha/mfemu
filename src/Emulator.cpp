@@ -34,7 +34,7 @@ Emulator::Emulator(const std::string& romfile, bool graphics /* = true */)
 		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
 		return;
 	}
-	gpu.initScreen(renderer);
+	gpu.InitScreen(renderer);
 }
 
 Emulator::~Emulator() {

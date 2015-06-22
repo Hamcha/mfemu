@@ -60,7 +60,7 @@ GPU::GPU() {
 	mode = 0;
 }
 
-void GPU::initScreen(SDL_Renderer* _renderer) {
+void GPU::InitScreen(SDL_Renderer* _renderer) {
 	renderer = _renderer;
 	texture = SDL_CreateTexture(renderer,
 								SDL_PIXELFORMAT_ARGB8888,

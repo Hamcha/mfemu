@@ -17,6 +17,6 @@ public:
 
 	void Step(int cycles);
 	GPU();
-	void initScreen(SDL_Renderer* _renderer);
+	void InitScreen(SDL_Renderer* _renderer);
 	~GPU();
 };
