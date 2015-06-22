@@ -16,9 +16,9 @@ private:
 	bool initSDL();
 public:
 	ROM rom;
+	GPU gpu;
 	MMU mmu;
 	CPU cpu;
-	GPU gpu;
 
 	bool running;
 

@@ -14,7 +14,7 @@ void GPU::Step(int cycles) {
 			if (line == 143) {
 				// Go into Vblank
 				mode = 1;
-				// DRAW
+				drawScreen();
 			} else {
 				mode = 2;
 			}
@@ -59,22 +59,19 @@ GPU::GPU(SDL_Renderer* _renderer) {
 	cycleCount = 0;
 	mode = 0;
 	renderer = _renderer;
+	texture = SDL_CreateTexture(renderer,
+								SDL_PIXELFORMAT_ARGB8888,
+								SDL_TEXTUREACCESS_STREAMING,
+								160, 144);
+}
 
-	uint32_t rmask, gmask, bmask, amask;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	rmask = 0xff000000;
-	gmask = 0x00ff0000;
-	bmask = 0x0000ff00;
-	amask = 0x000000ff;
-#else
-	rmask = 0x000000ff;
-	gmask = 0x0000ff00;
-	bmask = 0x00ff0000;
-	amask = 0xff000000;
-#endif
-	surface = SDL_CreateRGBSurface(0, 160, 144, 32, rmask, gmask, bmask, amask);
+void GPU::drawScreen() {
+	// Put buffer to texture
+	SDL_UpdateTexture(texture, NULL, &screen, 160 * sizeof(uint32_t));
+	SDL_RenderClear(renderer);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderPresent(renderer);
 }
 
 GPU::~GPU() {
-	SDL_FreeSurface(surface);
 }

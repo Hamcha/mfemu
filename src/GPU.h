@@ -5,7 +5,10 @@
 class GPU {
 private:
 	SDL_Renderer* renderer;
-	SDL_Surface* surface;
+	SDL_Texture* texture;
+	uint32_t screen[160*144];
+
+	void drawScreen();
 
 public:
 	int mode;
