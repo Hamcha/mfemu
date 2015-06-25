@@ -30,7 +30,6 @@ uint8_t MMU::Read(const uint16_t location) {
 		return bootstrap[location];
 	}
 
-
 	// 0100 - 3fff => Fixed bank from cartridge
 	if (location < 0x4000) {
 		return rom->fixed.bytes[location];
@@ -43,7 +42,7 @@ uint8_t MMU::Read(const uint16_t location) {
 
 	// 8000 - 9fff => VRAM bank (switchable in GBC)
 	if (location < 0xa000) {
-		return VRAM[VRAMbankId].bytes[location - 0x8000];
+		return gpu->VRAM[gpu->VRAMbankId].bytes[location - 0x8000];
 	}
 
 	// a000 - bfff => External RAM (switchable)
@@ -97,7 +96,7 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 
 	// 8000 - 9fff => VRAM bank (switchable in GBC)
 	if (location < 0xa000) {
-		VRAM[VRAMbankId].bytes[location - 0x8000] = value;
+		gpu->VRAM[gpu->VRAMbankId].bytes[location - 0x8000] = value;
 		return;
 	}
 
@@ -151,10 +150,6 @@ MMU::MMU(ROM* romData, GPU* _gpu) {
 	rom = romData;
 	gpu = _gpu;
 	usingBootstrap = true;
-
-	// Push at least one VRAM bank (GB classic)
-	VRAMBank vbank1;
-	VRAM.push_back(vbank1);
 
 	// Push at least one WRAM bank (GB classic)
 	WRAMBank wbank1;

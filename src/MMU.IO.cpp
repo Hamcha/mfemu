@@ -73,18 +73,18 @@ const static IOHandlerR getters[] = {
 	emptyR, // ff3d <empty>
 	emptyR, // ff3e <empty>
 	emptyR, // ff3f <empty>
-	emptyR, // ff40 LCD Control
+	[](MMU* mmu) { return mmu->gpu->lcdControl.raw; }, // ff40 LCD Control
 	emptyR, // ff41 LCD Status
-	emptyR, // ff42 Background vertical scrolling
-	emptyR, // ff43 Background horizontal scrolling
-	[](MMU* mmu) { return mmu->gpu->line; }, // ff44 Current scanline
+	[](MMU* mmu) { return mmu->gpu->bgScrollY; },      // ff42 Background vertical scrolling
+	[](MMU* mmu) { return mmu->gpu->bgScrollX; },      // ff43 Background horizontal scrolling
+	[](MMU* mmu) { return mmu->gpu->line; },           // ff44 Current scanline
 	emptyR, // ff45 Scanline comparison
 	emptyR, // ff46 DMA transfer control
-	emptyR, // ff47 Background palette
-	emptyR, // ff48 Sprite palette #0
-	emptyR, // ff49 Sprite palette #1
-	emptyR, // ff4a Window Y position
-	emptyR, // ff4b Window X position
+	[](MMU* mmu) { return mmu->gpu->bgPalette; },      // ff47 Background palette
+	[](MMU* mmu) { return mmu->gpu->spritePalette1; }, // ff48 Sprite palette #0
+	[](MMU* mmu) { return mmu->gpu->spritePalette2; }, // ff49 Sprite palette #1
+	[](MMU* mmu) { return mmu->gpu->winScrollY; },     // ff4a Window Y position
+	[](MMU* mmu) { return mmu->gpu->winScrollX; },     // ff4b Window X position
 	emptyR, // ff4c <empty>
 	emptyR, // ff4d <empty>
 	emptyR, // ff4e <empty>
@@ -204,18 +204,18 @@ const static IOHandlerW setters[] = {
 	emptyW, // ff3d <empty>
 	emptyW, // ff3e <empty>
 	emptyW, // ff3f <empty>
-	emptyW, // ff40 LCD Control
+	[](MMU* mmu, uint8_t value) { mmu->gpu->lcdControl.raw = value; }, // ff40 LCD Control
 	emptyW, // ff41 LCD Status
-	emptyW, // ff42 Background vertical scrolling
-	emptyW, // ff43 Background horizontal scrolling
-	[](MMU* mmu, uint8_t value) { mmu->gpu->line = 0; }, // ff44 Current scanline
+	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollY = value; },      // ff42 Background vertical scrolling
+	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollX = value; },      // ff43 Background horizontal scrolling
+	[](MMU* mmu, uint8_t)       { mmu->gpu->line = 0; },               // ff44 Current scanline
 	emptyW, // ff45 Scanline comparison
 	emptyW, // ff46 DMA transfer control
-	emptyW, // ff47 Background palette
-	emptyW, // ff48 Sprite palette #0
-	emptyW, // ff49 Sprite palette #1
-	emptyW, // ff4a Window Y position
-	emptyW, // ff4b Window X position
+	[](MMU* mmu, uint8_t value) { mmu->gpu->bgPalette = value; },      // ff47 Background palette
+	[](MMU* mmu, uint8_t value) { mmu->gpu->spritePalette1 = value; }, // ff48 Sprite palette #0
+	[](MMU* mmu, uint8_t value) { mmu->gpu->spritePalette2 = value; }, // ff49 Sprite palette #1
+	[](MMU* mmu, uint8_t value) { mmu->gpu->winScrollY = value; },     // ff4a Window Y position
+	[](MMU* mmu, uint8_t value) { mmu->gpu->winScrollX = value; },     // ff4b Window X position
 	emptyW, // ff4c <empty>
 	emptyW, // ff4d <empty>
 	emptyW, // ff4e <empty>

@@ -1,6 +1,6 @@
 #include "GPU.h"
 
-const int8_t shades[] = {0xff, 0xc0, 0x60, 0x00};
+const uint8_t shades[] = { 0xff, 0xc0, 0x60, 0x00 };
 
 void GPU::Step(int cycles) {
 	cycleCount += cycles;
@@ -50,7 +50,9 @@ void GPU::Step(int cycles) {
 			cycleCount = 0;
 			mode = 0;
 
-			//TODO Write scanline
+			if (lcdControl.flags.enableLCD) {
+				drawLine();
+			}
 		}
 		break;
 	}
@@ -60,18 +62,20 @@ GPU::GPU() {
 	line = 0;
 	cycleCount = 0;
 	mode = 0;
+
+	// Push at least one VRAM bank (GB classic)
+	VRAMBank vbank1;
+	VRAM.push_back(vbank1);
 }
 
 void GPU::InitScreen(SDL_Renderer* _renderer) {
 	renderer = _renderer;
-	texture = SDL_CreateTexture(renderer,
-								SDL_PIXELFORMAT_ARGB8888,
-								SDL_TEXTUREACCESS_STREAMING,
-								160, 144);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 160, 144);
 }
 
-void GPU::drawLine(uint8_t line) {
-
+void GPU::drawLine() {
+	uint16_t mapOffset = lcdControl.flags.bgTileTable ? 0x1c00 : 0x1800;
+	uint8_t tile = VRAM[VRAMbankId].bytes[mapOffset];
 }
 
 void GPU::drawScreen() {
@@ -82,5 +86,4 @@ void GPU::drawScreen() {
 	SDL_RenderPresent(renderer);
 }
 
-GPU::~GPU() {
-}
+GPU::~GPU() {}

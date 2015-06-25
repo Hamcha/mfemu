@@ -7,10 +7,6 @@ struct WRAMBank {
 	uint8_t bytes[4 * 1024];
 };
 
-struct VRAMBank {
-	uint8_t bytes[8 * 1024];
-};
-
 struct ZRAMBank {
 	uint8_t bytes[128];
 };
@@ -22,9 +18,6 @@ private:
 	WRAMBank WRAM;
 	std::vector<WRAMBank> WRAMbanks;
 	uint8_t WRAMbankId = 0;
-
-	std::vector<VRAMBank> VRAM;
-	uint8_t VRAMbankId = 0;
 
 	ZRAMBank ZRAM;
 
