@@ -2,144 +2,280 @@
 
 #include <functional>
 
-typedef std::function<uint8_t(MMU* mmu)> IOHandler;
+typedef std::function<uint8_t(MMU* mmu)> IOHandlerR;
+typedef std::function<void(MMU* mmu, uint8_t value)> IOHandlerW;
 
-const static IOHandler empty = [](MMU*) { return 0; };
-const static IOHandler getters[] = {
-	empty, // ff00 Joypad port
-	empty, // ff01 Serial IO data
-	empty, // ff02 Serial IO control
-	empty, // ff03 <empty>
-	empty, // ff04 Divider (?)
-	empty, // ff05 Timer counter
-	empty, // ff06 Timer modulo
-	empty, // ff07 Timer control
-	empty, // ff08 <empty>
-	empty, // ff09 <empty>
-	empty, // ff0a <empty>
-	empty, // ff0b <empty>
-	empty, // ff0c <empty>
-	empty, // ff0d <empty>
-	empty, // ff0e <empty>
-	empty, // ff0f Interrupt flags
-	empty, // ff10 Sweep (Sound mode #1)
-	empty, // ff11 Sound length / Pattern duty (Sound mode #1)
-	empty, // ff12 Control (Sound mode #1)
-	empty, // ff13 Frequency low (Sound mode #1)
-	empty, // ff14 Frequency high (Sound mode #1)
-	empty, // ff15 <empty>
-	empty, // ff16 Sound length / Pattern duty (Sound mode #2)
-	empty, // ff17 Control (Sound mode #2)
-	empty, // ff18 Frequency low (Sound mode #2)
-	empty, // ff19 Frequency high (Sound mode #2)
-	empty, // ff1a Control (Sound mode #3)
-	empty, // ff1b Sound length (Sound mode #3)
-	empty, // ff1c Output level (Sound mode #3)
-	empty, // ff1d Frequency low (Sound mode #3)
-	empty, // ff1e Frequency high (Sound mode #3)
-	empty, // ff1f <empty>
-	empty, // ff20 Sound length / Pattern duty (Sound mode #4)
-	empty, // ff21 Control (Sound mode #4)
-	empty, // ff22 Polynomial counter (Sound mode #4)
-	empty, // ff23 Frequency high (Sound mode #4)
-	empty, // ff24 Channel / Volume control
-	empty, // ff25 Sound output terminal selector
-	empty, // ff26 Sound ON/OFF
-	empty, // ff27 <empty>
-	empty, // ff28 <empty>
-	empty, // ff29 <empty>
-	empty, // ff2a <empty>
-	empty, // ff2b <empty>
-	empty, // ff2c <empty>
-	empty, // ff2d <empty>
-	empty, // ff2e <empty>
-	empty, // ff2f <empty>
-	empty, // ff30 <empty>
-	empty, // ff31 <empty>
-	empty, // ff32 <empty>
-	empty, // ff33 <empty>
-	empty, // ff34 <empty>
-	empty, // ff35 <empty>
-	empty, // ff36 <empty>
-	empty, // ff37 <empty>
-	empty, // ff38 <empty>
-	empty, // ff39 <empty>
-	empty, // ff3a <empty>
-	empty, // ff3b <empty>
-	empty, // ff3c <empty>
-	empty, // ff3d <empty>
-	empty, // ff3e <empty>
-	empty, // ff3f <empty>
-	empty, // ff40 LCD Control
-	empty, // ff41 LCD Status
-	empty, // ff42 Background vertical scrolling
-	empty, // ff43 Background horizontal scrolling
+const static IOHandlerR emptyR = [](MMU*) { return 0; };
+const static IOHandlerW emptyW = [](MMU*, uint8_t) { return; };
+
+const static IOHandlerR getters[] = {
+	emptyR, // ff00 Joypad port
+	emptyR, // ff01 Serial IO data
+	emptyR, // ff02 Serial IO control
+	emptyR, // ff03 <empty>
+	emptyR, // ff04 Divider (?)
+	emptyR, // ff05 Timer counter
+	emptyR, // ff06 Timer modulo
+	emptyR, // ff07 Timer control
+	emptyR, // ff08 <empty>
+	emptyR, // ff09 <empty>
+	emptyR, // ff0a <empty>
+	emptyR, // ff0b <empty>
+	emptyR, // ff0c <empty>
+	emptyR, // ff0d <empty>
+	emptyR, // ff0e <empty>
+	emptyR, // ff0f Interrupt flags
+	emptyR, // ff10 Sweep (Sound mode #1)
+	emptyR, // ff11 Sound length / Pattern duty (Sound mode #1)
+	emptyR, // ff12 Control (Sound mode #1)
+	emptyR, // ff13 Frequency low (Sound mode #1)
+	emptyR, // ff14 Frequency high (Sound mode #1)
+	emptyR, // ff15 <empty>
+	emptyR, // ff16 Sound length / Pattern duty (Sound mode #2)
+	emptyR, // ff17 Control (Sound mode #2)
+	emptyR, // ff18 Frequency low (Sound mode #2)
+	emptyR, // ff19 Frequency high (Sound mode #2)
+	emptyR, // ff1a Control (Sound mode #3)
+	emptyR, // ff1b Sound length (Sound mode #3)
+	emptyR, // ff1c Output level (Sound mode #3)
+	emptyR, // ff1d Frequency low (Sound mode #3)
+	emptyR, // ff1e Frequency high (Sound mode #3)
+	emptyR, // ff1f <empty>
+	emptyR, // ff20 Sound length / Pattern duty (Sound mode #4)
+	emptyR, // ff21 Control (Sound mode #4)
+	emptyR, // ff22 Polynomial counter (Sound mode #4)
+	emptyR, // ff23 Frequency high (Sound mode #4)
+	emptyR, // ff24 Channel / Volume control
+	emptyR, // ff25 Sound output terminal selector
+	emptyR, // ff26 Sound ON/OFF
+	emptyR, // ff27 <empty>
+	emptyR, // ff28 <empty>
+	emptyR, // ff29 <empty>
+	emptyR, // ff2a <empty>
+	emptyR, // ff2b <empty>
+	emptyR, // ff2c <empty>
+	emptyR, // ff2d <empty>
+	emptyR, // ff2e <empty>
+	emptyR, // ff2f <empty>
+	emptyR, // ff30 <empty>
+	emptyR, // ff31 <empty>
+	emptyR, // ff32 <empty>
+	emptyR, // ff33 <empty>
+	emptyR, // ff34 <empty>
+	emptyR, // ff35 <empty>
+	emptyR, // ff36 <empty>
+	emptyR, // ff37 <empty>
+	emptyR, // ff38 <empty>
+	emptyR, // ff39 <empty>
+	emptyR, // ff3a <empty>
+	emptyR, // ff3b <empty>
+	emptyR, // ff3c <empty>
+	emptyR, // ff3d <empty>
+	emptyR, // ff3e <empty>
+	emptyR, // ff3f <empty>
+	emptyR, // ff40 LCD Control
+	emptyR, // ff41 LCD Status
+	emptyR, // ff42 Background vertical scrolling
+	emptyR, // ff43 Background horizontal scrolling
 	[](MMU* mmu) { return mmu->gpu->line; }, // ff44 Current scanline
-	empty, // ff45 Scanline comparison
-	empty, // ff46 DMA transfer control
-	empty, // ff47 Background palette
-	empty, // ff48 Sprite palette #0
-	empty, // ff49 Sprite palette #1
-	empty, // ff4a Window Y position
-	empty, // ff4b Window X position
-	empty, // ff4c <empty>
-	empty, // ff4d <empty>
-	empty, // ff4e <empty>
-	empty, // ff4f <empty>
-	empty, // ff50 <empty>
-	empty, // ff51 <empty>
-	empty, // ff52 <empty>
-	empty, // ff53 <empty>
-	empty, // ff54 <empty>
-	empty, // ff55 <empty>
-	empty, // ff56 <empty>
-	empty, // ff57 <empty>
-	empty, // ff58 <empty>
-	empty, // ff59 <empty>
-	empty, // ff5a <empty>
-	empty, // ff5b <empty>
-	empty, // ff5c <empty>
-	empty, // ff5d <empty>
-	empty, // ff5e <empty>
-	empty, // ff5f <empty>
-	empty, // ff60 <empty>
-	empty, // ff61 <empty>
-	empty, // ff62 <empty>
-	empty, // ff63 <empty>
-	empty, // ff64 <empty>
-	empty, // ff65 <empty>
-	empty, // ff66 <empty>
-	empty, // ff67 <empty>
-	empty, // ff68 <empty>
-	empty, // ff69 <empty>
-	empty, // ff6a <empty>
-	empty, // ff6b <empty>
-	empty, // ff6c <empty>
-	empty, // ff6d <empty>
-	empty, // ff6e <empty>
-	empty, // ff6f <empty>
-	empty, // ff70 <empty>
-	empty, // ff71 <empty>
-	empty, // ff72 <empty>
-	empty, // ff73 <empty>
-	empty, // ff74 <empty>
-	empty, // ff75 <empty>
-	empty, // ff76 <empty>
-	empty, // ff77 <empty>
-	empty, // ff78 <empty>
-	empty, // ff79 <empty>
-	empty, // ff7a <empty>
-	empty, // ff7b <empty>
-	empty, // ff7c <empty>
-	empty, // ff7d <empty>
-	empty, // ff7e <empty>
-	empty, // ff7f <empty>
+	emptyR, // ff45 Scanline comparison
+	emptyR, // ff46 DMA transfer control
+	emptyR, // ff47 Background palette
+	emptyR, // ff48 Sprite palette #0
+	emptyR, // ff49 Sprite palette #1
+	emptyR, // ff4a Window Y position
+	emptyR, // ff4b Window X position
+	emptyR, // ff4c <empty>
+	emptyR, // ff4d <empty>
+	emptyR, // ff4e <empty>
+	emptyR, // ff4f <empty>
+	emptyR, // ff50 <empty>
+	emptyR, // ff51 <empty>
+	emptyR, // ff52 <empty>
+	emptyR, // ff53 <empty>
+	emptyR, // ff54 <empty>
+	emptyR, // ff55 <empty>
+	emptyR, // ff56 <empty>
+	emptyR, // ff57 <empty>
+	emptyR, // ff58 <empty>
+	emptyR, // ff59 <empty>
+	emptyR, // ff5a <empty>
+	emptyR, // ff5b <empty>
+	emptyR, // ff5c <empty>
+	emptyR, // ff5d <empty>
+	emptyR, // ff5e <empty>
+	emptyR, // ff5f <empty>
+	emptyR, // ff60 <empty>
+	emptyR, // ff61 <empty>
+	emptyR, // ff62 <empty>
+	emptyR, // ff63 <empty>
+	emptyR, // ff64 <empty>
+	emptyR, // ff65 <empty>
+	emptyR, // ff66 <empty>
+	emptyR, // ff67 <empty>
+	emptyR, // ff68 <empty>
+	emptyR, // ff69 <empty>
+	emptyR, // ff6a <empty>
+	emptyR, // ff6b <empty>
+	emptyR, // ff6c <empty>
+	emptyR, // ff6d <empty>
+	emptyR, // ff6e <empty>
+	emptyR, // ff6f <empty>
+	emptyR, // ff70 <empty>
+	emptyR, // ff71 <empty>
+	emptyR, // ff72 <empty>
+	emptyR, // ff73 <empty>
+	emptyR, // ff74 <empty>
+	emptyR, // ff75 <empty>
+	emptyR, // ff76 <empty>
+	emptyR, // ff77 <empty>
+	emptyR, // ff78 <empty>
+	emptyR, // ff79 <empty>
+	emptyR, // ff7a <empty>
+	emptyR, // ff7b <empty>
+	emptyR, // ff7c <empty>
+	emptyR, // ff7d <empty>
+	emptyR, // ff7e <empty>
+	emptyR, // ff7f <empty>
 };
+
+const static IOHandlerW setters[] = {
+	emptyW, // ff00 Joypad port
+	emptyW, // ff01 Serial IO data
+	emptyW, // ff02 Serial IO control
+	emptyW, // ff03 <empty>
+	emptyW, // ff04 Divider (?)
+	emptyW, // ff05 Timer counter
+	emptyW, // ff06 Timer modulo
+	emptyW, // ff07 Timer control
+	emptyW, // ff08 <empty>
+	emptyW, // ff09 <empty>
+	emptyW, // ff0a <empty>
+	emptyW, // ff0b <empty>
+	emptyW, // ff0c <empty>
+	emptyW, // ff0d <empty>
+	emptyW, // ff0e <empty>
+	emptyW, // ff0f Interrupt flags
+	emptyW, // ff10 Sweep (Sound mode #1)
+	emptyW, // ff11 Sound length / Pattern duty (Sound mode #1)
+	emptyW, // ff12 Control (Sound mode #1)
+	emptyW, // ff13 Frequency low (Sound mode #1)
+	emptyW, // ff14 Frequency high (Sound mode #1)
+	emptyW, // ff15 <empty>
+	emptyW, // ff16 Sound length / Pattern duty (Sound mode #2)
+	emptyW, // ff17 Control (Sound mode #2)
+	emptyW, // ff18 Frequency low (Sound mode #2)
+	emptyW, // ff19 Frequency high (Sound mode #2)
+	emptyW, // ff1a Control (Sound mode #3)
+	emptyW, // ff1b Sound length (Sound mode #3)
+	emptyW, // ff1c Output level (Sound mode #3)
+	emptyW, // ff1d Frequency low (Sound mode #3)
+	emptyW, // ff1e Frequency high (Sound mode #3)
+	emptyW, // ff1f <empty>
+	emptyW, // ff20 Sound length / Pattern duty (Sound mode #4)
+	emptyW, // ff21 Control (Sound mode #4)
+	emptyW, // ff22 Polynomial counter (Sound mode #4)
+	emptyW, // ff23 Frequency high (Sound mode #4)
+	emptyW, // ff24 Channel / Volume control
+	emptyW, // ff25 Sound output terminal selector
+	emptyW, // ff26 Sound ON/OFF
+	emptyW, // ff27 <empty>
+	emptyW, // ff28 <empty>
+	emptyW, // ff29 <empty>
+	emptyW, // ff2a <empty>
+	emptyW, // ff2b <empty>
+	emptyW, // ff2c <empty>
+	emptyW, // ff2d <empty>
+	emptyW, // ff2e <empty>
+	emptyW, // ff2f <empty>
+	emptyW, // ff30 <empty>
+	emptyW, // ff31 <empty>
+	emptyW, // ff32 <empty>
+	emptyW, // ff33 <empty>
+	emptyW, // ff34 <empty>
+	emptyW, // ff35 <empty>
+	emptyW, // ff36 <empty>
+	emptyW, // ff37 <empty>
+	emptyW, // ff38 <empty>
+	emptyW, // ff39 <empty>
+	emptyW, // ff3a <empty>
+	emptyW, // ff3b <empty>
+	emptyW, // ff3c <empty>
+	emptyW, // ff3d <empty>
+	emptyW, // ff3e <empty>
+	emptyW, // ff3f <empty>
+	emptyW, // ff40 LCD Control
+	emptyW, // ff41 LCD Status
+	emptyW, // ff42 Background vertical scrolling
+	emptyW, // ff43 Background horizontal scrolling
+	[](MMU* mmu, uint8_t value) { mmu->gpu->line = 0; }, // ff44 Current scanline
+	emptyW, // ff45 Scanline comparison
+	emptyW, // ff46 DMA transfer control
+	emptyW, // ff47 Background palette
+	emptyW, // ff48 Sprite palette #0
+	emptyW, // ff49 Sprite palette #1
+	emptyW, // ff4a Window Y position
+	emptyW, // ff4b Window X position
+	emptyW, // ff4c <empty>
+	emptyW, // ff4d <empty>
+	emptyW, // ff4e <empty>
+	emptyW, // ff4f <empty>
+	emptyW, // ff50 <empty>
+	emptyW, // ff51 <empty>
+	emptyW, // ff52 <empty>
+	emptyW, // ff53 <empty>
+	emptyW, // ff54 <empty>
+	emptyW, // ff55 <empty>
+	emptyW, // ff56 <empty>
+	emptyW, // ff57 <empty>
+	emptyW, // ff58 <empty>
+	emptyW, // ff59 <empty>
+	emptyW, // ff5a <empty>
+	emptyW, // ff5b <empty>
+	emptyW, // ff5c <empty>
+	emptyW, // ff5d <empty>
+	emptyW, // ff5e <empty>
+	emptyW, // ff5f <empty>
+	emptyW, // ff60 <empty>
+	emptyW, // ff61 <empty>
+	emptyW, // ff62 <empty>
+	emptyW, // ff63 <empty>
+	emptyW, // ff64 <empty>
+	emptyW, // ff65 <empty>
+	emptyW, // ff66 <empty>
+	emptyW, // ff67 <empty>
+	emptyW, // ff68 <empty>
+	emptyW, // ff69 <empty>
+	emptyW, // ff6a <empty>
+	emptyW, // ff6b <empty>
+	emptyW, // ff6c <empty>
+	emptyW, // ff6d <empty>
+	emptyW, // ff6e <empty>
+	emptyW, // ff6f <empty>
+	emptyW, // ff70 <empty>
+	emptyW, // ff71 <empty>
+	emptyW, // ff72 <empty>
+	emptyW, // ff73 <empty>
+	emptyW, // ff74 <empty>
+	emptyW, // ff75 <empty>
+	emptyW, // ff76 <empty>
+	emptyW, // ff77 <empty>
+	emptyW, // ff78 <empty>
+	emptyW, // ff79 <empty>
+	emptyW, // ff7a <empty>
+	emptyW, // ff7b <empty>
+	emptyW, // ff7c <empty>
+	emptyW, // ff7d <empty>
+	emptyW, // ff7e <empty>
+	emptyW, // ff7f <empty>
+};
+
 
 uint8_t MMU::ReadIO(const uint16_t location) {
 	return getters[location](this);
 }
 
 void MMU::WriteIO(const uint16_t location, const uint8_t value) {
+	setters[location](this, value);
 	return;
 }

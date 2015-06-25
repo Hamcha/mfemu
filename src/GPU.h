@@ -8,6 +8,7 @@ private:
 	SDL_Texture* texture;
 	uint32_t screen[160*144];
 
+	void drawLine(uint8_t line);
 	void drawScreen();
 
 public:

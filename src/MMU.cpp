@@ -133,7 +133,7 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 
 	// ff00 - ff7f => I/O Registers
 	if (location < 0xff80) {
-		//TODO
+		WriteIO(location - 0xff00, value);
 		return;
 	}
 

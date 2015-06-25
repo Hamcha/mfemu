@@ -1,5 +1,7 @@
 #include "GPU.h"
 
+const int8_t shades[] = {0xff, 0xc0, 0x60, 0x00};
+
 void GPU::Step(int cycles) {
 	cycleCount += cycles;
 
@@ -66,6 +68,10 @@ void GPU::InitScreen(SDL_Renderer* _renderer) {
 								SDL_PIXELFORMAT_ARGB8888,
 								SDL_TEXTUREACCESS_STREAMING,
 								160, 144);
+}
+
+void GPU::drawLine(uint8_t line) {
+
 }
 
 void GPU::drawScreen() {
