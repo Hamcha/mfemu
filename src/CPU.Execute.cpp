@@ -686,6 +686,7 @@ void RotateLeft(CPU* cpu, uint8_t* val, const RotationType type) {
 	switch (type) {
 	case ThC: *val |= car; break;
 	case Rot: *val |= shf; break;
+	default: std::cerr << "RotateLeft: invalid rotation type " << type << "." << std::endl;
 	}
 
 	cpu->Flags().Zero = *val == 0 ? 1 : 0;
@@ -705,6 +706,7 @@ void RotateRight(CPU* cpu, uint8_t* val, const RotationType type) {
 	case ThC: *val |= (car << 7); break;
 	case Rot: *val |= shf;        break;
 	case Rep: *val |= (old << 7); break;
+	default: std::cerr << "RotateRight: invalid rotation type " << type << "." << std::endl;
 	}
 
 	cpu->Flags().Zero = *val == 0 ? 1 : 0;
