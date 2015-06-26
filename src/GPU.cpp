@@ -3,11 +3,17 @@
 const uint8_t shades[] = { 0xff, 0xc0, 0x60, 0x00 };
 
 void GPU::Step(int cycles) {
+	if (!lcdControl.flags.enableLCD) {
+		lcdStatus.flags.mode = Mode_VBlank;
+		line = 0;
+		return;
+	}
+
 	cycleCount += cycles;
 
-	switch (mode) {
+	switch (lcdStatus.flags.mode) {
 	// Hblank
-	case 0:
+	case Mode_HBlank:
 		if (cycleCount >= 204) {
 			// Next scanline
 			cycleCount = 0;
@@ -15,15 +21,15 @@ void GPU::Step(int cycles) {
 
 			if (line == 143) {
 				// Go into Vblank
-				mode = 1;
+				lcdStatus.flags.mode = Mode_VBlank;
 				drawScreen();
 			} else {
-				mode = 2;
+				lcdStatus.flags.mode = Mode_OAM;
 			}
 		}
 		break;
 	// Vblank (lasts 10 lines)
-	case 1:
+	case Mode_VBlank:
 		if (cycleCount >= 456) {
 			cycleCount = 0;
 			line++;
@@ -31,24 +37,24 @@ void GPU::Step(int cycles) {
 			if (line > 153) {
 				// Last line, go back up
 				line = 0;
-				mode = 2;
+				lcdStatus.flags.mode = Mode_OAM;
 			}
 		}
 		break;
 	// OAM read
-	case 2:
+	case Mode_OAM:
 		if (cycleCount >= 80) {
 			// Go into VRAM read
 			cycleCount = 0;
-			mode = 3;
+			lcdStatus.flags.mode = Mode_VRAM;
 		}
 		break;
 	// VRAM read
-	case 3:
+	case Mode_VRAM:
 		if (cycleCount >= 172) {
 			// Go into Hblank
 			cycleCount = 0;
-			mode = 0;
+			lcdStatus.flags.mode = Mode_HBlank;
 
 			if (lcdControl.flags.enableLCD) {
 				drawLine();
@@ -61,7 +67,7 @@ void GPU::Step(int cycles) {
 GPU::GPU() {
 	line = 0;
 	cycleCount = 0;
-	mode = 0;
+	lcdStatus.flags.mode = Mode_HBlank;
 
 	// Push at least one VRAM bank (GB classic)
 	VRAMBank vbank1;
