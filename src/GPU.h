@@ -71,13 +71,12 @@ public:
 	int line;
 
 	uint8_t bgPalette,      //!< Background color palette
-			spritePalette1, //!< Sprite color palette #0
-			spritePalette2; //!< Sprite color palette #1
-
-	uint8_t bgScrollX,      //!< Background horizontal scrolling
-			bgScrollY,      //!< Background vertical scrolling
-			winScrollX,     //!< Window horizontal scrolling
-			winScrollY;     //!< Window vertical scrolling
+	        spritePalette1, //!< Sprite color palette #0
+	        spritePalette2, //!< Sprite color palette #1
+	        bgScrollX,      //!< Background horizontal scrolling
+	        bgScrollY,      //!< Background vertical scrolling
+	        winScrollX,     //!< Window horizontal scrolling
+	        winScrollY;     //!< Window vertical scrolling
 
 	//! LCD control flags
 	LCDControl lcdControl;
