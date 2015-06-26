@@ -3,6 +3,8 @@
 #include <SDL.h>
 #include <vector>
 
+const int PIXELS = 160*144;
+
 struct VRAMBank {
 	uint8_t bytes[8 * 1024];
 };
@@ -58,7 +60,7 @@ class GPU {
 private:
 	SDL_Renderer* renderer;
 	SDL_Texture* texture;
-	uint32_t screen[160*144];
+	uint32_t screen[PIXELS];
 
 	void drawLine();
 	void drawScreen();

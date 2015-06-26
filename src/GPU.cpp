@@ -80,8 +80,14 @@ void GPU::InitScreen(SDL_Renderer* _renderer) {
 }
 
 void GPU::drawLine() {
-	uint16_t mapOffset = lcdControl.flags.bgTileTable ? 0x1c00 : 0x1800;
-	uint8_t tile = VRAM[VRAMbankId].bytes[mapOffset];
+	//uint16_t mapOffset = lcdControl.flags.bgTileTable ? 0x1c00 : 0x1800;
+	//uint8_t tile = VRAM[VRAMbankId].bytes[mapOffset];
+	for (int i = 0; i < PIXELS; i++) {
+		screen[i] = 0xff000000     // Alpha (always 1)
+			|  shades[i%4]         // Red
+			| (shades[i%4] << 8)   // Green
+			| (shades[i%4] << 16); // Blue
+	}
 }
 
 void GPU::drawScreen() {
