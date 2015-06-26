@@ -10,7 +10,7 @@ struct VRAMBank {
 };
 
 //! GPU mode
-enum Mode {
+enum Mode : uint8_t {
 	Mode_HBlank = 0, //!< Currently on HBlank (finished line)
 	Mode_VBlank = 1, //!< Currently on VBlank (finished frame)
 	Mode_OAM    = 2, //!< Currently reading OAM
@@ -18,13 +18,13 @@ enum Mode {
 };
 
 //! Opacity flag
-enum Opacity {
+enum Opacity : uint8_t {
 	Opacity_Transparent = 0, //!< Makes color #0 act as a transparent color
 	Opacity_Solid = 1        //!< Makes color #0 opaque
 };
 
 //! Sprite size flag
-enum SpriteSize {
+enum SpriteSize : uint8_t {
 	SpriteSize_8x8 = 0, //!< Sprite size 8x8 pixels
 	SpriteSize_8x16 = 1 //!< Sprite size 8x16 pixels
 };
@@ -32,14 +32,14 @@ enum SpriteSize {
 union LCDControl {
 	uint8_t raw;
 	struct Flags {
-		unsigned int displayBackground : 1; //!< Show background
+		uint8_t displayBackground : 1; //!< Show background
 		Opacity      color0Opacity     : 1; //!< Is Color #0 visible or transparent
 		SpriteSize   spriteSize        : 1; //!< Sprite size
-		unsigned int bgTileTable       : 1; //!< Background tilemap (#0 or #1)
-		unsigned int tilePatternTable  : 1; //!< Background tileset (#0 or #1)
-		unsigned int displayWindow     : 1; //!< Show window
-		unsigned int windowTileTable   : 1; //!< Window tilemap (#0 or #1)
-		unsigned int enableLCD         : 1; //!< Enable display
+		uint8_t bgTileTable : 1; //!< Background tilemap (#0 or #1)
+		uint8_t tilePatternTable : 1; //!< Background tileset (#0 or #1)
+		uint8_t displayWindow : 1; //!< Show window
+		uint8_t windowTileTable : 1; //!< Window tilemap (#0 or #1)
+		uint8_t enableLCD : 1; //!< Enable display
 	} flags;
 };
 
@@ -47,12 +47,12 @@ union LCDStatus {
 	uint8_t raw;
 	struct Flags {
 		Mode mode                    : 2; //!< Current mode
-		unsigned int coincidenceFlag : 1; //!< Interrupt on coincidence
-		unsigned int intMode0        : 1; //!< Mode 00 interrupt flag
-		unsigned int intMode1        : 1; //!< Mode 01 interrupt flag
-		unsigned int intMode2        : 1; //!< Mode 10 interrupt flag
-		unsigned int intScanline     : 1; //!< Scanline coincidence interrupt flag
-		unsigned int _unused         : 1; //!< Unused bit
+		uint8_t coincidenceFlag: 1; //!< Interrupt on coincidence
+		uint8_t intMode0 : 1; //!< Mode 00 interrupt flag
+		uint8_t intMode1 : 1; //!< Mode 01 interrupt flag
+		uint8_t intMode2 : 1; //!< Mode 10 interrupt flag
+		uint8_t intScanline : 1; //!< Scanline coincidence interrupt flag
+		uint8_t _unused : 1; //!< Unused bit
 	} flags;
 };
 
