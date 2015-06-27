@@ -80,11 +80,11 @@ const static IOHandlerR getters[] = {
 	[](MMU* mmu) { return mmu->gpu->line; },           // ff44 Current scanline
 	emptyR, // ff45 Scanline comparison
 	emptyR, // ff46 DMA transfer control
-	[](MMU* mmu) { return mmu->gpu->bgPalette; },      // ff47 Background palette
-	[](MMU* mmu) { return mmu->gpu->spritePalette1; }, // ff48 Sprite palette #0
-	[](MMU* mmu) { return mmu->gpu->spritePalette2; }, // ff49 Sprite palette #1
-	[](MMU* mmu) { return mmu->gpu->winScrollY; },     // ff4a Window Y position
-	[](MMU* mmu) { return mmu->gpu->winScrollX; },     // ff4b Window X position
+	[](MMU* mmu) { return mmu->gpu->bgPalette.raw; },      // ff47 Background palette
+	[](MMU* mmu) { return mmu->gpu->spritePalette1.raw; }, // ff48 Sprite palette #0
+	[](MMU* mmu) { return mmu->gpu->spritePalette2.raw; }, // ff49 Sprite palette #1
+	[](MMU* mmu) { return mmu->gpu->winScrollY; },         // ff4a Window Y position
+	[](MMU* mmu) { return mmu->gpu->winScrollX; },         // ff4b Window X position
 	emptyR, // ff4c <empty>
 	emptyR, // ff4d <empty>
 	emptyR, // ff4e <empty>
@@ -211,11 +211,11 @@ const static IOHandlerW setters[] = {
 	[](MMU* mmu, uint8_t)       { mmu->gpu->line = 0; },               // ff44 Current scanline (reset on set)
 	emptyW, // ff45 Scanline comparison
 	emptyW, // ff46 DMA transfer control
-	[](MMU* mmu, uint8_t value) { mmu->gpu->bgPalette = value; },      // ff47 Background palette
-	[](MMU* mmu, uint8_t value) { mmu->gpu->spritePalette1 = value; }, // ff48 Sprite palette #0
-	[](MMU* mmu, uint8_t value) { mmu->gpu->spritePalette2 = value; }, // ff49 Sprite palette #1
-	[](MMU* mmu, uint8_t value) { mmu->gpu->winScrollY = value; },     // ff4a Window Y position
-	[](MMU* mmu, uint8_t value) { mmu->gpu->winScrollX = value; },     // ff4b Window X position
+	[](MMU* mmu, uint8_t value) { mmu->gpu->bgPalette.raw = value; },      // ff47 Background palette
+	[](MMU* mmu, uint8_t value) { mmu->gpu->spritePalette1.raw = value; }, // ff48 Sprite palette #0
+	[](MMU* mmu, uint8_t value) { mmu->gpu->spritePalette2.raw = value; }, // ff49 Sprite palette #1
+	[](MMU* mmu, uint8_t value) { mmu->gpu->winScrollY = value; },         // ff4a Window Y position
+	[](MMU* mmu, uint8_t value) { mmu->gpu->winScrollX = value; },         // ff4b Window X position
 	emptyW, // ff4c <empty>
 	emptyW, // ff4d <empty>
 	emptyW, // ff4e <empty>
