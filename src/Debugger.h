@@ -7,7 +7,7 @@
 
 namespace Debug {
 
-typedef std::function<void(CPU* cpu, MMU* mmu, uint16_t addr)> InstructionPrinter;
+typedef std::function<void(CPU* cpu, MMU* mmu, const uint16_t addr)> InstructionPrinter;
 
 enum DebugOpts : uint8_t {
 	DBG_INTERACTIVE = 1,
@@ -47,13 +47,13 @@ private:
 	bool track;
 
 	Debug::DebugCmd getCommand(const char* prompt);
-	void setBreakpoint(uint16_t addr);
-	void printInstruction(uint16_t addr);
+	void setBreakpoint(const uint16_t addr);
+	void printInstruction(const uint16_t addr);
 	void printRegisters();
 	void printStack();
 	void printFlags();
 public:
-	Debugger(Emulator *_emulator, uint8_t _opts);
+	Debugger(Emulator *_emulator, const uint8_t _opts);
 	~Debugger();
 
 	void Run();

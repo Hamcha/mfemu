@@ -666,7 +666,7 @@ const static Debug::InstructionPrinter handlers[] = {
 	debugPrintInstruction("RST", Hex8, 0x38)                   // ff RST 38h
 };
 
-void Debugger::printInstruction(uint16_t addr) {
+void Debugger::printInstruction(const uint16_t addr) {
 	uint8_t opcode = emulator->mmu.Read(addr);
 	handlers[opcode](&(emulator->cpu), &(emulator->mmu), addr);
 }

@@ -7,13 +7,13 @@
 struct CycleCount {
 	int machine, cpu;
 
-	CycleCount(int m, int c) {
+	CycleCount(const int m, const int c) {
 		machine = m; cpu = c;
 	}
-	void add(int m, int c) {
+	void add(const int m, const int c) {
 		machine += m; cpu += c;
 	}
-	void add(CycleCount c) {
+	void add(const CycleCount c) {
 		add(c.machine, c.cpu);
 	}
 };
@@ -85,7 +85,7 @@ public:
 	CycleCount cycles;
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }
 
-	CycleCount Execute(uint8_t opcode);
+	CycleCount Execute(const uint8_t opcode);
 
 	//! Is running? (Not Halted/Paused)
 	bool running;

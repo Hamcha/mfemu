@@ -66,7 +66,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "?",        std::make_pair(CMD_HELP,      0) }
 };
 
-Debugger::Debugger(Emulator* _emulator, uint8_t _opts) {
+Debugger::Debugger(Emulator* _emulator, const uint8_t _opts) {
 	emulator = _emulator;
 	opts = _opts;
 	track = false;
@@ -239,7 +239,7 @@ DebugCmd Debugger::getCommand(const char* prompt) {
 	return cmd;
 }
 
-void Debugger::setBreakpoint(uint16_t addr) {
+void Debugger::setBreakpoint(const uint16_t addr) {
 	breakPoints.insert(addr);
 	std::ios::fmtflags fmt(std::clog.flags());
 	std::clog << "Set breakpoint to " << std::setfill('0') << std::setw(4) << std::hex << (int)addr << std::endl;

@@ -22,7 +22,7 @@ public:
 
 	bool running;
 
-	explicit Emulator(const std::string& romfile, bool graphics = true);
+	explicit Emulator(const std::string& romfile, const bool graphics = true);
 	~Emulator();
 
 	void Run();
