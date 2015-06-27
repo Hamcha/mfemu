@@ -3,7 +3,8 @@
 #include <SDL.h>
 #include <vector>
 
-const int PIXELS = 160*144;
+const int WIDTH = 160, HEIGHT = 144;
+const int PIXELS = WIDTH * HEIGHT;
 
 struct VRAMBank {
 	uint8_t bytes[8 * 1024];
@@ -63,6 +64,7 @@ private:
 	uint32_t screen[PIXELS];
 
 	void drawLine();
+	void drawTile(const uint8_t tile, const int x, const int y);
 	void drawScreen();
 
 public:
@@ -91,7 +93,7 @@ public:
 	//! Current VRAM Bank (only changes on GBC)
 	uint8_t VRAMbankId = 0;
 
-	void Step(int cycles);
+	void Step(const int cycles);
 	void InitScreen(SDL_Renderer* _renderer);
 	GPU();
 	~GPU();
