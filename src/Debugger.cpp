@@ -66,7 +66,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "?",        std::make_pair(CMD_HELP,      0) }
 };
 
-Debugger::Debugger(Emulator* _emulator, const uint8_t _opts) 
+Debugger::Debugger(Emulator *const _emulator, const uint8_t _opts) 
 	: emulator(_emulator), opts(_opts), track(false) {}
 
 Debugger::~Debugger() {}
