@@ -41,19 +41,19 @@ struct DebugCmd {
 
 class Debugger {
 private:
-	Emulator *emulator;
+	Emulator *const emulator;
 	uint8_t opts;
 	std::set<uint16_t> breakPoints;
 	bool track;
 
-	Debug::DebugCmd getCommand(const char* prompt);
+	Debug::DebugCmd getCommand(const char* prompt) const;
 	void setBreakpoint(const uint16_t addr);
-	void printInstruction(const uint16_t addr);
-	void printRegisters();
-	void printStack();
-	void printFlags();
+	void printInstruction(const uint16_t addr) const;
+	void printRegisters() const;
+	void printStack() const;
+	void printFlags() const;
 public:
-	Debugger(Emulator *_emulator, const uint8_t _opts);
+	Debugger(Emulator *const _emulator, const uint8_t _opts);
 	~Debugger();
 
 	void Run();

@@ -66,11 +66,8 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "?",        std::make_pair(CMD_HELP,      0) }
 };
 
-Debugger::Debugger(Emulator* _emulator, const uint8_t _opts) {
-	emulator = _emulator;
-	opts = _opts;
-	track = false;
-}
+Debugger::Debugger(Emulator* _emulator, const uint8_t _opts) 
+	: emulator(_emulator), opts(_opts), track(false) {}
 
 Debugger::~Debugger() {}
 
@@ -192,7 +189,7 @@ void Debugger::Run() {
 
 // Reads a command from stdin and returns a struct { cmd, args }.
 // Currently only takes 1 argument.
-DebugCmd Debugger::getCommand(const char* prompt) {
+DebugCmd Debugger::getCommand(const char* prompt) const {
 	static DebugCmd latest = { CMD_INVALID };
 
 	std::cout << prompt << " " << std::flush;

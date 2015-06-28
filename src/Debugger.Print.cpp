@@ -666,12 +666,12 @@ const static Debug::InstructionPrinter handlers[] = {
 	debugPrintInstruction("RST", Hex8, 0x38)                   // ff RST 38h
 };
 
-void Debugger::printInstruction(const uint16_t addr) {
+void Debugger::printInstruction(const uint16_t addr) const {
 	uint8_t opcode = emulator->mmu.Read(addr);
 	handlers[opcode](&(emulator->cpu), &(emulator->mmu), addr);
 }
 
-void Debugger::printRegisters() {
+void Debugger::printRegisters() const {
 	std::ios::fmtflags fmt(std::cout.flags());
 	std::cout
 		<< ":-----------------------------------------------------:\r\n"
@@ -692,7 +692,7 @@ void Debugger::printRegisters() {
 	std::cout.flags(fmt);
 }
 
-void Debugger::printStack() {
+void Debugger::printStack() const {
 	uint16_t sp = emulator->cpu.SP;
 	bool current = true;
 	int iter = 0;
@@ -712,7 +712,7 @@ void Debugger::printStack() {
 	std::cout.flags(fmt);
 }
 
-void Debugger::printFlags() {
+void Debugger::printFlags() const {
 	FlagStruct* flags = &emulator->cpu.AF.Single.Flags.Values;
 	std::cout
 		<< ":---------------:\r\n"
