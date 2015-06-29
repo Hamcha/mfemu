@@ -110,7 +110,7 @@ void GPU::drawLine() {
 			// Get palette color id of current pixel
 			// This is a 2 bit number, MSB is color1[pixel], LSB is color0[pixel]
 			uint8_t tileOffset = tx % 8;
-			uint8_t colorId = (color1 >> tileOffset & 0x1 << 1) | (color0 >> tileOffset & 0x1);
+			uint8_t colorId = ((color1 >> tileOffset & 0x1) << 1) | (color0 >> tileOffset & 0x1);
 
 			// Get actual color from the palette
 			uint8_t actualColor = (bgPalette.raw >> (colorId * 2)) & 0x3;
