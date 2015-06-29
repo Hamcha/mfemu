@@ -82,37 +82,41 @@ void GPU::InitScreen(SDL_Renderer* _renderer) {
 void GPU::drawLine() {
 	if (lcdControl.flags.displayBackground) {
 		uint16_t mapOffset = lcdControl.flags.bgTileTable ? 0x1c00 : 0x1800;
-		uint16_t dataOffset = lcdControl.flags.tilePatternTable ? 0x0800 : 0x0000;
+		uint16_t dataOffset = lcdControl.flags.tilePatternTable ? 0x0000 : 0x0800;
 
-		uint8_t lineOffset = line % 8;
+		uint8_t ty = line + bgScrollY;
+		uint16_t tileRow = ty / 8;
+		uint8_t lineOffset = ty % 8;
 
 		//TODO Calculate scroll offset
 
-		for (int tx = 0; tx <= WIDTH / 8; tx += 1) {
+		for (int x = 0; x <= WIDTH; x += 1) {
+			uint8_t tx = x + bgScrollX;
+
 			// Get tile id
-			uint8_t tileId = VRAM[VRAMbankId].bytes[mapOffset + tx];
+			uint8_t tileCol = tx / 8;
+			uint8_t tileId = VRAM[VRAMbankId].bytes[mapOffset + (tileRow * 32) + tileCol];
 
 			// Convert signed to unsigned if Pattern table #1
-			if (lcdControl.flags.tilePatternTable == 1) {
+			if (lcdControl.flags.tilePatternTable == 0) {
 				tileId ^= 0x80;
 			}
 
 			// Get colors (2 bytes) of the current tile's line
-			uint16_t colorOffset = dataOffset + tileId * 16 + lineOffset * 2;
+			uint16_t colorOffset = dataOffset + (tileId * 16) + (lineOffset * 2);
 			uint8_t color0 = VRAM[VRAMbankId].bytes[colorOffset];
-			uint8_t color1 = VRAM[VRAMbankId].bytes[colorOffset+1];
+			uint8_t color1 = VRAM[VRAMbankId].bytes[colorOffset + 1];
 
-			//TODO Plot line
-			for (int pixel = 0; pixel < 8; pixel += 1) {
-				// This is a 2 bit number, MSB is color0[pixel], LSB is color1[pixel]
-				uint8_t colorId = (color0 >> pixel & 0x1 << 1) | (color1 >> pixel & 0x1);
+			// Get palette color id of current pixel
+			// This is a 2 bit number, MSB is color1[pixel], LSB is color0[pixel]
+			uint8_t tileOffset = tx % 8;
+			uint8_t colorId = (color1 >> tileOffset & 0x1 << 1) | (color0 >> tileOffset & 0x1);
 
-				// Get actual color from the palette
-				uint8_t actualColor = (bgPalette.raw >> (colorId * 2)) & 0x3;
+			// Get actual color from the palette
+			uint8_t actualColor = (bgPalette.raw >> (colorId * 2)) & 0x3;
 
-				// Set pixel to shade defined by the color
-				screen[line * WIDTH + tx * 8 + pixel] = shades[actualColor];
-			}
+			// Set pixel to shade defined by the color
+			screen[line * WIDTH + x] = shades[actualColor];
 		}
 	}
 }
