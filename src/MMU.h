@@ -21,13 +21,12 @@ private:
 
 	ZRAMBank ZRAM;
 
-	bool usingBootstrap; //! Is the bootstrap ROM enabled?
-
 	uint8_t ReadIO(const uint16_t location);
 	void WriteIO(const uint16_t location, const uint8_t value);
 
 public:
 	GPU* gpu;
+	bool usingBootstrap; //! Is the bootstrap ROM enabled?
 
 	MMU(ROM* romData, GPU* _gpu);
 

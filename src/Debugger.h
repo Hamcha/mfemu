@@ -53,7 +53,7 @@ private:
 	void printStack() const;
 	void printFlags() const;
 public:
-	Debugger(Emulator *const _emulator, const uint8_t _opts);
+	explicit Debugger(Emulator *const _emulator, const uint8_t _opts);
 	~Debugger();
 
 	void Run();

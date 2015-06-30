@@ -127,10 +127,14 @@ public:
 	//! Load ROM from memory
 	explicit ROM(const std::vector<uint8_t>& bytes);
 
-#if DEBUG_ROM
+	//! Read from ROM (checks for MBC, RAM etc.)
+	uint8_t Read(const uint16_t location) const;
+
+	//! Write to MBC or special registers
+	void Write(const uint16_t location, const uint8_t value);
+
 	//! Print ROM data (for debugging)
-	void debugPrintData();
-#endif
+	void debugPrintData() const;
 
 	~ROM();
 };

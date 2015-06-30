@@ -204,11 +204,11 @@ const static IOHandlerW setters[] = {
 	emptyW, // ff3d <empty>
 	emptyW, // ff3e <empty>
 	emptyW, // ff3f <empty>
-	[](MMU* mmu, uint8_t value) { mmu->gpu->lcdControl.raw = value; }, // ff40 LCD Control
-	[](MMU* mmu, uint8_t value) { mmu->gpu->lcdStatus.raw = value;  }, // ff41 LCD Status
-	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollY = value; },      // ff42 Background vertical scrolling
-	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollX = value; },      // ff43 Background horizontal scrolling
-	[](MMU* mmu, uint8_t)       { mmu->gpu->line = 0; },               // ff44 Current scanline (reset on set)
+	[](MMU* mmu, uint8_t value) { mmu->gpu->lcdControl.raw = value; },     // ff40 LCD Control
+	[](MMU* mmu, uint8_t value) { mmu->gpu->lcdStatus.raw = value;  },     // ff41 LCD Status
+	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollY = value; },          // ff42 Background vertical scrolling
+	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollX = value; },          // ff43 Background horizontal scrolling
+	[](MMU* mmu, uint8_t)       { mmu->gpu->line = 0; },                   // ff44 Current scanline (reset on set)
 	emptyW, // ff45 Scanline comparison
 	emptyW, // ff46 DMA transfer control
 	[](MMU* mmu, uint8_t value) { mmu->gpu->bgPalette.raw = value; },      // ff47 Background palette
@@ -220,7 +220,7 @@ const static IOHandlerW setters[] = {
 	emptyW, // ff4d <empty>
 	emptyW, // ff4e <empty>
 	emptyW, // ff4f <empty>
-	emptyW, // ff50 <empty>
+	[](MMU* mmu, uint8_t)       { mmu->usingBootstrap = false; },          // ff50 Disable Bootstrap ROM
 	emptyW, // ff51 <empty>
 	emptyW, // ff52 <empty>
 	emptyW, // ff53 <empty>

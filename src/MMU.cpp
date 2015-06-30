@@ -30,14 +30,8 @@ uint8_t MMU::Read(const uint16_t location) {
 		return bootstrap[location];
 	}
 
-	// 0100 - 3fff => Fixed bank from cartridge
-	if (location < 0x4000) {
-		return rom->fixed.bytes[location];
-	}
-
-	// 4000 - 7fff => Switchable bank from cartridge
 	if (location < 0x8000) {
-		return rom->banks[rom->romBankId].bytes[location - 0x4000];
+		return rom->Read(location);
 	}
 
 	// 8000 - 9fff => VRAM bank (switchable in GBC)
@@ -92,7 +86,10 @@ uint8_t MMU::Read(const uint16_t location) {
 
 void MMU::Write(const uint16_t location, const uint8_t value) {
 	// 0000 - 7fff => ROM (Not writable)
-	if (location < 0x8000) { return; }
+	if (location < 0x8000) {
+		rom->Write(location, value);
+		return;
+	}
 
 	// 8000 - 9fff => VRAM bank (switchable in GBC)
 	if (location < 0xa000) {

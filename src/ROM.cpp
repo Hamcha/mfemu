@@ -91,14 +91,11 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 	}
 
 	std::cout << "Loaded ROM: " << title << std::endl;
-#if DEBUG_ROM
-	debugPrintData();
-#endif
 }
 
 ROM::~ROM() {}
 
-void ROM::debugPrintData() {
+void ROM::debugPrintData() const {
 	std::cout << "== ROM INFO ==" << std::endl;
 	// The title can be either 15 or 13 characters, depending on target console
 	if (header.GBC.colorFlag == GBSupported || header.GBC.colorFlag == GBCOnly) {

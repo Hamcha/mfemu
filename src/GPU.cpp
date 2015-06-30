@@ -67,6 +67,8 @@ void GPU::Step(const int cycles) {
 GPU::GPU() {
 	line = 0;
 	cycleCount = 0;
+	bgScrollX = 0;
+	bgScrollY = 0;
 	lcdStatus.flags.mode = Mode_HBlank;
 
 	// Push at least one VRAM bank (GB classic)
@@ -90,7 +92,7 @@ void GPU::drawLine() {
 
 		//TODO Calculate scroll offset
 
-		for (int x = 0; x <= WIDTH; x += 1) {
+		for (uint8_t x = 0; x <= WIDTH; x += 1) {
 			uint8_t tx = x + bgScrollX;
 
 			// Get tile id
@@ -109,7 +111,7 @@ void GPU::drawLine() {
 
 			// Get palette color id of current pixel
 			// This is a 2 bit number, MSB is color1[pixel], LSB is color0[pixel]
-			uint8_t tileOffset = tx % 8;
+			uint8_t tileOffset = 7 - tx % 8;
 			uint8_t colorId = ((color1 >> tileOffset & 0x1) << 1) | (color0 >> tileOffset & 0x1);
 
 			// Get actual color from the palette

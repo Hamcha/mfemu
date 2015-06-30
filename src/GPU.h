@@ -89,7 +89,7 @@ public:
 	int cycleCount;
 
 	//! Current scanline
-	int line;
+	uint8_t line;
 
 	Palette bgPalette,      //!< Background color palette
 	        spritePalette1, //!< Sprite color palette #0
