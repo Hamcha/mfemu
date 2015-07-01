@@ -1,5 +1,6 @@
 #include "Emulator.h"
 #include <iostream>
+#include <sstream>
 
 bool Emulator::initSDL() {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0){
@@ -64,16 +65,21 @@ void Emulator::Step() {
 
 void Emulator::CheckUpdate() {
 	// Only check once every frame
-	if (frameCycles >= 140448) {
+	if (frameCycles >= 70224) {
 		Update();
 		frameCycles = 0;
 	}
 }
 
 void Emulator::Update() {
-	//TODO Update window title with speed %
+	// Update window title
+	std::stringstream winTitleStream;
+	winTitleStream << rom.header.GBC.title << " (" << int(gpu.percent) << "%)";
+	SDL_SetWindowTitle(window, winTitleStream.str().c_str());
+
+	// Get system events
 	SDL_Event event;
-	if (SDL_PollEvent(&event)) {
+	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 		case SDL_QUIT:
 			running = false;

@@ -70,6 +70,7 @@ GPU::GPU() {
 	bgScrollX = 0;
 	bgScrollY = 0;
 	lcdStatus.flags.mode = Mode_HBlank;
+	lastFrameTime = SDL_GetTicks();
 
 	// Push at least one VRAM bank (GB classic)
 	VRAMBank vbank1;
@@ -124,6 +125,12 @@ void GPU::drawLine() {
 }
 
 void GPU::drawScreen() {
+	// Update speed %
+	uint now = SDL_GetTicks();
+	uint diff = now - lastFrameTime;
+	percent = 1666.66 / diff;
+	lastFrameTime = now;
+
 	// Put buffer to texture
 	SDL_UpdateTexture(texture, NULL, &screen, WIDTH * sizeof(uint32_t));
 	SDL_RenderClear(renderer);

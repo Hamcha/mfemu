@@ -81,10 +81,15 @@ private:
 	SDL_Texture* texture;
 	uint32_t screen[PIXELS];
 
+	uint lastFrameTime;
+
 	void drawLine();
 	void drawScreen();
 
 public:
+	//! VSync speed percent (relative to real gameboy)
+	double percent;
+
 	//! Current cycle (in machine cycles)
 	uint cycleCount;
 

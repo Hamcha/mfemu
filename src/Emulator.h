@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 #include <string>
+
 #include "ROM.h"
 #include "MMU.h"
 #include "CPU.h"
@@ -12,6 +13,7 @@ class Emulator {
 private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+
 	uint frameCycles;
 
 	bool initSDL();
