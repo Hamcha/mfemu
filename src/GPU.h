@@ -81,17 +81,17 @@ private:
 	SDL_Texture* texture;
 	uint32_t screen[PIXELS];
 
-	uint lastFrameTime;
+	uint32_t lastFrameTime;
 
 	void drawLine();
 	void drawScreen();
 
 public:
-	//! VSync speed percent (relative to real gameboy)
+	//! VSync speed percent (relative to real Gameboy)
 	double percent;
 
 	//! Current cycle (in machine cycles)
-	uint cycleCount;
+	uint64_t cycleCount;
 
 	//! Current scanline
 	uint8_t line;
@@ -115,7 +115,7 @@ public:
 	//! Current VRAM Bank (only changes on GBC)
 	uint8_t VRAMbankId = 0;
 
-	void Step(const int cycles);
+	void Step(const uint64_t cycles);
 	void InitScreen(SDL_Renderer* _renderer);
 	GPU();
 	~GPU();

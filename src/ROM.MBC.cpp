@@ -13,7 +13,6 @@ uint8_t ROM::Read(const uint16_t location) const {
     // Not applicable (used by VRAM)
     if (location < 0xa000) {
         throw std::logic_error("Trying to access VRAM in ROM");
-        return 0;
     }
     // External RAM (on cartridge)
     if (location < 0xc000) {
@@ -21,7 +20,6 @@ uint8_t ROM::Read(const uint16_t location) const {
     }
 
     throw std::logic_error("Trying to access non-ROM memory in ROM");
-    return 0;
 }
 
 void ROM::Write(const uint16_t location, const uint8_t value) {

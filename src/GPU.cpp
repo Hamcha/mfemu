@@ -2,7 +2,7 @@
 
 const uint32_t shades[] = { 0xffffffff, 0xffc0c0c0, 0xff606060, 0xff000000 };
 
-void GPU::Step(const int cycles) {
+void GPU::Step(const uint64_t cycles) {
 	if (!lcdControl.flags.enableLCD) {
 		lcdStatus.flags.mode = Mode_VBlank;
 		line = 0;
@@ -126,8 +126,8 @@ void GPU::drawLine() {
 
 void GPU::drawScreen() {
 	// Update speed %
-	uint now = SDL_GetTicks();
-	uint diff = now - lastFrameTime;
+	uint32_t now = SDL_GetTicks();
+	uint32_t diff = now - lastFrameTime;
 	percent = 1666.66 / diff;
 	lastFrameTime = now;
 

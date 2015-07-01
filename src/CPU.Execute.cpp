@@ -2,6 +2,7 @@
 #include "CPU.Defines.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <iomanip>
 #include <stdexcept>
 
@@ -987,7 +988,9 @@ CPUHandler Restart(uint8_t base) {
 
 // Inexistent instruction
 CycleCount Wrong(CPU* cpu, MMU* mmu) {
-	throw new std::logic_error("Called inexistant opcode: " + mmu->Read(cpu->PC));
+	std::stringstream errorMsg;
+	errorMsg << "Called inexistent opcode: " << mmu->Read(cpu->PC);
+	throw new std::logic_error(errorMsg.str());
 }
 
 const static CPUHandler cbhandlers[] = {

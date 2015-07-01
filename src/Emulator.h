@@ -14,7 +14,7 @@ private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 
-	uint frameCycles;
+	uint64_t frameCycles;
 
 	bool initSDL();
 public:
