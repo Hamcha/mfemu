@@ -5,12 +5,12 @@
 #include "MMU.h"
 
 struct CycleCount {
-	int machine, cpu;
+	uint machine, cpu;
 
-	CycleCount(const int m, const int c) {
+	CycleCount(const uint m, const uint c) {
 		machine = m; cpu = c;
 	}
-	void add(const int m, const int c) {
+	void add(const uint m, const uint c) {
 		machine += m; cpu += c;
 	}
 	void add(const CycleCount c) {

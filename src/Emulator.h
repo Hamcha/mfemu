@@ -12,6 +12,7 @@ class Emulator {
 private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+	uint frameCycles;
 
 	bool initSDL();
 public:
@@ -27,5 +28,6 @@ public:
 
 	void Run();
 	void Step();
+	void CheckUpdate();
 	void Update();
 };

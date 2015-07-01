@@ -86,7 +86,7 @@ private:
 
 public:
 	//! Current cycle (in machine cycles)
-	int cycleCount;
+	uint cycleCount;
 
 	//! Current scanline
 	uint8_t line;

@@ -41,7 +41,7 @@ uint8_t MMU::Read(const uint16_t location) {
 
 	// a000 - bfff => External RAM (switchable)
 	if (location < 0xc000) {
-		return rom->ram[rom->ramBankId].bytes[location - 0xa000];
+		return rom->Read(location);
 	}
 
 	// c000 - cfff => Work RAM fixed bank
@@ -99,7 +99,7 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 
 	// a000 - bfff => External RAM (switchable)
 	if (location < 0xc000) {
-		rom->ram[rom->ramBankId].bytes[location - 0xa000] = value;
+		rom->Write(location, value);
 		return;
 	}
 

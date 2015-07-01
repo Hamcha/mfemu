@@ -83,7 +83,7 @@ void Debugger::Run() {
 #endif
 
 	while (emulator->running) {
-		emulator->Update();
+		emulator->CheckUpdate();
 
 		if (!emulator->cpu.running || opts & DBG_INTERACTIVE) {
 			DebugCmd cmd = getCommand("(mfemu)");
