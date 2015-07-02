@@ -6,7 +6,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${mfemu_SOURCE_DIR}/cmake")
 
 # MFEMU
 file(GLOB MFEMU_HEADERS src/*.h)
-file(GLOB MFEMU_SRC src/*.cpp)
+file(GLOB MFEMU_SRC src/*.cpp src/MBC/*.cpp)
 add_executable(${PROJECT_NAME} ${MFEMU_SRC} ${MFEMU_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 

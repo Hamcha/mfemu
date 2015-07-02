@@ -35,52 +35,26 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 
 	memcpy(&header, headerBytes, headerSize);
 
-	// Get banks from buffer
-	int bankCount;
-	switch (header.ROMSize) {
-	case ROM_32K:  bankCount = 0; break;
-	case ROM_64K:  bankCount = 4; break;
-	case ROM_128K: bankCount = 8; break;
-	case ROM_256K: bankCount = 16; break;
-	case ROM_512K: bankCount = 32; break;
-	case ROM_1M:   bankCount = header.Type == ROM_MBC1 ? 63 : 64; break;
-	case ROM_2M:   bankCount = header.Type == ROM_MBC1 ? 125 : 128; break;
-	case ROM_4M:   bankCount = 256; break;
-	case ROM_1_1M: bankCount = 72; break;
-	case ROM_1_2M: bankCount = 80; break;
-	case ROM_1_5M: bankCount = 96; break;
-	default:       throw std::runtime_error("Erroneous ROM Type");
+	// Create ROM MBC (Memory Bank Controller) from type
+	switch (header.Type) {
+	case ROM_ONLY:
+	case ROM_RAM:
+	case ROM_R_B:
+		controller = new NoMBC(header.Type);
+		break;
+	case ROM_MBC1:
+	case ROM_MBC1_RAM:
+	case ROM_MBC1_R_B:
+		controller = new MBC1(header.Type);
+		break;
+	default:
+		throw std::logic_error("Unsupported MBC type");
 	}
 
-	// Read fixed 16k from buffer
-	std::copy(bytes.begin(), bytes.begin() + 16 * 1024, fixed.bytes);
-
-	// Read banks from buffer
-	banks.reserve(bankCount);
-	for (int i = 1; i < bankCount; i += 1) {
-		ROMBank b;
-		std::copy(bytes.begin() + 16 * 1024 * i, bytes.begin() + 16 * 1024 * (i + 1), b.bytes);
-		banks.push_back(b);
-	}
-
-	// Setup RAM banks
-	int ramcount = 0;
-	switch (header.RAMSize) {
-	case RAM_NONE:
-		ramcount = 0; break;
-	case RAM_2KB: case RAM_8KB:
-		ramcount = 1; break;
-	case RAM_32KB:
-		ramcount = 4; break;
-	}
-	ram.reserve(ramcount);
-	for (int i = 0; i < ramcount; i++) {
-		RAMBank bank;
-		ram.push_back(bank);
-	}
+	// Load content to ROM banks
+	controller->LoadROM(header, bytes);
 
 	//TODO load from .sav to RAM
-
 
 	// The title can be either 15 or 13 characters, depending on target console
 	std::string title;
@@ -93,7 +67,9 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 	std::cout << "Loaded ROM: " << title << std::endl;
 }
 
-ROM::~ROM() {}
+ROM::~ROM() {
+	delete controller;
+}
 
 void ROM::debugPrintData() const {
 	std::cout << "== ROM INFO ==" << std::endl;

@@ -990,7 +990,7 @@ CPUHandler Restart(uint8_t base) {
 CycleCount Wrong(CPU* cpu, MMU* mmu) {
 	std::stringstream errorMsg;
 	errorMsg << "Called inexistent opcode: " << mmu->Read(cpu->PC);
-	throw new std::logic_error(errorMsg.str());
+	throw new std::domain_error(errorMsg.str());
 }
 
 const static CPUHandler cbhandlers[] = {

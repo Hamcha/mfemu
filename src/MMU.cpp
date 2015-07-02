@@ -31,7 +31,7 @@ uint8_t MMU::Read(const uint16_t location) {
 	}
 
 	if (location < 0x8000) {
-		return rom->Read(location);
+		return rom->controller->Read(location);
 	}
 
 	// 8000 - 9fff => VRAM bank (switchable in GBC)
@@ -41,7 +41,7 @@ uint8_t MMU::Read(const uint16_t location) {
 
 	// a000 - bfff => External RAM (switchable)
 	if (location < 0xc000) {
-		return rom->Read(location);
+		return rom->controller->Read(location);
 	}
 
 	// c000 - cfff => Work RAM fixed bank
@@ -87,7 +87,7 @@ uint8_t MMU::Read(const uint16_t location) {
 void MMU::Write(const uint16_t location, const uint8_t value) {
 	// 0000 - 7fff => ROM (Not writable)
 	if (location < 0x8000) {
-		rom->Write(location, value);
+		rom->controller->Write(location, value);
 		return;
 	}
 
@@ -99,7 +99,7 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 
 	// a000 - bfff => External RAM (switchable)
 	if (location < 0xc000) {
-		rom->Write(location, value);
+		rom->controller->Write(location, value);
 		return;
 	}
 
