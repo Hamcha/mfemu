@@ -67,7 +67,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 };
 
 Debugger::Debugger(Emulator *const _emulator, const uint8_t _opts) 
-	: emulator(_emulator), opts(_opts), track(false) {}
+	: emulator(_emulator), opts(_opts) {}
 
 Debugger::~Debugger() {}
 
@@ -85,11 +85,12 @@ void Debugger::Run() {
 	while (emulator->running) {
 		emulator->CheckUpdate();
 
-		if (!emulator->cpu.running || opts & DBG_INTERACTIVE) {
+		if (!emulator->cpu.running && opts & DBG_INTERACTIVE) {
 			DebugCmd cmd = getCommand("(mfemu)");
 			switch (cmd.instr) {
 			case CMD_RUN:
 				std::clog << "Starting emulation..." << std::endl;
+				ignoreBreakpoints = true;
 				emulator->cpu.running = true;
 				break;
 			case CMD_PRINT: {
@@ -132,9 +133,6 @@ void Debugger::Run() {
 			}
 			case CMD_STEP:
 				if (emulator->cpu.running) {
-					if (!(opts & DBG_NOGRAPHICS)) {
-						SDL_RenderClear(emulator->renderer);
-					}
 					emulator->cpu.Step();
 					printInstruction(emulator->cpu.PC);
 				} else {
@@ -168,21 +166,28 @@ void Debugger::Run() {
 			default:
 				std::cerr << "Invalid command" << std::endl;
 			}
-		} else {
-			// Execute instructions until a breakpoint is found
-			uint16_t PC = emulator->cpu.PC;
-			if (breakPoints.find(PC) != breakPoints.end()) {
-				opts |= DBG_INTERACTIVE;
-				std::ios::fmtflags fmt(std::cout.flags());
-				std::cout << "Breakpoint reached: " << std::hex << (int)PC << std::endl;
-				std::cout.flags(fmt);
-				continue;
-			}
 
-			if (track) {
-				printInstruction(emulator->cpu.PC);
-			}
-			emulator->Step();
+			continue;
+		}
+
+		// Execute instructions until a breakpoint is found
+		uint16_t PC = emulator->cpu.PC;
+		if (!ignoreBreakpoints && breakPoints.find(PC) != breakPoints.end()) {
+			emulator->cpu.running = false;
+			std::ios::fmtflags fmt(std::cout.flags());
+			std::cout << "Breakpoint reached: " << std::hex << (int)PC << std::endl;
+			std::cout.flags(fmt);
+			continue;
+		}
+
+		if (track) {
+			printInstruction(emulator->cpu.PC);
+		}
+		emulator->Step();
+
+		// ignoraBreakpoints should only last one iteration
+		if (ignoreBreakpoints) {
+			ignoreBreakpoints = false;
 		}
 	}
 }

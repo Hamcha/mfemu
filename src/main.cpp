@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 	Emulator emulator(romFile);
 
 	if (flags & F_DEBUG) {
-		uint8_t debugger_flags = Debug::DBG_NOGRAPHICS;
+		uint8_t debugger_flags = Debug::DBG_INTERACTIVE;
 		if (flags & F_NOSTART) {
 			debugger_flags |= Debug::DBG_NOSTART;
 		}

@@ -645,7 +645,7 @@ CPUHandler JumpRelative(const JumpCondition condition) {
 		int r8 = (int8_t) u8;
 
 		if (shouldJump(cpu, condition)) {
-			cpu->PC = (uint16_t)((int32_t) cpu->PC + r8 - 2);
+			cpu->PC = (uint16_t)((int32_t) cpu->PC + r8);
 			return CycleCount(2, 12);
 		} else {
 			return CycleCount(2, 8);
