@@ -645,7 +645,7 @@ CPUHandler JumpRelative(const JumpCondition condition) {
 		int r8 = (int8_t) u8;
 
 		if (shouldJump(cpu, condition)) {
-			cpu->PC = (uint16_t)((int32_t) cpu->PC + r8);
+			cpu->PC = (uint16_t)((int32_t) cpu->PC + r8 - 2);
 			return CycleCount(2, 12);
 		} else {
 			return CycleCount(2, 8);
@@ -662,7 +662,7 @@ CPUHandler JumpAbsolute(const JumpCondition condition) {
 		uint16_t word = (high << 8) | low;
 
 		if (shouldJump(cpu, condition)) {
-			cpu->PC = word - 3;
+			cpu->PC = word - 1;
 			return CycleCount(3, 16);
 		} else {
 			return CycleCount(3, 12);
