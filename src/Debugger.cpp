@@ -132,12 +132,8 @@ void Debugger::Run() {
 				break;
 			}
 			case CMD_STEP:
-				if (emulator->cpu.running) {
-					emulator->cpu.Step();
-					printInstruction(emulator->cpu.PC);
-				} else {
-					std::cerr << "CPU is not running: type `run` to start emulation." << std::endl;
-				}
+				emulator->cpu.Step();
+				printInstruction(emulator->cpu.PC);
 				break;
 			case CMD_CONTINUE:
 				if (emulator->cpu.running) {
