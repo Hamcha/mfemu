@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include "Emulator.h"
 #include "Debugger.h"
 
@@ -15,30 +16,33 @@ int main(int argc, char **argv) {
 	std::string romFile("test.gb");
 	uint8_t flags = F_DEFAULT;
 
-	for (int i = 1; i < argc; i += 1) {
+	for (uint16_t i = 1; i < argc; i += 1) {
 		if (argv[i][0] == '-') {
-			switch (argv[i][1]) {
-			case 'v':
-				return 0; // we already printed the version
-			case 'i':
-				// only print ROM information and exit
-				flags = F_ROMINFO;
-				break;
-			case 'd':
-				flags |= F_DEBUG;
-				break;
-			case 'n':
-				flags |= F_NOSTART;
-				break;
-			default:
-				std::cout << "Usage: " << argv[0] << " [-hvidn] <file.gb>\r\n"
-					<< "\t-h: get this help\r\n"
-					<< "\t-v: print version and exit\r\n"
-					<< "\t-i: print ROM info and exit\r\n"
-					<< "\t-d: run the debugger on the given rom\r\n"
-					<< "\t-n: don't start the emulation right away" << std::endl;
-				return 0;
-			}
+			uint16_t j = 1, len = strlen(argv[i]);
+			do {
+				switch (argv[i][j]) {
+				case 'v':
+					return 0; // we already printed the version
+				case 'i':
+					// only print ROM information and exit
+					flags = F_ROMINFO;
+					break;
+				case 'd':
+					flags |= F_DEBUG;
+					break;
+				case 'n':
+					flags |= F_NOSTART;
+					break;
+				default:
+					std::cout << "Usage: " << argv[0] << " [-hvidn] <file.gb>\r\n"
+						<< "\t-h: get this help\r\n"
+						<< "\t-v: print version and exit\r\n"
+						<< "\t-i: print ROM info and exit\r\n"
+						<< "\t-d: run the debugger on the given rom\r\n"
+						<< "\t-n: don't start the emulation right away" << std::endl;
+					return 0;
+				}
+			} while (++j < len);
 		} else {
 			romFile = std::string(argv[i]);
 		}
