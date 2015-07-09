@@ -228,7 +228,7 @@ DebugCmd Debugger::getCommand(const char* prompt) const {
 	auto inst_pair = debugInstructions.find(instr);
 	if (inst_pair != debugInstructions.end()) {
 		cmd.instr = inst_pair->second.first;
-		for (int i = 0; i < inst_pair->second.second; ++i) {
+		for (int i = 0; i < inst_pair->second.second; i += 1) {
 			std::string arg;
 			ss >> arg;
 			cmd.args.push_back(arg);
