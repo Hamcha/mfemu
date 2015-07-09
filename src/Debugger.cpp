@@ -62,6 +62,7 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 	{ "step",     std::make_pair(CMD_STEP,      0) },
 	{ "cont",     std::make_pair(CMD_CONTINUE,  0) },
 	{ "continue", std::make_pair(CMD_CONTINUE,  0) },
+	{ "rominfo",  std::make_pair(CMD_ROMINFO,   0) },
 	{ "help",     std::make_pair(CMD_HELP,      0) },
 	{ "?",        std::make_pair(CMD_HELP,      0) }
 };
@@ -141,6 +142,9 @@ void Debugger::Run() {
 				} else {
 					std::cerr << "CPU is not running: type `run` to start emulation." << std::endl;
 				}
+				break;
+			case CMD_ROMINFO:
+				emulator->rom.debugPrintData();
 				break;
 			case CMD_HELP:
 				std::cout 

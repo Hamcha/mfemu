@@ -27,6 +27,7 @@ enum DebugInstr {
 	CMD_FLAGS,
 	CMD_BREAK,
 	CMD_CONTINUE,
+	CMD_ROMINFO,
 	CMD_HELP,
 	CMD_QUIT
 };
