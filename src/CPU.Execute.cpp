@@ -979,7 +979,7 @@ CycleCount RETI(CPU* cpu, MMU* mmu) {
 // Push PC and restart
 CPUHandler Restart(uint8_t base) {
 	return [base](CPU* cpu, MMU* mmu) {
-		Push(cpu, mmu, cpu->PC);
+		Push(cpu, mmu, cpu->PC + 1);
 		cpu->PC = base - 1;
 		return CycleCount(1, 16);
 	};
