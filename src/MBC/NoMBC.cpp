@@ -24,7 +24,7 @@ uint8_t NoMBC::Read(const uint16_t location) const {
 	// External RAM (on cartridge)
 	if (hasRam) {
 		if (location < 0xc000) {
-			ram[ramBankId].bytes[location - 0xa000];
+			return ram[ramBankId].bytes[location - 0xa000];
 		}
 	} else {
 		throw std::domain_error("Trying to access inexistent RAM memory");
