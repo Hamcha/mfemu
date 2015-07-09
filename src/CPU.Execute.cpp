@@ -942,8 +942,8 @@ CPUHandler PopReg(PID reg) {
 CPUHandler Call(JumpCondition condition) {
 	return [condition](CPU* cpu, MMU* mmu) {
 		// Get next bytes
-		uint8_t  low = mmu->Read(cpu->PC + 1);
-		uint8_t  high = mmu->Read(cpu->PC + 2);
+		uint8_t  low = mmu->Read(++cpu->PC);
+		uint8_t  high = mmu->Read(++cpu->PC);
 		uint16_t word = (high << 8) | low;
 
 		if (shouldJump(cpu, condition)) {
@@ -951,7 +951,6 @@ CPUHandler Call(JumpCondition condition) {
 			cpu->PC = word - 1;
 			return CycleCount(3, 24);
 		} else {
-			cpu->PC += 2;
 			return CycleCount(3, 12);
 		}
 	};
