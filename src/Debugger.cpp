@@ -242,8 +242,13 @@ DebugCmd Debugger::getCommand(const char* prompt) const {
 }
 
 void Debugger::setBreakpoint(const uint16_t addr) {
-	breakPoints.insert(addr);
 	std::ios::fmtflags fmt(std::clog.flags());
-	std::clog << "Set breakpoint to " << std::setfill('0') << std::setw(4) << std::hex << (int)addr << std::endl;
+	if (breakPoints.find(addr) != breakPoints.end()) {
+		breakPoints.erase(addr);
+		std::clog << "Removed breakpoint to " << std::setfill('0') << std::setw(4) << std::hex << (int)addr << std::endl;
+	} else {
+		breakPoints.insert(addr);
+		std::clog << "Set breakpoint to " << std::setfill('0') << std::setw(4) << std::hex << (int)addr << std::endl;
+	}
 	std::clog.flags(fmt);
 }
