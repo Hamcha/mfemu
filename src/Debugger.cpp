@@ -68,7 +68,9 @@ static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions
 };
 
 Debugger::Debugger(Emulator *const _emulator, const uint8_t _opts) 
-	: emulator(_emulator), opts(_opts) {}
+	: emulator(_emulator), opts(_opts) {
+	track = (_opts & DBG_TRACK) > 0;
+}
 
 Debugger::~Debugger() {}
 

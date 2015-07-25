@@ -13,10 +13,10 @@ const static IOHandlerR getters[] = {
 	emptyR, // ff01 Serial IO data
 	emptyR, // ff02 Serial IO control
 	emptyR, // ff03 <empty>
-	emptyR, // ff04 Divider (?)
-	emptyR, // ff05 Timer counter
-	emptyR, // ff06 Timer modulo
-	emptyR, // ff07 Timer control
+	[](MMU* mmu) { return mmu->divider;          }, // ff04 Divider
+	[](MMU* mmu) { return mmu->timerCounter;     }, // ff05 Timer counter
+	[](MMU* mmu) { return mmu->timerModulo;      }, // ff06 Timer modulo
+	[](MMU* mmu) { return mmu->timerControl.raw; }, // ff07 Timer control
 	emptyR, // ff08 <empty>
 	emptyR, // ff09 <empty>
 	emptyR, // ff0a <empty>
@@ -144,10 +144,10 @@ const static IOHandlerW setters[] = {
 	emptyW, // ff01 Serial IO data
 	emptyW, // ff02 Serial IO control
 	emptyW, // ff03 <empty>
-	emptyW, // ff04 Divider (?)
-	emptyW, // ff05 Timer counter
-	emptyW, // ff06 Timer modulo
-	emptyW, // ff07 Timer control
+	[](MMU* mmu, uint8_t)       { mmu->divider = 0;              }, // ff04 Divider
+	[](MMU* mmu, uint8_t value) { mmu->timerCounter = value;     }, // ff05 Timer counter
+	[](MMU* mmu, uint8_t value) { mmu->timerModulo = value;      } , // ff06 Timer modulo
+	[](MMU* mmu, uint8_t value) { mmu->timerControl.raw = value; }, // ff07 Timer control
 	emptyW, // ff08 <empty>
 	emptyW, // ff09 <empty>
 	emptyW, // ff0a <empty>
@@ -271,11 +271,11 @@ const static IOHandlerW setters[] = {
 };
 
 
-uint8_t MMU::ReadIO(const uint16_t location) {
+uint8_t MMU::readIO(const uint16_t location) {
 	return getters[location](this);
 }
 
-void MMU::WriteIO(const uint16_t location, const uint8_t value) {
+void MMU::writeIO(const uint16_t location, const uint8_t value) {
 	setters[location](this, value);
 	return;
 }

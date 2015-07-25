@@ -4,20 +4,6 @@
 #include <SDL.h>
 #include "MMU.h"
 
-struct CycleCount {
-	uint64_t machine, cpu;
-
-	CycleCount(const uint64_t m, const uint64_t c) {
-		machine = m; cpu = c;
-	}
-	void add(const uint64_t m, const uint64_t c) {
-		machine += m; cpu += c;
-	}
-	void add(const CycleCount c) {
-		add(c.machine, c.cpu);
-	}
-};
-
 struct FlagStruct {
 	unsigned int Zero : 1;
 	unsigned int BCD_AddSub : 1;

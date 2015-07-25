@@ -26,28 +26,28 @@ protected:
 	bool hasBattery = false;    //!< Enabled if the ROM has battery
 
 public:
-    //! Read from ROM (checks for MBC, RAM etc.)
-    virtual uint8_t Read(const uint16_t) const { return 0; }
+	//! Read from ROM (checks for MBC, RAM etc.)
+	virtual uint8_t Read(const uint16_t) const { return 0; }
 
-    //! Write to MBC or special registers
-    virtual void Write(const uint16_t, const uint8_t) {}
+	//! Write to MBC or special registers
+	virtual void Write(const uint16_t, const uint8_t) {}
 
-    //! Create the required banks and fill them with ROM data
-    void LoadROM(const ROMHeader& header, const std::vector<uint8_t>& data);
+	//! Create the required banks and fill them with ROM data
+	void LoadROM(const ROMHeader& header, const std::vector<uint8_t>& data);
 };
 
 class NoMBC : public MBC {
 public:
-    uint8_t Read(const uint16_t location) const;
-    void Write(const uint16_t location, const uint8_t value);
+	uint8_t Read(const uint16_t location) const;
+	void Write(const uint16_t location, const uint8_t value);
 
-    NoMBC(const ROMType type);
+	NoMBC(const ROMType type);
 };
 
 class MBC1 : public MBC {
 public:
-    uint8_t Read(const uint16_t location) const;
-    void Write(const uint16_t location, const uint8_t value);
+	uint8_t Read(const uint16_t location) const;
+	void Write(const uint16_t location, const uint8_t value);
 
-    MBC1(const ROMType type);
+	MBC1(const ROMType type);
 };

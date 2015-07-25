@@ -7,7 +7,8 @@ enum MainFlags : uint8_t {
 	F_DEFAULT      = 1,
 	F_ROMINFO      = 1 << 1,
 	F_DEBUG        = 1 << 2,
-	F_NOSTART      = 1 << 3
+	F_NOSTART      = 1 << 3,
+	F_TRACK        = 1 << 4
 };
 
 int main(int argc, char **argv) {
@@ -33,12 +34,16 @@ int main(int argc, char **argv) {
 				case 'n':
 					flags |= F_NOSTART;
 					break;
+				case 't':
+					flags |= F_TRACK;
+					break;
 				default:
 					std::cout << "Usage: " << argv[0] << " [-hvidn] <file.gb>\r\n"
 						<< "\t-h: get this help\r\n"
 						<< "\t-v: print version and exit\r\n"
 						<< "\t-i: print ROM info and exit\r\n"
 						<< "\t-d: run the debugger on the given rom\r\n"
+						<< "\t-t: start with code printing enabled\r\n"
 						<< "\t-n: don't start the emulation right away" << std::endl;
 					return 0;
 				}
@@ -60,6 +65,9 @@ int main(int argc, char **argv) {
 		uint8_t debugger_flags = Debug::DBG_INTERACTIVE;
 		if (flags & F_NOSTART) {
 			debugger_flags |= Debug::DBG_NOSTART;
+		}
+		if (flags & F_TRACK) {
+			debugger_flags |= Debug::DBG_TRACK;
 		}
 		Debugger debugger(&emulator, debugger_flags);
 		debugger.Run();

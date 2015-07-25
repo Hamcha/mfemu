@@ -72,7 +72,7 @@ uint8_t MMU::Read(const uint16_t location) {
 
 	// ff00 - ff7f => I/O Registers
 	if (location < 0xff80) {
-		return ReadIO(location - 0xff00);
+		return readIO(location - 0xff00);
 	}
 
 	// ff80 - fffe => High RAM (HRAM)
@@ -129,7 +129,7 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 
 	// ff00 - ff7f => I/O Registers
 	if (location < 0xff80) {
-		WriteIO(location - 0xff00, value);
+		writeIO(location - 0xff00, value);
 		return;
 	}
 
@@ -142,11 +142,56 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 	// TODO Interrupt mask on CPU (ffff)
 }
 
+void MMU::UpdateTimers(CycleCount delta) {
+	// Update divider (one increment every 256 clocks), include past extra clocks (dividerRest)
+	divider += (uint8_t) ((delta.cpu + dividerRest) / 256);
+
+	// Store eventual extra clocks into the dividerRest to add at a later time
+	// Beware of nasty trick:
+	//   dividerRest is uint8, so it will overflow every 256 clocks
+	//   I exploit this as an automatic "% 256"
+	dividerRest += (uint8_t)delta.cpu;
+
+	// Check if the controlled timer is enabled
+	if (timerControl.values.enabled == 1) {
+		// Make a copy of the timer for the modulo comparison
+		uint8_t originalTimer = timerCounter;
+
+		// Add ticks depending on timer configuration
+		switch (timerControl.values.clock) {
+		case ClockDiv1024:
+			timerCounter += (uint8_t) ((delta.cpu + counterRest) / 1024);
+			counterRest = (counterRest + delta.cpu) % 1024;
+			break;
+		case ClockDiv256:
+			timerCounter += (uint8_t) ((delta.cpu + counterRest) / 256);
+			counterRest = (counterRest + delta.cpu) % 256;
+			break;
+		case ClockDiv64:
+			timerCounter += (uint8_t) ((delta.cpu + counterRest) / 64);
+			counterRest = (counterRest + delta.cpu) % 64;
+			break;
+		case ClockDiv16:
+			timerCounter += (uint8_t) ((delta.cpu + counterRest) / 16);
+			counterRest = (counterRest + delta.cpu) % 16;
+			break;
+		}
+
+		// Check for modulo increment
+		if (originalTimer > timerCounter) {
+			timerModulo += 1;
+		}
+	}
+}
+
 MMU::MMU(ROM* romData, GPU* _gpu) {
 	// Setup variables
 	rom = romData;
 	gpu = _gpu;
 	usingBootstrap = true;
+
+	// Reset timers
+	timerModulo = timerCounter = timerControl.raw = divider = 0;
 
 	// Push at least one WRAM bank (GB classic)
 	WRAMBank wbank1;
