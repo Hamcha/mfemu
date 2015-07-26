@@ -9,7 +9,7 @@ const static IOHandlerR emptyR = [](MMU*) { return 0; };
 const static IOHandlerW emptyW = [](MMU*, uint8_t) { return; };
 
 const static IOHandlerR getters[] = {
-	emptyR, // ff00 Joypad port
+	[](MMU* mmu) { return mmu->input->data.GetRegister(); }, // ff00 Joypad port
 	emptyR, // ff01 Serial IO data
 	emptyR, // ff02 Serial IO control
 	emptyR, // ff03 <empty>
@@ -140,13 +140,13 @@ const static IOHandlerR getters[] = {
 };
 
 const static IOHandlerW setters[] = {
-	emptyW, // ff00 Joypad port
+	[](MMU* mmu, uint8_t value) { mmu->input->data.SetRegister(value); }, // ff00 Joypad port
 	emptyW, // ff01 Serial IO data
 	emptyW, // ff02 Serial IO control
 	emptyW, // ff03 <empty>
 	[](MMU* mmu, uint8_t)       { mmu->divider = 0;              }, // ff04 Divider
 	[](MMU* mmu, uint8_t value) { mmu->timerCounter = value;     }, // ff05 Timer counter
-	[](MMU* mmu, uint8_t value) { mmu->timerModulo = value;      } , // ff06 Timer modulo
+	[](MMU* mmu, uint8_t value) { mmu->timerModulo = value;      }, // ff06 Timer modulo
 	[](MMU* mmu, uint8_t value) { mmu->timerControl.raw = value; }, // ff07 Timer control
 	emptyW, // ff08 <empty>
 	emptyW, // ff09 <empty>

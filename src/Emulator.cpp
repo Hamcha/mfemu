@@ -27,7 +27,7 @@ bool Emulator::initSDL() {
 }
 
 Emulator::Emulator(const std::string& romfile, const bool graphics /* = true */)
-	: rom(ROM::FromFile(romfile)), mmu(&rom, &gpu), cpu(&mmu) {
+	: rom(ROM::FromFile(romfile)), mmu(&rom, &gpu, &input), cpu(&mmu) {
 	window = nullptr;
 	renderer = nullptr;
 	running = true;
@@ -84,6 +84,13 @@ void Emulator::Update() {
 		switch (event.type) {
 		case SDL_QUIT:
 			running = false;
+			break;
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+		case SDL_JOYBUTTONUP:
+		case SDL_JOYBUTTONDOWN:
+		case SDL_JOYAXISMOTION:
+			input.HandleInputEvent(event);
 			break;
 		}
 	}

@@ -7,6 +7,7 @@
 #include "MMU.h"
 #include "CPU.h"
 #include "GPU.h"
+#include "Input.h"
 
 class Emulator {
 	friend class Debugger;
@@ -22,6 +23,8 @@ public:
 	GPU gpu;
 	MMU mmu;
 	CPU cpu;
+
+	Input input;
 
 	bool running;
 

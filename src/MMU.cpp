@@ -184,10 +184,11 @@ void MMU::UpdateTimers(CycleCount delta) {
 	}
 }
 
-MMU::MMU(ROM* romData, GPU* _gpu) {
+MMU::MMU(ROM* romData, GPU* _gpu, Input* _input) {
 	// Setup variables
 	rom = romData;
 	gpu = _gpu;
+	input = _input;
 	usingBootstrap = true;
 
 	// Reset timers

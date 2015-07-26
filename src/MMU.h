@@ -2,6 +2,7 @@
 
 #include "ROM.h"
 #include "GPU.h"
+#include "Input.h"
 
 struct CycleCount {
 	uint64_t machine, cpu;
@@ -72,6 +73,7 @@ private:
 
 public:
 	GPU* gpu;                  //!< GPU instance (for accessing VRAM)
+	Input* input;              //!< Input instance (for joypad IO register)
 
 	bool usingBootstrap;       //!< Redirects 0x000-0x100 to the Bootstrap ROM
 
@@ -81,7 +83,7 @@ public:
 
 	TimerControl timerControl; //!< Timer control register
 
-	MMU(ROM* romData, GPU* _gpu);
+	MMU(ROM* romData, GPU* _gpu, Input* _input);
 
 	/*! \brief Reads from memory
 	 *
