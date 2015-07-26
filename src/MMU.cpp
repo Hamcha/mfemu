@@ -80,8 +80,8 @@ uint8_t MMU::Read(const uint16_t location) {
 		return ZRAM.bytes[location - 0xff80];
 	}
 
-	// ffff TODO CPU Interrupt mask
-	return 0;
+	// ffff => Interrupt mask
+	return interruptEnable.raw;
 }
 
 void MMU::Write(const uint16_t location, const uint8_t value) {
@@ -139,7 +139,8 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 		return;
 	}
 
-	// TODO Interrupt mask on CPU (ffff)
+	// ffff => Interrupt mask
+	interruptEnable.raw = value;
 }
 
 void MMU::UpdateTimers(CycleCount delta) {
@@ -194,7 +195,24 @@ MMU::MMU(ROM* romData, GPU* _gpu, Input* _input) {
 	// Reset timers
 	timerModulo = timerCounter = timerControl.raw = divider = 0;
 
+	// Reset interrupts
+	interruptFlags.raw = interruptEnable.raw = 0;
+	interruptsEnabled = true;
+
 	// Push at least one WRAM bank (GB classic)
 	WRAMBank wbank1;
 	WRAMbanks.push_back(wbank1);
+}
+
+void MMU::SetInterrupt(InterruptType type) {
+	// Check if the interrupt is enabled
+	uint8_t index = 1 << (uint8_t) type;
+	if (interruptEnable.raw & index) {
+		interruptFlags.raw |= index;
+	}
+}
+
+void MMU::UnsetInterrupt(InterruptType type) {
+	uint8_t index = 1 << (uint8_t) type;
+	interruptFlags.raw &= ~index;
 }

@@ -16,6 +16,8 @@ class CPU {
 private:
 	MMU* mmu;
 
+	void handleInterrupt(uint8_t location);
+
 public:
 	// Registers
 	union {
@@ -66,7 +68,6 @@ public:
 
 	uint16_t SP;    //! Stack Pointer
 	uint16_t PC;    //! Program Counter
-	bool maskable;  //! Are maskable interrupts enabled?
 
 	CycleCount cycles;
 	FlagStruct& Flags() { return AF.Single.Flags.Values; }
@@ -81,6 +82,9 @@ public:
 
 	//! Create CPU from ROM file
 	explicit CPU(MMU* _mmu);
+
+	//! Handle next incoming interrupt
+	void HandleInterrupts();
 
 	~CPU();
 };

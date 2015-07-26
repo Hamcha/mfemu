@@ -18,6 +18,7 @@ private:
 	uint64_t frameCycles;
 
 	bool initSDL();
+	void checkInterrupts();
 public:
 	ROM rom;
 	GPU gpu;

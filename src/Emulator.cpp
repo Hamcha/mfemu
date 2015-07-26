@@ -62,6 +62,19 @@ void Emulator::Step() {
 	frameCycles += c.machine;
 	mmu.UpdateTimers(c);
 	gpu.Step(c.machine);
+
+	if (mmu.interruptsEnabled) {
+		checkInterrupts();
+	}
+}
+
+void Emulator::checkInterrupts() {
+	if (gpu.didVblank) {
+		mmu.SetInterrupt(IntLCDVblank);
+		gpu.didVblank = false;
+	}
+
+	cpu.HandleInterrupts();
 }
 
 void Emulator::CheckUpdate() {

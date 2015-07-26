@@ -96,6 +96,9 @@ public:
 	//! Current scanline
 	uint8_t line;
 
+	//! Has VBlank happened?
+	bool didVblank;
+
 	Palette bgPalette,      //!< Background color palette
 	        spritePalette1, //!< Sprite color palette #0
 	        spritePalette2; //!< Sprite color palette #1

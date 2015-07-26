@@ -23,6 +23,7 @@ void GPU::Step(const uint64_t cycles) {
 				// Go into Vblank
 				lcdStatus.flags.mode = Mode_VBlank;
 				drawScreen();
+				didVblank = true;
 			} else {
 				lcdStatus.flags.mode = Mode_OAM;
 			}
@@ -31,6 +32,7 @@ void GPU::Step(const uint64_t cycles) {
 	// Vblank (lasts 10 lines)
 	case Mode_VBlank:
 		if (cycleCount >= 456) {
+
 			cycleCount = 0;
 			line++;
 
@@ -69,6 +71,7 @@ GPU::GPU() {
 	cycleCount = 0;
 	bgScrollX = 0;
 	bgScrollY = 0;
+	didVblank = false;
 	lcdStatus.flags.mode = Mode_HBlank;
 	lastFrameTime = SDL_GetTicks();
 

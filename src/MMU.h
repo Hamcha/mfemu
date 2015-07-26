@@ -4,6 +4,13 @@
 #include "GPU.h"
 #include "Input.h"
 
+#include <functional>
+
+/*! \brief Cycle count
+ *
+ *  Representation of gameboy cycles broken down in machine and cpu cycles.
+ *  Has some utils for adding up cycle pairs together.
+ */
 struct CycleCount {
 	uint64_t machine, cpu;
 
@@ -18,10 +25,12 @@ struct CycleCount {
 	}
 };
 
+//! Work RAM bank
 struct WRAMBank {
 	uint8_t bytes[4 * 1024];
 };
 
+//! Zero page RAM bank
 struct ZRAMBank {
 	uint8_t bytes[128];
 };
@@ -50,6 +59,27 @@ union TimerControl {
 	} values;
 };
 
+//! Interrupt flag struct
+union InterruptFlag {
+	uint8_t raw;
+	struct Flags {
+		uint8_t vblank : 1;
+		uint8_t lcdcontrol : 1;
+		uint8_t timer : 1;
+		uint8_t serial : 1;
+		uint8_t input : 1;
+	} flags;
+};
+
+//! Interrupt types
+enum InterruptType : uint8_t {
+	IntLCDVblank = 0,
+	IntLCDControl = 1,
+	IntTimerOverflow = 2,
+	IntEndSerialIO = 3,
+	IntInput = 4
+};
+
 /*! \brief Memory management unit
  *
  *  MMU manages memory and access to it, it keeps track of the timers and
@@ -71,6 +101,7 @@ private:
 	uint8_t readIO(const uint16_t location);
 	void writeIO(const uint16_t location, const uint8_t value);
 
+
 public:
 	GPU* gpu;                  //!< GPU instance (for accessing VRAM)
 	Input* input;              //!< Input instance (for joypad IO register)
@@ -82,6 +113,10 @@ public:
 		timerModulo;           //!< Timer modulo (increases with each timer overflow)
 
 	TimerControl timerControl; //!< Timer control register
+
+	bool interruptsEnabled;        //!< Are interrupts enabled? (IME)
+	InterruptFlag interruptFlags;  //!< Which interrupts have happened
+	InterruptFlag interruptEnable; //!< Which interrupts are enabled
 
 	MMU(ROM* romData, GPU* _gpu, Input* _input);
 
@@ -114,4 +149,21 @@ public:
 	 *  \param delta Cycles since the last call
 	 */
 	void UpdateTimers(CycleCount delta);
+
+	/*! \brief Set an interrupt for later execution
+	 *
+	 *  Set an interrupt as happened (in the interrupt flag register) so when
+	 *  interrupts will be checked for execution it will be processed
+	 *
+	 *  \param type Interrupt that has happened
+	 */
+	void SetInterrupt(InterruptType type);
+
+	/*! \brief Removes an interrupt from the flag register
+	*
+	*  Unsets an interrupt that has happened, meaning it has been processed
+	*
+	*  \param type Interrupt that has happened
+	*/
+	void UnsetInterrupt(InterruptType type);
 };

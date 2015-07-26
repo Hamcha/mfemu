@@ -845,8 +845,8 @@ CPUHandler BitIndirect(const PID ind, const uint8_t bit) {
 
 // Enable/Disable Maskable Interrupts
 CPUHandler SetInt(bool enable) {
-	return [enable](CPU* cpu, MMU*) {
-		cpu->maskable = enable;
+	return [enable](CPU*, MMU* mmu) {
+		mmu->interruptsEnabled = enable;
 		return CycleCount(1, 4);
 	};
 }
@@ -972,7 +972,7 @@ CPUHandler Return(JumpCondition condition) {
 // Return then enable interrupts
 CycleCount RETI(CPU* cpu, MMU* mmu) {
 	CPUHandler handler = Return(NO);
-	cpu->maskable = true;
+	mmu->interruptsEnabled = true;
 	return handler(cpu, mmu);
 }
 
@@ -1518,8 +1518,10 @@ const static CPUHandler handlers[] = {
 	Restart(0x38)        // ff RST 38h
 };
 
-
-
 CycleCount CPU::Execute(const uint8_t opcode) {
 	return handlers[opcode](this, mmu);
+}
+
+void CPU::handleInterrupt(uint8_t location) {
+	Restart(location)(this, mmu);
 }

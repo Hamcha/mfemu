@@ -24,7 +24,7 @@ const static IOHandlerR getters[] = {
 	emptyR, // ff0c <empty>
 	emptyR, // ff0d <empty>
 	emptyR, // ff0e <empty>
-	emptyR, // ff0f Interrupt flags
+	[](MMU* mmu) { return mmu->interruptFlags.raw; }, // ff0f Interrupt flags
 	emptyR, // ff10 Sweep (Sound mode #1)
 	emptyR, // ff11 Sound length / Pattern duty (Sound mode #1)
 	emptyR, // ff12 Control (Sound mode #1)
@@ -155,7 +155,7 @@ const static IOHandlerW setters[] = {
 	emptyW, // ff0c <empty>
 	emptyW, // ff0d <empty>
 	emptyW, // ff0e <empty>
-	emptyW, // ff0f Interrupt flags
+	[](MMU* mmu, uint8_t value) { mmu->interruptFlags.raw = value; }, // ff0f Interrupt flags
 	emptyW, // ff10 Sweep (Sound mode #1)
 	emptyW, // ff11 Sound length / Pattern duty (Sound mode #1)
 	emptyW, // ff12 Control (Sound mode #1)
