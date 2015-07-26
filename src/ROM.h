@@ -6,8 +6,10 @@
 #include "ROM.Data.h"
 #include "MBC.h"
 
-//! ROM class
-//! Loads and allows access to a ROM data and RAM banks
+/*! \brief ROM class
+ *
+ *  Loads and gives access to a ROM's data and RAM banks
+ */
 class ROM {
 public:
 	ROMHeader header; //!< ROM Header, extracted from the opened ROM
