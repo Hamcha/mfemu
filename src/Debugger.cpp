@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <utility>
+#include <bitset>
 #include <map>
 #if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE
 #include <unistd.h>
@@ -116,7 +117,11 @@ void Debugger::Run() {
 				uint16_t arg;
 				ss >> std::hex >> arg;
 				std::ios::fmtflags fmt(std::cout.flags());
-				std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) emulator->mmu.Read(arg) << std::endl;
+				uint8_t value = emulator->mmu.Read(arg);
+				std::cout
+					<< std::dec << (int) value
+					<< " - " << std::hex <<  "0x" << std::setfill('0') << std::setw(2) << (int) value
+					<< " - " << std::bitset<8>(value) << std::endl;
 				std::cout.flags(fmt);
 				break;
 			}

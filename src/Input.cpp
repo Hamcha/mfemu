@@ -12,6 +12,12 @@ Input::Input() {
 	keyboardBindings[SDL_SCANCODE_DOWN] = ButtonDown;
 	keyboardBindings[SDL_SCANCODE_LEFT] = ButtonLeft;
 	keyboardBindings[SDL_SCANCODE_RIGHT] = ButtonRight;
+
+	// Set all buttons to "not pressed" (1)
+	data.A = data.B = data.Down = data.Up = data.Left = data.Right = data.Start = data.Select = 1;
+
+	// Set interrupt trigger to false
+	buttonPressed = false;
 }
 
 void Input::HandleInputEvent(SDL_Event event) {
@@ -20,7 +26,11 @@ void Input::HandleInputEvent(SDL_Event event) {
 	case SDL_KEYUP:
 		auto iter = keyboardBindings.find(event.key.keysym.scancode);
 		if (iter != keyboardBindings.end()) {
-			setButton(&data, iter->second, event.key.state == SDL_PRESSED ? 1 : 0);
+			bool pressed = event.key.state == SDL_PRESSED;
+			setButton(&data, iter->second, pressed ? 0 : 1);
+
+			// Enable interrupt if button pressed
+			buttonPressed = pressed;
 		}
 		break;
 	}

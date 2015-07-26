@@ -67,7 +67,8 @@ private:
 	std::map<SDL_Keycode, Button> keyboardBindings;
 
 public:
-	InputData data; //!< Input data for reading
+	InputData data;     //!< Input data for reading
+	bool buttonPressed; //!< Has a button been pressed? (interrupt check)
 
 	/*! \brief Handles input events
 	 *

@@ -74,6 +74,11 @@ void Emulator::checkInterrupts() {
 		gpu.didVblank = false;
 	}
 
+	if (input.buttonPressed) {
+		mmu.SetInterrupt(IntInput);
+		input.buttonPressed = false;
+	}
+
 	cpu.HandleInterrupts();
 }
 

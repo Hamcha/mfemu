@@ -1523,5 +1523,6 @@ CycleCount CPU::Execute(const uint8_t opcode) {
 }
 
 void CPU::handleInterrupt(uint8_t location) {
-	Restart(location)(this, mmu);
+	Push(this, mmu, PC);
+	PC = location;
 }
