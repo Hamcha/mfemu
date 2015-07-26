@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include <map>
 
 //! Input data structure
 struct InputData {
@@ -50,9 +51,21 @@ struct InputData {
 	}
 };
 
+enum Button {
+	ButtonUp,
+	ButtonDown,
+	ButtonLeft,
+	ButtonRight,
+	ButtonA,
+	ButtonB,
+	ButtonStart,
+	ButtonSelect
+};
+
 class Input {
 private:
-	//TODO put bindings
+	std::map<SDL_Keycode, Button> keyboardBindings;
+
 public:
 	InputData data; //!< Input data for reading
 
@@ -63,4 +76,6 @@ public:
 	 * \param event The SDL event to parse and handle according to the configured bindings
 	 */
 	void HandleInputEvent(SDL_Event event);
+
+	Input();
 };
