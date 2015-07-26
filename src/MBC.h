@@ -26,6 +26,8 @@ protected:
 	bool hasBattery = false;    //!< Enabled if the ROM has battery
 
 public:
+	virtual ~MBC() {}
+
 	//! Read from ROM (checks for MBC, RAM etc.)
 	virtual uint8_t Read(const uint16_t) const { return 0; }
 
