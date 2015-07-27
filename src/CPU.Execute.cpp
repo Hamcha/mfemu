@@ -686,9 +686,15 @@ void RotateLeft(CPU* cpu, uint8_t* val, const RotationType type) {
 	*val = *val << 1;
 
 	switch (type) {
-	case ThC: *val |= car; break;
-	case Rot: *val |= shf; break;
-	default: throw std::logic_error("Invalid rotation type");
+	case ThC:
+		*val |= car; break;
+	case Rot:
+		*val |= shf; break;
+	case Shf:
+		break;
+	case Rep:
+	default:
+		throw std::logic_error("Invalid rotation type");
 	}
 
 	cpu->Flags().Zero = *val == 0 ? 1 : 0;
@@ -705,10 +711,16 @@ void RotateRight(CPU* cpu, uint8_t* val, const RotationType type) {
 	*val = *val >> 1;
 
 	switch (type) {
-	case ThC: *val |= (car << 7); break;
-	case Rot: *val |= shf;        break;
-	case Rep: *val |= (old << 7); break;
-	default: throw std::logic_error("Invalid rotation type");
+	case ThC:
+		*val |= (car << 7); break;
+	case Rot:
+		*val |= shf;        break;
+	case Rep:
+		*val |= (old << 7); break;
+	case Shf:
+		break;
+	default:
+		throw std::logic_error("Invalid rotation type");
 	}
 
 	cpu->Flags().Zero = *val == 0 ? 1 : 0;

@@ -151,12 +151,20 @@ void MMU::UpdateTimers(CycleCount delta) {
 	// Beware of nasty trick:
 	//   dividerRest is uint8, so it will overflow every 256 clocks
 	//   I exploit this as an automatic "% 256"
+	uint8_t oldDivider = dividerRest;
 	dividerRest += (uint8_t)delta.cpu;
+
+	// If dividerRest overflows, increment the timer one more time
+	if (dividerRest < oldDivider) {
+		divider += 1;
+	}
 
 	// Check if the controlled timer is enabled
 	if (timerControl.values.enabled == 1) {
 		// Make a copy of the timer for the modulo comparison
 		uint8_t originalTimer = timerCounter;
+		// Make a copy of the counter rest for overflow checking
+		uint8_t originalRest = counterRest;
 
 		// Add ticks depending on timer configuration
 		switch (timerControl.values.clock) {
@@ -181,6 +189,11 @@ void MMU::UpdateTimers(CycleCount delta) {
 		// Check for modulo increment
 		if (originalTimer > timerCounter) {
 			timerModulo += 1;
+		}
+
+		// Check for counterRest overflow
+		if (originalRest > counterRest) {
+			timerCounter += 1;
 		}
 	}
 }
