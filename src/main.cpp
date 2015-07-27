@@ -8,7 +8,8 @@ enum MainFlags : uint8_t {
 	F_ROMINFO      = 1 << 1,
 	F_DEBUG        = 1 << 2,
 	F_NOSTART      = 1 << 3,
-	F_TRACK        = 1 << 4
+	F_TRACK        = 1 << 4,
+	F_NOBOOTROM    = 1 << 5
 };
 
 int main(int argc, char **argv) {
@@ -37,6 +38,9 @@ int main(int argc, char **argv) {
 				case 't':
 					flags |= F_TRACK;
 					break;
+				case 'b':
+					flags |= F_NOBOOTROM;
+					break;
 				default:
 					std::cout << "Usage: " << argv[0] << " [-hvidn] <file.gb>\r\n"
 						<< "\t-h: get this help\r\n"
@@ -44,7 +48,8 @@ int main(int argc, char **argv) {
 						<< "\t-i: print ROM info and exit\r\n"
 						<< "\t-d: run the debugger on the given rom\r\n"
 						<< "\t-t: start with code printing enabled\r\n"
-						<< "\t-n: don't start the emulation right away" << std::endl;
+						<< "\t-n: don't start the emulation right away\r\n"
+						<< "\t-b: skip the DMG boot rom [experimental]\r\n" << std::endl;
 					return 0;
 				}
 			} while (++j < len);
@@ -59,7 +64,8 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	Emulator emulator(romFile);
+	bool useBootrom = (flags & F_NOBOOTROM) == 0;
+	Emulator emulator(romFile, useBootrom);
 
 	if (flags & F_DEBUG) {
 		uint8_t debugger_flags = Debug::DBG_INTERACTIVE;

@@ -38,7 +38,7 @@ Emulator::Emulator(const std::string& romfile, const bool useBootrom /* = true *
 	}
 	gpu.InitScreen(renderer);
 	if (!useBootrom) {
-		//TODO Skip bootrom
+		fakeBootrom();
 	}
 }
 
@@ -115,4 +115,18 @@ void Emulator::Update() {
 			break;
 		}
 	}
+}
+
+void Emulator::fakeBootrom() {
+	// Setup stack
+	cpu.SP = 0xfffe;
+
+	// Zero the VRAM the fast(tm) way
+	memset(gpu.VRAM[0].bytes, 0, 8 * 1024);
+
+	// Turn off Bootrom
+	mmu.Write(0xff50, 1);
+
+	// Put PC at the end (0x0100)
+	cpu.PC = 0x100;
 }

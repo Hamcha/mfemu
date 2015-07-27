@@ -24,6 +24,7 @@ private:
 
 	bool initSDL();
 	void checkInterrupts();
+	void fakeBootrom();
 public:
 	ROM rom;      //!< ROM file
 	GPU gpu;      //!< LCD driver
