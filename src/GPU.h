@@ -98,6 +98,11 @@ struct OAMBlock {
 	} flags;                      //!< Sprite flags
 };
 
+/*! \brief Game boy LCD emulation
+ *
+ *  Emulates the Game boy graphics behavior and LCD blitting
+ *  using cycles to sync up with the rest of the machine (mainly CPU)
+ */
 class GPU {
 private:
 	SDL_Renderer* renderer;
@@ -144,23 +149,23 @@ public:
 	//! Sprite OAM table
 	OAMBlock sprites[40];
 
-	/* \brief Step a number of cycles
+	/*! \brief Step a number of cycles
 	 *
-	 * Advances a number of cycles (relative to machine cycles)
-	 * and do OAM reading / screen blitting when necessary
+	 *  Advances a number of cycles (relative to machine cycles)
+	 *  and do OAM reading / screen blitting when necessary
 	 *
-	 * \param cycles Machine cycles that have been passed
+	 *  \param cycles Machine cycles that have been passed
 	 */
 	void Step(const uint64_t cycles);
 
-	/* \brief Set up LCD renderer
+	/*! \brief Set up LCD renderer
 	 *
-	 * Sets up the given renderer for blitting the Game boy
-	 * LCD output into it.
-	 * Most of the blitting is done in a texture, so the
-	 * renderer is only used to display the texture.
+	 *  Sets up the given renderer for blitting the Game boy
+	 *  LCD output into it.
+	 *  Most of the blitting is done in a texture, so the
+	 *  renderer is only used to display the texture.
 	 *
-	 * \param _renderer Renderer to blit LCD onto
+	 *  \param _renderer Renderer to blit LCD onto
 	 */
 	void InitScreen(SDL_Renderer* _renderer);
 
