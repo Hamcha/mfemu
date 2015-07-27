@@ -47,6 +47,11 @@ ROM::ROM(const std::vector<uint8_t>& bytes) {
 	case ROM_MBC1_R_B:
 		controller = new MBC1(header.Type);
 		break;
+	case ROM_MBC3:
+	case ROM_MBC3_RAM:
+	case ROM_MBC3_R_B:
+		controller = new MBC3(header.Type);
+		break;
 	default:
 		throw std::logic_error("Unsupported MBC type");
 	}

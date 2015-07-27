@@ -29,10 +29,10 @@ public:
 	virtual ~MBC() {}
 
 	//! Read from ROM (checks for MBC, RAM etc.)
-	virtual uint8_t Read(const uint16_t) const { return 0; }
+	virtual uint8_t Read(const uint16_t) const = 0;
 
 	//! Write to MBC or special registers
-	virtual void Write(const uint16_t, const uint8_t) {}
+	virtual void Write(const uint16_t, const uint8_t) = 0;
 
 	//! Create the required banks and fill them with ROM data
 	void LoadROM(const ROMHeader& header, const std::vector<uint8_t>& data);
@@ -40,16 +40,24 @@ public:
 
 class NoMBC : public MBC {
 public:
-	uint8_t Read(const uint16_t location) const;
-	void Write(const uint16_t location, const uint8_t value);
+	uint8_t Read(const uint16_t location) const override;
+	void Write(const uint16_t location, const uint8_t value) override;
 
 	NoMBC(const ROMType type);
 };
 
 class MBC1 : public MBC {
 public:
-	uint8_t Read(const uint16_t location) const;
-	void Write(const uint16_t location, const uint8_t value);
+	uint8_t Read(const uint16_t location) const override;
+	void Write(const uint16_t location, const uint8_t value) override;
 
 	MBC1(const ROMType type);
+};
+
+class MBC3: public MBC {
+public:
+	uint8_t Read(const uint16_t location) const override;
+	void Write(const uint16_t location, const uint8_t value) override;
+
+	MBC3(const ROMType type);
 };
