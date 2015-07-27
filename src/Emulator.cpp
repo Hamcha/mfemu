@@ -26,17 +26,20 @@ bool Emulator::initSDL() {
 	return true;
 }
 
-Emulator::Emulator(const std::string& romfile, const bool graphics /* = true */)
+Emulator::Emulator(const std::string& romfile, const bool useBootrom /* = true */)
 	: rom(ROM::FromFile(romfile)), mmu(&rom, &gpu, &input), cpu(&mmu) {
 	window = nullptr;
 	renderer = nullptr;
 	running = true;
 	frameCycles = 0;
-	if (graphics && !initSDL()) {
+	if (!initSDL()) {
 		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
 		return;
 	}
 	gpu.InitScreen(renderer);
+	if (!useBootrom) {
+		//TODO Skip bootrom
+	}
 }
 
 Emulator::~Emulator() {
