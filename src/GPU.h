@@ -3,19 +3,22 @@
 #include <SDL.h>
 #include <vector>
 
-const int WIDTH = 160, HEIGHT = 144;
-const int PIXELS = WIDTH * HEIGHT;
+const int
+	WIDTH = 160,             //!< Gameboy screen width
+	HEIGHT = 144,            //!< Gameboy screen height
+	PIXELS = WIDTH * HEIGHT; //!< Gameboy framebuffer pixel count
 
+//! Single VRAM bank
 struct VRAMBank {
 	uint8_t bytes[8 * 1024];
 };
 
 //! GPU mode
 enum Mode : uint8_t {
-	Mode_HBlank = 0, //!< Currently on HBlank (finished line)
-	Mode_VBlank = 1, //!< Currently on VBlank (finished frame)
-	Mode_OAM    = 2, //!< Currently reading OAM
-	Mode_VRAM   = 3  //!< Currently reading VRAM (for scanline drawing)
+	Mode_HBlank = 0,         //!< Currently on HBlank (finished line)
+	Mode_VBlank = 1,         //!< Currently on VBlank (finished frame)
+	Mode_OAM    = 2,         //!< Currently reading OAM
+	Mode_VRAM   = 3          //!< Currently reading VRAM (for scanline drawing)
 };
 
 //! Opacity flag
@@ -26,8 +29,8 @@ enum Opacity : uint8_t {
 
 //! Sprite size flag
 enum SpriteSize : uint8_t {
-	SpriteSize_8x8  = 0,//!< Sprite size 8x8 pixels
-	SpriteSize_8x16 = 1 //!< Sprite size 8x16 pixels
+	SpriteSize_8x8  = 0,     //!< Sprite size 8x8 pixels
+	SpriteSize_8x16 = 1      //!< Sprite size 8x16 pixels
 };
 
 //! Gameboy colors, aka shades
@@ -38,6 +41,7 @@ enum GBColor : uint8_t {
 	GBColor_Black     = 3
 };
 
+//! LCD Control register
 union LCDControl {
 	uint8_t raw;
 	struct Flags {
@@ -52,6 +56,7 @@ union LCDControl {
 	} flags;
 };
 
+//! LCD Status register
 union LCDStatus {
 	uint8_t raw;
 	struct Flags {
@@ -65,6 +70,7 @@ union LCDStatus {
 	} flags;
 };
 
+//! Palette register type (for bg and sprite #0/1 palettes)
 union Palette {
 	uint8_t raw;
 	struct Colors {
@@ -73,6 +79,23 @@ union Palette {
 		GBColor color2 : 2;
 		GBColor color3 : 2;
 	} colors;
+};
+
+//! Sprite Attribute Table / OAM block
+struct OAMBlock {
+	uint8_t y;                    //!< Y position on screen
+	uint8_t x;                    //!< X position on screen
+	uint8_t pattern;              //!< Pattern number
+	union Flags {
+		uint8_t raw;
+		struct Single {
+			uint8_t __unused : 4;
+			uint8_t palette  : 1; //!< Palette number (#0/#1)
+			uint8_t flipX    : 1; //!< Flip sprite horizontally
+			uint8_t flipY    : 1; //!< Flip sprite vertically
+			uint8_t priority : 1; //!< Show sprite above window
+		} single;
+	} flags;                      //!< Sprite flags
 };
 
 class GPU {
@@ -118,8 +141,29 @@ public:
 	//! Current VRAM Bank (only changes on GBC)
 	uint8_t VRAMbankId = 0;
 
+	//! Sprite OAM table
+	OAMBlock sprites[40];
+
+	/* \brief Step a number of cycles
+	 *
+	 * Advances a number of cycles (relative to machine cycles)
+	 * and do OAM reading / screen blitting when necessary
+	 *
+	 * \param cycles Machine cycles that have been passed
+	 */
 	void Step(const uint64_t cycles);
+
+	/* \brief Set up LCD renderer
+	 *
+	 * Sets up the given renderer for blitting the Game boy
+	 * LCD output into it.
+	 * Most of the blitting is done in a texture, so the
+	 * renderer is only used to display the texture.
+	 *
+	 * \param _renderer Renderer to blit LCD onto
+	 */
 	void InitScreen(SDL_Renderer* _renderer);
+
 	GPU();
 	~GPU();
 };

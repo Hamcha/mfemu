@@ -61,8 +61,19 @@ uint8_t MMU::Read(const uint16_t location) {
 
 	// fe00 - fe9f => Sprite attribute table
 	if (location < 0xfea0) {
-		//TODO
-		return 0;
+		// Get OAM item
+		uint8_t index = location / 4;
+		OAMBlock block = gpu->sprites[index];
+
+		// Get requested byte
+		uint8_t offset = location % 4;
+		switch (offset) {
+			case 0: return block.x;
+			case 1: return block.y;
+			case 2: return block.pattern;
+			case 3: return block.flags.raw;
+			default: throw std::logic_error("Bad OAM offset");
+		}
 	}
 
 	// fea0 - feff => Not usable
@@ -120,8 +131,28 @@ void MMU::Write(const uint16_t location, const uint8_t value) {
 
 	// fe00 - fe9f => Sprite attribute table
 	if (location < 0xfea0) {
-		//TODO
-		return;
+		// Get OAM item
+		uint8_t index = location / 4;
+		OAMBlock* block = &(gpu->sprites[index]);
+
+		// Get requested byte
+		uint8_t offset = location % 4;
+		switch (offset) {
+			case 0:
+				block->x = value;
+				return;
+			case 1:
+				block->y = value;
+				return;
+			case 2:
+				block->pattern = value;
+				return;
+			case 3:
+				block->flags.raw = value;
+				return;
+			default:
+				throw std::logic_error("Bad OAM offset");
+		}
 	}
 
 	// fea0 - feff => Not usable
@@ -207,6 +238,7 @@ MMU::MMU(ROM* romData, GPU* _gpu, Input* _input) {
 
 	// Reset timers
 	timerModulo = timerCounter = timerControl.raw = divider = 0;
+	counterRest = dividerRest = 0;
 
 	// Reset interrupts
 	interruptFlags.raw = interruptEnable.raw = 0;
