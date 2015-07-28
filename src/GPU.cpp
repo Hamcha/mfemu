@@ -19,13 +19,34 @@ void GPU::Step(const uint64_t cycles) {
 			cycleCount = 0;
 			line++;
 
+			// Trigger LCD interrupt if the Scanline coincidence int mode flag is on
+			if (lcdStatus.flags.intScanline) {
+				// If the Concidence flag is set to COINCIDENCE, trigger if the current
+				// line is the same as the coincidence register, otherwise if isn't
+				if (lcdStatus.flags.coincidenceFlag) {
+					didLCDInterrupt = line == coincidence;
+				} else {
+					didLCDInterrupt = line != coincidence;
+				}
+			}
+
 			if (line == 143) {
 				// Go into Vblank
 				lcdStatus.flags.mode = Mode_VBlank;
 				drawScreen();
 				didVblank = true;
+
+				// Trigger LCD interrupt if the Vblank int mode flag is on
+				if (lcdStatus.flags.intMode1) {
+					didLCDInterrupt = true;
+				}
 			} else {
 				lcdStatus.flags.mode = Mode_OAM;
+
+				// Trigger LCD interrupt if the OAM int mode flag is on
+				if (lcdStatus.flags.intMode2) {
+					didLCDInterrupt = true;
+				}
 			}
 		}
 		break;
@@ -36,10 +57,26 @@ void GPU::Step(const uint64_t cycles) {
 			cycleCount = 0;
 			line++;
 
+			// Trigger LCD interrupt if the Scanline coincidence int mode flag is on
+			if (lcdStatus.flags.intScanline) {
+				// If the Concidence flag is set to COINCIDENCE, trigger if the current
+				// line is the same as the coincidence register, otherwise if isn't
+				if (lcdStatus.flags.coincidenceFlag) {
+					didLCDInterrupt = line == coincidence;
+				} else {
+					didLCDInterrupt = line != coincidence;
+				}
+			}
+
 			if (line > 153) {
 				// Last line, go back up
 				line = 0;
 				lcdStatus.flags.mode = Mode_OAM;
+
+				// Trigger LCD interrupt if the OAM int mode flag is on
+				if (lcdStatus.flags.intMode2) {
+					didLCDInterrupt = true;
+				}
 			}
 		}
 		break;
@@ -61,6 +98,11 @@ void GPU::Step(const uint64_t cycles) {
 			if (lcdControl.flags.enableLCD) {
 				drawLine();
 			}
+
+			// Trigger LCD interrupt if the HBlank int mode flag is on
+			if (lcdStatus.flags.intMode0) {
+				didLCDInterrupt = true;
+			}
 		}
 		break;
 	}
@@ -69,9 +111,8 @@ void GPU::Step(const uint64_t cycles) {
 GPU::GPU() {
 	line = 0;
 	cycleCount = 0;
-	bgScrollX = 0;
-	bgScrollY = 0;
-	didVblank = false;
+	bgScrollX = bgScrollY = 0;
+	didVblank = didLCDInterrupt = false;
 	lcdStatus.flags.mode = Mode_HBlank;
 	lastFrameTime = SDL_GetTicks();
 

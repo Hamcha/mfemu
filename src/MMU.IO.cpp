@@ -73,12 +73,12 @@ const static IOHandlerR getters[] = {
 	emptyR, // ff3d <empty>
 	emptyR, // ff3e <empty>
 	emptyR, // ff3f <empty>
-	[](MMU* mmu) { return mmu->gpu->lcdControl.raw; }, // ff40 LCD Control
-	[](MMU* mmu) { return mmu->gpu->lcdStatus.raw;  }, // ff41 LCD Status
-	[](MMU* mmu) { return mmu->gpu->bgScrollY; },      // ff42 Background vertical scrolling
-	[](MMU* mmu) { return mmu->gpu->bgScrollX; },      // ff43 Background horizontal scrolling
-	[](MMU* mmu) { return mmu->gpu->line; },           // ff44 Current scanline
-	emptyR, // ff45 Scanline comparison
+	[](MMU* mmu) { return mmu->gpu->lcdControl.raw; },     // ff40 LCD Control
+	[](MMU* mmu) { return mmu->gpu->lcdStatus.raw;  },     // ff41 LCD Status
+	[](MMU* mmu) { return mmu->gpu->bgScrollY; },          // ff42 Background vertical scrolling
+	[](MMU* mmu) { return mmu->gpu->bgScrollX; },          // ff43 Background horizontal scrolling
+	[](MMU* mmu) { return mmu->gpu->line; },               // ff44 Current scanline
+	[](MMU* mmu) { return mmu->gpu->coincidence; },        // ff45 Scanline comparison
 	emptyR, // ff46 DMA transfer control
 	[](MMU* mmu) { return mmu->gpu->bgPalette.raw; },      // ff47 Background palette
 	[](MMU* mmu) { return mmu->gpu->spritePalette1.raw; }, // ff48 Sprite palette #0
@@ -209,7 +209,7 @@ const static IOHandlerW setters[] = {
 	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollY = value; },          // ff42 Background vertical scrolling
 	[](MMU* mmu, uint8_t value) { mmu->gpu->bgScrollX = value; },          // ff43 Background horizontal scrolling
 	[](MMU* mmu, uint8_t)       { mmu->gpu->line = 0; },                   // ff44 Current scanline (reset on set)
-	emptyW, // ff45 Scanline comparison
+	[](MMU* mmu, uint8_t value) { mmu->gpu->coincidence = value; },        // ff45 Scanline comparison
 	emptyW, // ff46 DMA transfer control
 	[](MMU* mmu, uint8_t value) { mmu->gpu->bgPalette.raw = value; },      // ff47 Background palette
 	[](MMU* mmu, uint8_t value) { mmu->gpu->spritePalette1.raw = value; }, // ff48 Sprite palette #0

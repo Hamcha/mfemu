@@ -124,8 +124,14 @@ public:
 	//! Current scanline
 	uint8_t line;
 
+	//! Scanline coincidence parameter
+	uint8_t coincidence;
+
 	//! Has VBlank happened?
 	bool didVblank;
+
+	//! Triggered a LCD control interrupt
+	bool didLCDInterrupt;
 
 	Palette bgPalette,      //!< Background color palette
 	        spritePalette1, //!< Sprite color palette #0
