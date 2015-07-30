@@ -4,6 +4,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <cstring>
+#include <map>
 
 // From https://stackoverflow.com/questions/15138353/reading-the-binary-file-into-the-vector-of-unsigned-chars
 ROM ROM::FromFile(const std::string& filename) {
@@ -77,6 +78,58 @@ ROM::~ROM() {
 }
 
 void ROM::debugPrintData() const {
+	static const std::map<uint8_t, std::string> RomType = {
+		{0x00, "ROM only"},
+		{0x08, "ROM + RAM"},
+		{0x09, "ROM + RAM + Battery"},
+		{0x01, "ROM + MBC1"},
+		{0x02, "ROM + MBC1 + RAM"},
+		{0x03, "ROM + MBC1 + RAM + Battery"},
+		{0x05, "ROM + MBC2"},
+		{0x06, "ROM + MBC2 + RAM + Battery"},
+		{0x11, "ROM + MBC3"},
+		{0x12, "ROM + MBC3 + RAM"},
+		{0x13, "ROM + MBC3 + RAM + Battery"},
+		{0x0f, "ROM + MBC3 + Timer + Battery"},
+		{0x10, "ROM + MBC3 + Timer + RAM + Battery"},
+		{0x19, "ROM + MBC5"},
+		{0x1a, "ROM + MBC5 + RAM"},
+		{0x1b, "ROM + MBC5 + RAM + Battery"},
+		{0x1c, "ROM + MBC5 + Rumble"},
+		{0x1d, "ROM + MBC5 + RAM + Rumble"},
+		{0x1e, "ROM + MBC5 + RAM + Rumble + Battery"},
+		{0x20, "ROM + MBC6 + RAM + Battery"},
+		{0x22, "ROM + MBC7 + RAM + Battery + Accelerometer"},
+		{0x0b, "ROM + MMM1"},
+		{0x0c, "ROM + MMM1 + RAM"},
+		{0x0d, "ROM + MMM1 + RAM + Battery"},
+		{0xfc, "ROM + Camera"},
+		{0xfd, "ROM + TAMA5"},
+		{0xfe, "ROM + HUC3"},
+		{0xff, "ROM + HUC1 + RAM + Battery"}
+	};
+
+	static const std::string RomSize[] = {
+		"32 kB, 2 banks",
+		"64 kB, 4 banks",
+		"128 kB, 8 banks",
+		"256 kB, 16 banks",
+		"512 kB, 32 banks",
+		"1 MB, 64 banks",
+		"2 MB, 128 banks",
+		"4 MB, 256 banks",
+		"8 MB, 512 banks"
+	};
+
+	static const std::string RamSize[] = {
+		"None",
+		"2 kB, 1 bank",
+		"8 kB, 1 bank",
+		"32 kB, 4 banks",
+		"128 kB, 16 banks",
+		"64 kB, 8 banks"
+	};
+
 	std::cout << "== ROM INFO ==" << std::endl;
 	// The title can be either 15 or 13 characters, depending on target console
 	if (header.GBC.colorFlag == GBSupported || header.GBC.colorFlag == GBCOnly) {
@@ -98,9 +151,9 @@ void ROM::debugPrintData() const {
 	std::cout << "SGB support: " << super << std::endl;
 
 	// ROM/RAM types
-	std::cout << "ROM Type: " << std::hex << header.Type << std::endl;
-	std::cout << "ROM Size: " << std::hex << header.ROMSize << std::endl;
-	std::cout << "RAM Size: " << std::hex << header.RAMSize << std::endl;
+	std::cout << "ROM Type: " << RomType.at(header.Type) << " (" << std::hex << (int)header.Type << ")" << std::endl;
+	std::cout << "ROM Size: " << RomSize[(int)header.ROMSize] << " (" << std::hex << (int)header.ROMSize << ")" << std::endl;
+	std::cout << "RAM Size: " << RamSize[(int)header.RAMSize] << " (" << std::hex << (int)header.RAMSize << ")" << std::endl;
 
 	// Manufacturer code(s)
 	if (header.oldLicenseeCode != 0x33) {
