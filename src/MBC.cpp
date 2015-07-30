@@ -2,7 +2,10 @@
 
 #include <stdexcept>
 
-void MBC::LoadROM(const ROMHeader& header, const std::vector<uint8_t>& bytes) {
+void MBC::LoadROM(const ROMHeader& _header, const std::vector<uint8_t>& bytes) {
+	// Copy header
+	header = _header;
+
 	// Get banks from buffer
 	int bankCount;
 	switch (header.ROMSize) {

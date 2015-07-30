@@ -25,6 +25,10 @@ protected:
 	bool hasRam = false;        //!< Enabled if the ROM has RAM
 	bool hasBattery = false;    //!< Enabled if the ROM has battery
 
+	bool ramEnabled = false;    //!< RAM Enable flag (MBC1+)
+
+	ROMHeader header;           //!< ROM Header
+
 public:
 	virtual ~MBC() {}
 
@@ -47,6 +51,9 @@ public:
 };
 
 class MBC1 : public MBC {
+private:
+	bool ramBankingEnable = false;
+
 public:
 	uint8_t Read(const uint16_t location) const override;
 	void Write(const uint16_t location, const uint8_t value) override;
@@ -54,8 +61,7 @@ public:
 	MBC1(const ROMType type);
 };
 
-class MBC3: public MBC {
-public:
+class MBC3: public MBC {public:
 	uint8_t Read(const uint16_t location) const override;
 	void Write(const uint16_t location, const uint8_t value) override;
 
