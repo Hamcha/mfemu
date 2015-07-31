@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 						<< "\t-v: print version and exit\r\n"
 						<< "\t-i: print ROM info and exit\r\n"
 						<< "\t-d: run the debugger on the given rom\r\n"
-						<< "\t-t: start with code printing enabled\r\n"
+						<< "\t-t: start with code printing enabled (requires -d)\r\n"
 						<< "\t-n: don't start the emulation right away\r\n"
 						<< "\t-b: skip the DMG boot rom [experimental]\r\n" << std::endl;
 					return 0;
@@ -62,6 +62,11 @@ int main(int argc, char **argv) {
 		ROM rom = ROM::FromFile(romFile);
 		rom.debugPrintData();
 		return 0;
+	}
+
+	// Check if using debugger flags without the debugger
+	if (!(flags & F_DEBUG) && (flags & F_TRACK)) {
+		std::cout << "[WARNING] Using debugger flags without the debugger, they will be ignored";
 	}
 
 	bool useBootrom = (flags & F_NOBOOTROM) == 0;
