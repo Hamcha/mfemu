@@ -270,7 +270,6 @@ const static IOHandlerW setters[] = {
 	emptyW, // ff7f <empty>
 };
 
-
 uint8_t MMU::readIO(const uint16_t location) {
 	return getters[location](this);
 }
