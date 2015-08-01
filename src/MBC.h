@@ -61,7 +61,8 @@ public:
 	MBC1(const ROMType type);
 };
 
-class MBC3: public MBC {public:
+class MBC3: public MBC {
+public:
 	uint8_t Read(const uint16_t location) const override;
 	void Write(const uint16_t location, const uint8_t value) override;
 
