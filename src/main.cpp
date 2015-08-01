@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 
 	// Check if using debugger flags without the debugger
 	if (!(flags & F_DEBUG) && (flags & F_TRACK)) {
-		std::cout << "[WARNING] Using debugger flags without the debugger, they will be ignored";
+		std::cout << "[WARNING] Using debugger flags without the debugger, they will be ignored\r\n";
 	}
 
 	bool useBootrom = (flags & F_NOBOOTROM) == 0;

@@ -32,6 +32,7 @@ Emulator::Emulator(const std::string& romfile, const bool useBootrom /* = true *
 	renderer = nullptr;
 	running = true;
 	frameCycles = 0;
+	titleFpsCount = 0;
 	if (!initSDL()) {
 		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
 		return;
@@ -99,10 +100,13 @@ void Emulator::CheckUpdate() {
 }
 
 void Emulator::Update() {
-	// Update window title
-	std::stringstream winTitleStream;
-	winTitleStream << rom.header.GBC.title << " (" << int(gpu.percent) << "%)";
-	SDL_SetWindowTitle(window, winTitleStream.str().c_str());
+	// Update window title once every 10 frames
+	if (++titleFpsCount == 10) {
+		titleFpsCount = 0;
+		std::stringstream winTitleStream;
+		winTitleStream << rom.header.GBC.title << " (" << int(gpu.percent) << "%)";
+		SDL_SetWindowTitle(window, winTitleStream.str().c_str());
+	}
 
 	// Get system events
 	SDL_Event event;

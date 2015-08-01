@@ -21,6 +21,7 @@ private:
 	SDL_Renderer* renderer;
 
 	uint64_t frameCycles;
+	uint64_t titleFpsCount;
 
 	bool initSDL();
 	void checkInterrupts();
