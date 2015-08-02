@@ -8,8 +8,7 @@ enum MainFlags : uint8_t {
 	F_ROMINFO      = 1 << 1,
 	F_DEBUG        = 1 << 2,
 	F_NOSTART      = 1 << 3,
-	F_TRACK        = 1 << 4,
-	F_NOBOOTROM    = 1 << 5
+	F_TRACK        = 1 << 4
 };
 
 int main(int argc, char **argv) {
@@ -17,6 +16,8 @@ int main(int argc, char **argv) {
 
 	std::string romFile("test.gb");
 	uint8_t flags = F_DEFAULT;
+
+	EmulatorFlags emulatorFlags;
 
 	for (uint16_t i = 1; i < argc; i += 1) {
 		if (argv[i][0] == '-') {
@@ -39,17 +40,28 @@ int main(int argc, char **argv) {
 					flags |= F_TRACK;
 					break;
 				case 'b':
-					flags |= F_NOBOOTROM;
+					emulatorFlags.useBootrom = false;
 					break;
+				case 's': {
+					int scale = atoi(argv[i + 1]);
+					if (scale < 1) {
+						std::cout << "Invalid scale value provided (not an integer or less than 1)" << std::endl;
+						return 1;
+					}
+					emulatorFlags.scale = scale;
+					i += 1;
+					break;
+				}
 				default:
 					std::cout << "Usage: " << argv[0] << " [-hvidn] <file.gb>\r\n"
-						<< "\t-h: get this help\r\n"
-						<< "\t-v: print version and exit\r\n"
-						<< "\t-i: print ROM info and exit\r\n"
-						<< "\t-d: run the debugger on the given rom\r\n"
-						<< "\t-t: start with code printing enabled (requires -d)\r\n"
-						<< "\t-n: don't start the emulation right away\r\n"
-						<< "\t-b: skip the DMG boot rom [experimental]\r\n" << std::endl;
+						<< "\t-h   : get this help\r\n"
+						<< "\t-v   : print version and exit\r\n"
+						<< "\t-i   : print ROM info and exit\r\n"
+						<< "\t-d   : run the debugger on the given rom\r\n"
+						<< "\t-t   : start with code printing enabled (requires -d)\r\n"
+						<< "\t-n   : don't start the emulation right away\r\n"
+						<< "\t-s X : scale window X times the Game Boy resolution\r\n"
+						<< "\t-b   : skip the DMG boot rom [experimental]\r\n" << std::endl;
 					return 0;
 				}
 			} while (++j < len);
@@ -69,8 +81,7 @@ int main(int argc, char **argv) {
 		std::cout << "[WARNING] Using debugger flags without the debugger, they will be ignored\r\n";
 	}
 
-	bool useBootrom = (flags & F_NOBOOTROM) == 0;
-	Emulator emulator(romFile, useBootrom);
+	Emulator emulator(romFile, emulatorFlags);
 
 	if (flags & F_DEBUG) {
 		uint8_t debugger_flags = Debug::DBG_INTERACTIVE;

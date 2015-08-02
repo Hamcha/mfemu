@@ -9,6 +9,12 @@
 #include "GPU.h"
 #include "Input.h"
 
+//! Emulator options
+struct EmulatorFlags {
+	bool useBootrom = true; //!< Enable original Game Boy boot rom
+	int scale = 1;          //!< Scale the window X time the original Game Boy resolution
+};
+
 /*! \brief Game boy Emulator
  *
  *  "God" class that manages the execution and interaction
@@ -19,6 +25,8 @@ class Emulator {
 private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+
+	EmulatorFlags flags;
 
 	uint64_t frameCycles;
 	uint64_t titleFpsCount;
@@ -42,12 +50,9 @@ public:
 	 *  a path to the ROM to load.
 	 *
 	 *  \param romfile Path to the ROM to load
-	 *  \param useBootrom Use the Game Boy boot rom
+	 *  \param flags Emulator options
 	 */
-	explicit Emulator(
-		const std::string& romfile,
-		const bool useBootrom = true
-	);
+	explicit Emulator(const std::string& romfile, const EmulatorFlags flags);
 
 	~Emulator();
 

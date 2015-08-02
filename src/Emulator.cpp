@@ -8,7 +8,7 @@ bool Emulator::initSDL() {
 		return false;
 	}
 
-	window = SDL_CreateWindow("mfemu", 100, 100, 160, 144, SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("mfemu", 100, 100, WIDTH * flags.scale, HEIGHT * flags.scale, SDL_WINDOW_SHOWN);
 	if (window == nullptr){
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
@@ -26,11 +26,12 @@ bool Emulator::initSDL() {
 	return true;
 }
 
-Emulator::Emulator(const std::string& romfile, const bool useBootrom /* = true */)
+Emulator::Emulator(const std::string& romfile, const EmulatorFlags emuflags)
 	: rom(ROM::FromFile(romfile)), mmu(&rom, &gpu, &input), cpu(&mmu) {
 	window = nullptr;
 	renderer = nullptr;
 	running = true;
+	flags = emuflags;
 	frameCycles = 0;
 	titleFpsCount = 0;
 	if (!initSDL()) {
@@ -38,7 +39,7 @@ Emulator::Emulator(const std::string& romfile, const bool useBootrom /* = true *
 		return;
 	}
 	gpu.InitScreen(renderer);
-	if (!useBootrom) {
+	if (!flags.useBootrom) {
 		fakeBootrom();
 	}
 }
