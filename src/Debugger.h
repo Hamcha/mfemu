@@ -1,7 +1,7 @@
 #pragma once
 
 #include <list>
-#include <set>
+#include <unordered_set>
 #include <functional>
 #include "Emulator.h"
 
@@ -44,7 +44,7 @@ class Debugger {
 private:
 	Emulator *const emulator;
 	uint8_t opts;
-	std::set<uint16_t> breakPoints;
+	std::unordered_set<uint16_t> breakPoints;
 	bool track = false;
 	bool ignoreBreakpoints = false;
 
