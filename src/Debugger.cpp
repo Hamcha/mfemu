@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <utility>
 #include <bitset>
-#include <map>
+#include <tuple>
 #if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE
 #include <unistd.h>
 #include <csignal>
@@ -48,28 +48,39 @@ static BOOL InterruptHandlerProxy(DWORD ctrlType) {
 }
 #endif
 
-// { cmd_string => { command, n.args } }
-static const std::map<std::string, std::pair<DebugInstr, int>> debugInstructions = {
-	{ "run",      std::make_pair(CMD_RUN,       0) },
-	{ "print",    std::make_pair(CMD_PRINT,     1) },
-	{ "reg",      std::make_pair(CMD_REGISTERS, 0) },
-	{ "stack",    std::make_pair(CMD_STACK,     0) },
-	{ "flags",    std::make_pair(CMD_FLAGS,     0) },
-	{ "mem",      std::make_pair(CMD_MEMORY,    1) },
-	{ "track",    std::make_pair(CMD_TRACK,     0) },
-	{ "break",    std::make_pair(CMD_BREAK,     1) },
-	{ "quit",     std::make_pair(CMD_QUIT,      0) },
-	{ "exit",     std::make_pair(CMD_QUIT,      0) },
-	{ "step",     std::make_pair(CMD_STEP,      0) },
-	{ "cont",     std::make_pair(CMD_CONTINUE,  0) },
-	{ "continue", std::make_pair(CMD_CONTINUE,  0) },
-	{ "rominfo",  std::make_pair(CMD_ROMINFO,   0) },
-	{ "help",     std::make_pair(CMD_HELP,      0) },
-	{ "?",        std::make_pair(CMD_HELP,      0) }
+// { cmd_string => { command, n.args, description } }
+static const std::map<std::string, std::tuple<DebugInstr, int, std::string>> debugInstructions = {
+	{ "run",      std::make_tuple(CMD_RUN,       0, "Start emulation") },
+	{ "print",    std::make_tuple(CMD_PRINT,     1, "Print current instruction (or any given one via argument)") },
+	{ "reg",      std::make_tuple(CMD_REGISTERS, 0, "Print registers") },
+	{ "stack",    std::make_tuple(CMD_STACK,     0, "Print stack") },
+	{ "flags",    std::make_tuple(CMD_FLAGS,     0, "Print CPU flags") },
+	{ "mem",      std::make_tuple(CMD_MEMORY,    1, "Print value at a specified memory location") },
+	{ "track",    std::make_tuple(CMD_TRACK,     0, "Toggle instruction printing") },
+	{ "break",    std::make_tuple(CMD_BREAK,     1, "Set breakpoint at <addr>") },
+	{ "quit",     std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
+	{ "q",        std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
+	{ "exit",     std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
+	{ "step",     std::make_tuple(CMD_STEP,      0, "Fetch and execute a single instruction") },
+	{ "cont",     std::make_tuple(CMD_CONTINUE,  0, "Resume execution") },
+	{ "continue", std::make_tuple(CMD_CONTINUE,  0, "Resume execution") },
+	{ "rominfo",  std::make_tuple(CMD_ROMINFO,   0, "Print ROM information") },
+	{ "help",     std::make_tuple(CMD_HELP,      0, "Print a help message") },
+	{ "?",        std::make_tuple(CMD_HELP,      0, "Print a help message") }
 };
 
+static std::string debuggerHelp() {
+	std::stringstream stream;
+	for (const auto& pair : debugInstructions) {
+		stream << std::left << std::setw(10) << pair.first << ": " << std::get<2>(pair.second) << "\r\n";
+	}
+	return stream.str();
+}
+
 Debugger::Debugger(Emulator *const _emulator, const uint8_t _opts) 
-	: emulator(_emulator), opts(_opts) {
+	: emulator(_emulator)
+	, opts(_opts)
+{
 	track = (_opts & DBG_TRACK) > 0;
 }
 
@@ -154,18 +165,7 @@ void Debugger::Run() {
 				emulator->rom.debugPrintData();
 				break;
 			case CMD_HELP:
-				std::cout 
-					<< "run           Start emulation\r\n"
-					<< "print         Print current instruction (or any given one via argument)\r\n"
-					<< "mem           Print value at a specified memory location\r\n"
-					<< "reg           Print registers\r\n"
-					<< "stack         Print stack\r\n"
-					<< "break <addr>  Set breakpoint at <addr>\r\n"
-					<< "step          Fetch and execute a single instruction\r\n"
-					<< "continue      Resume execution\r\n"
-					<< "track         Toggle instruction printing\r\n"
-					<< "help          Print a help message\r\n"
-					<< "quit          Quit the debugger" << std::endl;
+				std::cout << debuggerHelp();
 				break;
 			case CMD_QUIT:
 				std::clog << "...quitting." << std::endl;
@@ -234,8 +234,8 @@ DebugCmd Debugger::getCommand(const char* prompt) const {
 
 	auto inst_pair = debugInstructions.find(instr);
 	if (inst_pair != debugInstructions.end()) {
-		cmd.instr = inst_pair->second.first;
-		for (int i = 0; i < inst_pair->second.second; i += 1) {
+		cmd.instr = std::get<0>(inst_pair->second);
+		for (int i = 0; i < std::get<1>(inst_pair->second); i += 1) {
 			std::string arg;
 			ss >> arg;
 			cmd.args.push_back(arg);
