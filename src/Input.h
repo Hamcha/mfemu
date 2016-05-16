@@ -29,10 +29,10 @@ struct InputData {
 	uint8_t GetRegister() {
 		uint8_t data = b4 << 4 | b5 << 5;
 		if (b4 == 0) {
-			data |= (Start << 3) | (Select << 2) | (B << 1) | A;
+			data |= (Down << 3) | (Up << 2) | (Left << 1) | Right;
 		}
 		if (b5 == 0) {
-			data |= (Down << 3) | (Up << 2) | (Left << 1) | Right;
+			data |= (Start << 3) | (Select << 2) | (B << 1) | A;
 		}
 
 		return data;
