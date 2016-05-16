@@ -1,6 +1,7 @@
 #include "GPU.h"
 
-const uint32_t shades[] = { 0xffffffff, 0xffc0c0c0, 0xff606060, 0xff000000 };
+// BGB palette
+const uint32_t shades[] = { 0xffe7ffd6, 0xff88c070, 0xff346856, 0xff081820 };
 
 void GPU::Step(const uint64_t cycles) {
 	if (!lcdControl.flags.enableLCD) {
