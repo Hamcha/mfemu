@@ -16,7 +16,7 @@ class CPU {
 private:
 	MMU* mmu;
 
-	void handleInterrupt(uint8_t location);
+	void handleInterrupt(const uint8_t location);
 
 public:
 	// Registers

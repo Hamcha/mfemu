@@ -130,7 +130,7 @@ void Debugger::Run() {
 					// Print history (up to 10)
 					uint8_t maxBack = 10;
 					if (lastInstructions.size() < 10) {
-						maxBack = lastInstructions.size();
+						maxBack = (uint8_t)lastInstructions.size();
 					}
 					for (uint8_t cur = 0; cur < maxBack; ++cur) {
 						std::cout << "   ";

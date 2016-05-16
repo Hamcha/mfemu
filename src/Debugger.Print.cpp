@@ -16,7 +16,7 @@ enum DebugIntType {
 	Hex8, Hex16, HexOffset8, HexOffset16, Offset8, Offset16, Absolute
 };
 
-std::string getRegisterName(const RID id) {
+static inline std::string getRegisterName(const RID id) {
 	switch (id) {
 	case A: return "A";
 	case B: return "B";
@@ -29,7 +29,7 @@ std::string getRegisterName(const RID id) {
 	return "<REG>";
 }
 
-std::string getPairName(const PID id) {
+static inline std::string getPairName(const PID id) {
 	switch (id) {
 	case AF: return "AF";
 	case BC: return "BC";
@@ -41,7 +41,7 @@ std::string getPairName(const PID id) {
 	return "<PAIR>";
 }
 
-std::string getJumpConditionName(const JumpCondition condition) {
+static inline std::string getJumpConditionName(const JumpCondition condition) {
 	switch (condition) {
 	case CA: return " C";
 	case NC: return " NC";
@@ -51,12 +51,12 @@ std::string getJumpConditionName(const JumpCondition condition) {
 	}
 }
 
-void debugPrintArgument(CPU*, MMU*, const uint16_t) {
+static void debugPrintArgument(CPU*, MMU*, const uint16_t) {
 	std::cout << "\r\n";
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegisterType type, const RID registerId, const Args... args) {
+static void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegisterType type, const RID registerId, const Args... args) {
 	std::string registerName = getRegisterName(registerId);
 	if (type == Indirect) {
 		registerName = "(" + registerName + ")";
@@ -66,7 +66,7 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegi
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegisterType type, const PID pairId, const Args... args) {
+static void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegisterType type, const PID pairId, const Args... args) {
 	std::string pairName = getPairName(pairId);
 	if (type == Indirect) {
 		pairName = "(" + pairName + ")";
@@ -76,7 +76,7 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugRegi
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugFlags flag, const Args... args) {
+static void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugFlags flag, const Args... args) {
 	switch (flag) {
 	case Comma: std::cout << ","; break;
 	case IndStart: std::cout << " ("; break;
@@ -86,13 +86,13 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugFlag
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const JumpCondition condition, const Args... args) {
+static void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const JumpCondition condition, const Args... args) {
 	std::cout << getJumpConditionName(condition);
 	debugPrintArgument(cpu, mmu, addr, args...);
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntType type, const int data, const Args... args) {
+static void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntType type, const int data, const Args... args) {
 	uint8_t  low = mmu->Read(addr + (uint16_t) data);
 	uint8_t  high = mmu->Read(addr + (uint16_t) data + 1);
 	uint16_t word = (high << 8) | low;
@@ -127,7 +127,7 @@ void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const DebugIntT
 }
 
 template<typename... Args>
-void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const std::string& absolute, const Args... args) {
+static void debugPrintArgument(CPU* cpu, MMU* mmu, const uint16_t addr, const std::string& absolute, const Args... args) {
 	std::cout << " " << absolute;
 	debugPrintArgument(cpu, mmu, addr, args...);
 }
@@ -402,7 +402,7 @@ const static Debug::InstructionPrinter cbhandlers[] = {
 	debugPrintInstruction("SET", Absolute, 7, Comma, Direct, A)  // ff SET 7,A
 };
 
-void HandleCB(CPU* cpu, MMU* mmu, uint16_t addr) {
+static void HandleCB(CPU* cpu, MMU* mmu, uint16_t addr) {
 	uint8_t opcode = mmu->Read(addr + 1);
 	cbhandlers[opcode](cpu, mmu, addr + 1);
 }
