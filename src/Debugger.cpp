@@ -101,7 +101,7 @@ void Debugger::Run() {
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE)InterruptHandlerProxy, TRUE);
 #endif
 
-	std::deque<uint16_t> lastInstructions(historySize);
+	std::deque<uint16_t> lastInstructions(historySize * 2);
 	bool skipBreakpoints = false;
 	bool useBreakpoints = true;
 	bool pauseAtEnd = false;
@@ -134,7 +134,7 @@ void Debugger::Run() {
 					}
 					for (uint8_t cur = 0; cur < maxBack; ++cur) {
 						std::cout << "   ";
-						printInstruction(lastInstructions[cur]);
+						printInstruction(lastInstructions[maxBack - cur - 1]);
 					}
 					std::cout << " > ";
 				}
@@ -177,6 +177,7 @@ void Debugger::Run() {
 			case CMD_STEP:
 				emulator->cpu.paused = false;
 				pauseAtEnd = true;
+				skipBreakpoints = true;
 				if (!emulator->cpu.running) {
 					std::cout << "WARNING: CPU is halted! Use \"run\" and trigger an interrupt." << std::endl;
 				}
@@ -221,6 +222,9 @@ void Debugger::Run() {
 
 		// Save instruction to history
 		lastInstructions.push_front(emulator->cpu.PC);
+		if (lastInstructions.size() > historySize * 2) {
+			lastInstructions.resize(historySize);
+		}
 
 		emulator->Step();
 
