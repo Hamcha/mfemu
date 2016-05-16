@@ -28,30 +28,35 @@ void CPU::HandleInterrupts() {
 	if (interrupts.flags.vblank) {
 		mmu->UnsetInterrupt(IntLCDVblank);
 		handleInterrupt(0x40);
+		running = true;
 		return;
 	}
 
 	if (interrupts.flags.lcdcontrol) {
 		mmu->UnsetInterrupt(IntLCDControl);
 		handleInterrupt(0x48);
+		running = true;
 		return;
 	}
 
 	if (interrupts.flags.timer) {
 		mmu->UnsetInterrupt(IntTimerOverflow);
 		handleInterrupt(0x50);
+		running = true;
 		return;
 	}
 
 	if (interrupts.flags.serial) {
 		mmu->UnsetInterrupt(IntEndSerialIO);
 		handleInterrupt(0x58);
+		running = true;
 		return;
 	}
 
 	if (interrupts.flags.input) {
 		mmu->UnsetInterrupt(IntInput);
 		handleInterrupt(0x60);
+		running = true;
 		return;
 	}
 }

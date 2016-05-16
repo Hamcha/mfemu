@@ -62,7 +62,10 @@ CPUHandler Halt(const bool waitInterrupt) {
 		// STOP takes two machine cycles
 		int mcycles = waitInterrupt ? 1 : 2;
 
-		std::cout << "Hit " << (waitInterrupt ? "HALT" : "STOP") << std::endl;
+		if (!waitInterrupt) {
+			std::cout << "Hit STOP" << std::endl;
+			cpu->paused = true;
+		}
 
 		cpu->running = false;
 		return CycleCount(mcycles, 4);
