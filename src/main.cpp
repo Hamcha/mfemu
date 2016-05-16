@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
 	uint8_t flags = F_DEFAULT;
 
 	EmulatorFlags emulatorFlags;
+	int queueSize = 10;
 
 	for (uint16_t i = 1; i < argc; i += 1) {
 		if (argv[i][0] == '-') {
@@ -52,6 +53,16 @@ int main(int argc, char **argv) {
 					i += 1;
 					break;
 				}
+				case 'q': {
+					int size = atoi(argv[i + 1]);
+					if (size < 1) {
+						std::cout << "Invalid size value provided (not an integer or less than 1)" << std::endl;
+						return 1;
+					}
+					queueSize = size;
+					i += 1;
+					break;
+				}
 				default:
 					std::cout << "Usage: " << argv[0] << " [-hvidn] <file.gb>\r\n"
 						<< "\t-h   : get this help\r\n"
@@ -61,6 +72,7 @@ int main(int argc, char **argv) {
 						<< "\t-t   : start with code printing enabled (requires -d)\r\n"
 						<< "\t-n   : don't start the emulation right away\r\n"
 						<< "\t-s X : scale window X times the Game Boy resolution\r\n"
+						<< "\t-q X : save up to X elements in the instruction history (required -d)\r\n"
 						<< "\t-b   : skip the DMG boot rom [experimental]\r\n" << std::endl;
 					return 0;
 				}
@@ -92,6 +104,7 @@ int main(int argc, char **argv) {
 			debugger_flags |= Debug::DBG_TRACK;
 		}
 		Debugger debugger(&emulator, debugger_flags);
+		debugger.historySize = queueSize;
 		debugger.Run();
 	} else {
 		// Create CPU and load ROM into it

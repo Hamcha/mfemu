@@ -30,7 +30,8 @@ enum DebugInstr {
 	CMD_CONTINUE,
 	CMD_ROMINFO,
 	CMD_HELP,
-	CMD_QUIT
+	CMD_QUIT,
+	CMD_TOGGLEBP
 };
 
 struct DebugCmd {
@@ -46,7 +47,6 @@ private:
 	uint8_t opts;
 	std::unordered_set<uint16_t> breakPoints;
 	bool track = false;
-	bool ignoreBreakpoints = false;
 
 	Debug::DebugCmd getCommand(const char* prompt) const;
 	void setBreakpoint(const uint16_t addr);
@@ -55,6 +55,10 @@ private:
 	void printStack() const;
 	void printFlags() const;
 public:
+
+	//! Max number of elements in the instruction history
+	int historySize;
+
 	explicit Debugger(Emulator *const _emulator, const uint8_t _opts);
 	~Debugger();
 

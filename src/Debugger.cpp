@@ -7,6 +7,8 @@
 #include <utility>
 #include <bitset>
 #include <tuple>
+#include <deque>
+#include <unordered_map>
 #if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE
 #include <unistd.h>
 #include <csignal>
@@ -49,7 +51,7 @@ static BOOL InterruptHandlerProxy(DWORD ctrlType) {
 #endif
 
 // { cmd_string => { command, n.args, description } }
-static const std::map<std::string, std::tuple<DebugInstr, int, std::string>> debugInstructions = {
+static const std::unordered_map<std::string, std::tuple<DebugInstr, int, std::string>> debugInstructions = {
 	{ "run",      std::make_tuple(CMD_RUN,       0, "Start emulation") },
 	{ "print",    std::make_tuple(CMD_PRINT,     1, "Print current instruction (or any given one via argument)") },
 	{ "reg",      std::make_tuple(CMD_REGISTERS, 0, "Print registers") },
@@ -58,6 +60,7 @@ static const std::map<std::string, std::tuple<DebugInstr, int, std::string>> deb
 	{ "mem",      std::make_tuple(CMD_MEMORY,    1, "Print value at a specified memory location") },
 	{ "track",    std::make_tuple(CMD_TRACK,     0, "Toggle instruction printing") },
 	{ "break",    std::make_tuple(CMD_BREAK,     1, "Set breakpoint at <addr>") },
+	{ "togglebp", std::make_tuple(CMD_TOGGLEBP,  0, "Toggle breakpoints (speedup)") },
 	{ "quit",     std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
 	{ "q",        std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
 	{ "exit",     std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
@@ -80,6 +83,7 @@ static std::string debuggerHelp() {
 Debugger::Debugger(Emulator *const _emulator, const uint8_t _opts) 
 	: emulator(_emulator)
 	, opts(_opts)
+	, historySize(10)
 {
 	track = (_opts & DBG_TRACK) > 0;
 }
@@ -97,6 +101,11 @@ void Debugger::Run() {
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE)InterruptHandlerProxy, TRUE);
 #endif
 
+	std::deque<uint16_t> lastInstructions(historySize);
+	bool skipBreakpoints = false;
+	bool useBreakpoints = true;
+	bool pauseAtEnd = false;
+
 	while (emulator->running) {
 		emulator->CheckUpdate();
 
@@ -105,14 +114,29 @@ void Debugger::Run() {
 			switch (cmd.instr) {
 			case CMD_RUN:
 				std::clog << "Starting emulation..." << std::endl;
-				ignoreBreakpoints = true;
+				skipBreakpoints = true;
 				emulator->cpu.paused = false;
+				break;
+			case CMD_TOGGLEBP:
+				useBreakpoints = !useBreakpoints;
+				std::clog << "Breakpoints are now " << (useBreakpoints ? "enabled" : "ignored") << std::endl;
 				break;
 			case CMD_PRINT: {
 				uint16_t arg = emulator->cpu.PC;
 				if (cmd.args.front().length() > 0) {
 					std::stringstream ss(cmd.args.front());
 					ss >> std::hex >> arg;
+				} else {
+					// Print history (up to 10)
+					uint8_t maxBack = 10;
+					if (lastInstructions.size() < 10) {
+						maxBack = lastInstructions.size();
+					}
+					for (uint8_t cur = 0; cur < maxBack; ++cur) {
+						std::cout << "   ";
+						printInstruction(lastInstructions[cur]);
+					}
+					std::cout << " > ";
 				}
 				printInstruction(arg);
 				break;
@@ -151,8 +175,12 @@ void Debugger::Run() {
 				break;
 			}
 			case CMD_STEP:
-				emulator->cpu.Step();
-				printInstruction(emulator->cpu.PC);
+				emulator->cpu.paused = false;
+				pauseAtEnd = true;
+				if (!emulator->cpu.running) {
+					std::cout << "WARNING: CPU is halted! Use \"run\" and trigger an interrupt." << std::endl;
+				}
+
 				break;
 			case CMD_CONTINUE:
 				if (!emulator->cpu.paused) {
@@ -179,7 +207,7 @@ void Debugger::Run() {
 
 		// Execute instructions until a breakpoint is found
 		uint16_t PC = emulator->cpu.PC;
-		if (!ignoreBreakpoints && breakPoints.find(PC) != breakPoints.end()) {
+		if (useBreakpoints && !skipBreakpoints && breakPoints.find(PC) != breakPoints.end()) {
 			emulator->cpu.paused = true;
 			std::ios::fmtflags fmt(std::cout.flags());
 			std::cout << "Breakpoint reached: " << std::hex << (int)PC << std::endl;
@@ -187,14 +215,24 @@ void Debugger::Run() {
 			continue;
 		}
 
-		if (track) {
+		if (track || pauseAtEnd) {
 			printInstruction(emulator->cpu.PC);
 		}
+
+		// Save instruction to history
+		lastInstructions.push_front(emulator->cpu.PC);
+
 		emulator->Step();
 
-		// ignoraBreakpoints should only last one iteration
-		if (ignoreBreakpoints) {
-			ignoreBreakpoints = false;
+		// ignoreBreakpoints should only last one iteration
+		if (skipBreakpoints) {
+			skipBreakpoints = false;
+		}
+
+		// Re-pause CPU after single step
+		if (pauseAtEnd) {
+			emulator->cpu.paused = true;
+			pauseAtEnd = false;
 		}
 	}
 }
