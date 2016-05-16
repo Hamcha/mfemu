@@ -1302,7 +1302,7 @@ const static CPUHandler handlers[] = {
 	AddDirect(HL, DE),   // 19 ADD HL,DE
 	LoadIndirect(A, DE), // 1a LD  A,(DE)
 	Decrement(DE),       // 1b DEC DE
-	Increment(E),        // 1c DEC E
+	Increment(E),        // 1c INC E
 	Decrement(E),        // 1d DEC E
 	LoadImmediate(E),    // 1e LD  E,d8
 	RotateAcc(false, true), // 1f RRA

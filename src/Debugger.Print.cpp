@@ -436,7 +436,7 @@ const static Debug::InstructionPrinter handlers[] = {
 	debugPrintInstruction("ADD", Direct, HL, Comma, Direct, DE),     // 19 ADD HL,DE
 	debugPrintInstruction("LD ", Direct, A, Comma, Indirect, DE),    // 1a LD  A,(DE)
 	debugPrintInstruction("DEC", Direct, DE),                  // 1b DEC DE
-	debugPrintInstruction("DEC", Direct, E),                   // 1c DEC E
+	debugPrintInstruction("INC", Direct, E),                   // 1c INC E
 	debugPrintInstruction("DEC", Direct, E),                   // 1d DEC E
 	debugPrintInstruction("LD ", Direct, E, Comma, HexOffset8, 1),   // 1e LD  E,d8
 	debugPrintInstruction("RRA"),                              // 1f RRA
