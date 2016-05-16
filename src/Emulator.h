@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SDL2/SDL.h>
 #include <string>
+#include "SDL.h"
 
 #include "ROM.h"
 #include "MMU.h"

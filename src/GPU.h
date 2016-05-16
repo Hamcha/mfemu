@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SDL2/SDL.h>
 #include <vector>
+#include "SDL.h"
 
 const int
 	WIDTH = 160,             //!< Gameboy screen width

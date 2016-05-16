@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SDL2/SDL.h>
 #include <map>
+#include "SDL.h"
 
 //! Input data structure
 struct InputData {

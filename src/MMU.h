@@ -1,10 +1,10 @@
 #pragma once
 
+#include <functional>
+
 #include "ROM.h"
 #include "GPU.h"
 #include "Input.h"
-
-#include <functional>
 
 /*! \brief Cycle count
  *
