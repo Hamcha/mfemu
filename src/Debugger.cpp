@@ -21,9 +21,9 @@ static Debugger* _debugger = nullptr;
 // While the debugger is running, trap the SIGINT to pause the emulation.
 static void interrupt_handler(int s) {
 	if (_debugger == nullptr) return;
-	if (_debugger->getEmulator()->cpu.running) {
+	if (!_debugger->getEmulator()->cpu.paused) {
 		std::clog << "Emulation paused. Type 'run' to resume." << std::endl;
-		_debugger->getEmulator()->cpu.running = false;
+		_debugger->getEmulator()->cpu.paused = true;
 		return;
 	}
 	exit(s);
@@ -87,7 +87,7 @@ Debugger::Debugger(Emulator *const _emulator, const uint8_t _opts)
 Debugger::~Debugger() {}
 
 void Debugger::Run() {
-	emulator->cpu.running = (opts & DBG_NOSTART) != DBG_NOSTART;
+	emulator->cpu.paused = (opts & DBG_NOSTART) == DBG_NOSTART;
 
 	// Trap SIGINT to pause the execution
 	_debugger = this;
@@ -100,13 +100,13 @@ void Debugger::Run() {
 	while (emulator->running) {
 		emulator->CheckUpdate();
 
-		if (!emulator->cpu.running && opts & DBG_INTERACTIVE) {
+		if (emulator->cpu.paused && opts & DBG_INTERACTIVE) {
 			DebugCmd cmd = getCommand("(mfemu)");
 			switch (cmd.instr) {
 			case CMD_RUN:
 				std::clog << "Starting emulation..." << std::endl;
 				ignoreBreakpoints = true;
-				emulator->cpu.running = true;
+				emulator->cpu.paused = false;
 				break;
 			case CMD_PRINT: {
 				uint16_t arg = emulator->cpu.PC;
@@ -155,7 +155,7 @@ void Debugger::Run() {
 				printInstruction(emulator->cpu.PC);
 				break;
 			case CMD_CONTINUE:
-				if (emulator->cpu.running) {
+				if (!emulator->cpu.paused) {
 					opts &= ~DBG_INTERACTIVE;
 				} else {
 					std::cerr << "CPU is not running: type `run` to start emulation." << std::endl;
@@ -180,7 +180,7 @@ void Debugger::Run() {
 		// Execute instructions until a breakpoint is found
 		uint16_t PC = emulator->cpu.PC;
 		if (!ignoreBreakpoints && breakPoints.find(PC) != breakPoints.end()) {
-			emulator->cpu.running = false;
+			emulator->cpu.paused = true;
 			std::ios::fmtflags fmt(std::cout.flags());
 			std::cout << "Breakpoint reached: " << std::hex << (int)PC << std::endl;
 			std::cout.flags(fmt);

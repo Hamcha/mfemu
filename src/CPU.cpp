@@ -2,9 +2,13 @@
 
 CycleCount CPU::Step() {
 	uint8_t opcode = mmu->Read(PC);
-	CycleCount c = Execute(opcode);
+	CycleCount c = { 1,4 };
+	if (running) {
+		c = Execute(opcode);
+		PC += 1;
+	}
+	
 	cycles.add(c);
-	PC += 1;
 	return c;
 }
 
@@ -13,6 +17,7 @@ CPU::CPU(MMU* _mmu)
 	// Setup variables
 	mmu = _mmu;
 	running = true;
+	paused = false;
 	PC = 0;
 }
 

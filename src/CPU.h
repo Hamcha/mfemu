@@ -74,8 +74,11 @@ public:
 
 	CycleCount Execute(const uint8_t opcode);
 
-	//! Is running? (Not Halted/Paused)
+	//! Is running? (Not halted)
 	bool running;
+
+	//! Is paused? (Debug)
+	bool paused;
 
 	//! Execute single step (instruction)
 	CycleCount Step();
