@@ -4,8 +4,8 @@ CycleCount CPU::Step() {
 	uint8_t opcode = mmu->Read(PC);
 	CycleCount c = { 1,4 };
 	if (running) {
-		c = Execute(opcode);
 		PC += 1;
+		c = Execute(opcode);
 	}
 	
 	cycles.add(c);
