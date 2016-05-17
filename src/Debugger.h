@@ -19,7 +19,7 @@ enum DebugOpts : uint8_t {
 
 } // end namespace Debug
 
-class Debugger {
+class Debugger final {
 private:
 	Emulator *const emulator;
 	uint8_t opts;
@@ -36,9 +36,14 @@ public:
 	//! Max number of elements in the instruction history
 	int historySize;
 
-	explicit Debugger(Emulator *const _emulator, const uint8_t _opts);
+	explicit Debugger(Emulator *const emulator, const uint8_t opts);
 	~Debugger();
 
+	/*! \brief Run the debugger
+	 * 
+	 * If the Debugger options include DBG_NOSTART, shows the prompt.
+	 * Else, starts up the emulator and runs the ROM.
+	 */
 	void Run();
 
 	Emulator* GetEmulator() const { return emulator; }

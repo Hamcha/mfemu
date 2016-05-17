@@ -20,7 +20,7 @@ struct EmulatorFlags {
  *  "God" class that manages the execution and interaction
  *  of all the submodules (ROM/CPU/GPU/MMU/etc.)
  */
-class Emulator {
+class Emulator final {
 	friend class Debugger;
 private:
 	SDL_Window* window;
@@ -30,7 +30,11 @@ private:
 
 	uint64_t frameCycles;
 	uint64_t titleFpsCount;
+	bool isInit = false;
 
+
+	//! Initializes all the Emulator's subsystems
+	bool init();
 	bool initSDL();
 	void checkInterrupts();
 	void fakeBootrom();

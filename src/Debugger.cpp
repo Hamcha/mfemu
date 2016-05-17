@@ -120,6 +120,8 @@ Debugger::~Debugger() {}
 
 void Debugger::Run() {
 	emulator->cpu.paused = (opts & DBG_NOSTART) == DBG_NOSTART;
+	if (!emulator->cpu.paused)
+		emulator->init();
 
 	// Trap SIGINT to pause the execution
 	_debugger = this;
@@ -143,6 +145,8 @@ void Debugger::Run() {
 			case CMD_RUN:
 				std::clog << "Starting emulation..." << std::endl;
 				skipBreakpoints = true;
+				if (!emulator->isInit)
+					emulator->init();
 				emulator->cpu.paused = false;
 				break;
 			case CMD_TOGGLEBP:

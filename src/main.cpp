@@ -4,11 +4,11 @@
 #include "Debugger.h"
 
 enum MainFlags : uint8_t {
-	F_DEFAULT      = 1,
-	F_ROMINFO      = 1 << 1,
-	F_DEBUG        = 1 << 2,
-	F_NOSTART      = 1 << 3,
-	F_TRACK        = 1 << 4
+	F_DEFAULT = 1,
+	F_ROMINFO = 1 << 1,
+	F_DEBUG   = 1 << 2,
+	F_NOSTART = 1 << 3,
+	F_TRACK   = 1 << 4
 };
 
 int main(int argc, char **argv) {
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 					flags |= F_DEBUG;
 					break;
 				case 'n':
-					flags |= F_NOSTART;
+					flags |= F_NOSTART | F_DEBUG;
 					break;
 				case 't':
 					flags |= F_TRACK;
@@ -64,13 +64,14 @@ int main(int argc, char **argv) {
 					break;
 				}
 				default:
-					std::cout << "Usage: " << argv[0] << " [-hvidn] <file.gb>\r\n"
+					std::cout << "Usage: " << argv[0] << " [flags] <file.gb>\r\n"
+						<< "\r\nOptions are listed below:\r\n"
 						<< "\t-h   : get this help\r\n"
 						<< "\t-v   : print version and exit\r\n"
 						<< "\t-i   : print ROM info and exit\r\n"
 						<< "\t-d   : run the debugger on the given rom\r\n"
 						<< "\t-t   : start with code printing enabled (requires -d)\r\n"
-						<< "\t-n   : don't start the emulation right away\r\n"
+						<< "\t-n   : don't start the emulation right away (implies -d)\r\n"
 						<< "\t-s X : scale window X times the Game Boy resolution\r\n"
 						<< "\t-q X : save up to X elements in the instruction history (required -d)\r\n"
 						<< "\t-b   : skip the DMG boot rom [experimental]\r\n" << std::endl;
@@ -96,14 +97,14 @@ int main(int argc, char **argv) {
 	Emulator emulator(romFile, emulatorFlags);
 
 	if (flags & F_DEBUG) {
-		uint8_t debugger_flags = Debug::DBG_INTERACTIVE;
+		uint8_t debuggerFlags = Debug::DBG_INTERACTIVE;
 		if (flags & F_NOSTART) {
-			debugger_flags |= Debug::DBG_NOSTART;
+			debuggerFlags |= Debug::DBG_NOSTART;
 		}
 		if (flags & F_TRACK) {
-			debugger_flags |= Debug::DBG_TRACK;
+			debuggerFlags |= Debug::DBG_TRACK;
 		}
-		Debugger debugger(&emulator, debugger_flags);
+		Debugger debugger(&emulator, debuggerFlags);
 		debugger.historySize = queueSize;
 		debugger.Run();
 	} else {

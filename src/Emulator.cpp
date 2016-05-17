@@ -2,6 +2,40 @@
 #include <iostream>
 #include <sstream>
 
+Emulator::Emulator(const std::string& romfile, const EmulatorFlags emuflags)
+	: rom(ROM::FromFile(romfile)), mmu(&rom, &gpu, &input), cpu(&mmu) {
+	window = nullptr;
+	renderer = nullptr;
+	running = true;
+	flags = emuflags;
+	frameCycles = 0;
+	titleFpsCount = 0;
+}
+
+Emulator::~Emulator() {
+	if (renderer != nullptr) {
+		SDL_DestroyRenderer(renderer);
+	}
+	if (window != nullptr) {
+		SDL_DestroyWindow(window);
+	}
+	SDL_Quit();
+}
+
+bool Emulator::init() {
+	// Initialize SDL
+	if (!initSDL()) {
+		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
+		return false;
+	}
+	// Initialize GPU
+	gpu.InitScreen(renderer);
+	if (!flags.useBootrom) {
+		fakeBootrom();
+	}
+	return isInit = true;
+}
+
 bool Emulator::initSDL() {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
@@ -26,35 +60,10 @@ bool Emulator::initSDL() {
 	return true;
 }
 
-Emulator::Emulator(const std::string& romfile, const EmulatorFlags emuflags)
-	: rom(ROM::FromFile(romfile)), mmu(&rom, &gpu, &input), cpu(&mmu) {
-	window = nullptr;
-	renderer = nullptr;
-	running = true;
-	flags = emuflags;
-	frameCycles = 0;
-	titleFpsCount = 0;
-	if (!initSDL()) {
-		std::cout << "Emulator could not start correctly, check error above.." << std::endl;
-		return;
-	}
-	gpu.InitScreen(renderer);
-	if (!flags.useBootrom) {
-		fakeBootrom();
-	}
-}
-
-Emulator::~Emulator() {
-	if (renderer != nullptr) {
-		SDL_DestroyRenderer(renderer);
-	}
-	if (window != nullptr) {
-		SDL_DestroyWindow(window);
-	}
-	SDL_Quit();
-}
-
 void Emulator::Run() {
+	if (!init())
+		return;
+
 	while (running) {
 		CheckUpdate();
 		Step();
