@@ -964,7 +964,7 @@ static CPUHandler Call(JumpCondition condition) {
 		uint16_t word = (high << 8) | low;
 
 		if (shouldJump(cpu, condition)) {
-			Push(cpu, mmu, cpu->PC);
+			Push(cpu, mmu, cpu->PC + 1);
 			cpu->PC = word - 1;
 			return CycleCount(3, 24);
 		} else {
@@ -978,7 +978,7 @@ static CPUHandler Return(JumpCondition condition) {
 	return [condition](CPU* cpu, MMU* mmu) {
 		if (shouldJump(cpu, condition)) {
 			uint16_t addr = Pop(cpu, mmu);
-			cpu->PC = addr;
+			cpu->PC = addr - 1;
 			return CycleCount(1, condition == NO ? 16 : 20);
 		} else {
 			return CycleCount(1, 8);

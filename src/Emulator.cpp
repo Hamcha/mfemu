@@ -63,7 +63,7 @@ void Emulator::Run() {
 }
 
 void Emulator::Step() {
-	CycleCount c = cpu.Step();
+	const CycleCount c = cpu.Step();
 	frameCycles += c.machine;
 	mmu.UpdateTimers(c);
 	gpu.Step(c.machine);
