@@ -1,7 +1,7 @@
 #include "GPU.h"
 
 // BGB palette
-const uint32_t shades[] = { 0xffe7ffd6, 0xff88c070, 0xff346856, 0xff081820 };
+const static uint32_t shades[] = { 0xffe7ffd6, 0xff88c070, 0xff346856, 0xff081820 };
 
 void GPU::Step(const uint64_t cycles) {
 	if (!lcdControl.flags.enableLCD) {
@@ -118,8 +118,7 @@ GPU::GPU() {
 	lastFrameTime = SDL_GetTicks();
 
 	// Push at least one VRAM bank (GB classic)
-	VRAMBank vbank1;
-	VRAM.push_back(vbank1);
+	VRAM.push_back({});
 }
 
 void GPU::InitScreen(SDL_Renderer* _renderer) {
@@ -128,21 +127,22 @@ void GPU::InitScreen(SDL_Renderer* _renderer) {
 }
 
 void GPU::drawLine() {
-	if (lcdControl.flags.displayBackground) {
-		uint16_t mapOffset = lcdControl.flags.bgTileTable ? 0x1c00 : 0x1800;
-		uint16_t dataOffset = lcdControl.flags.tilePatternTable ? 0x0000 : 0x0800;
+	const uint16_t dataOffset = lcdControl.flags.tilePatternTable ? 0x0000 : 0x0800;
 
-		uint8_t ty = line + bgScrollY;
-		uint16_t tileRow = ty / 8;
-		uint8_t lineOffset = ty % 8;
+	if (lcdControl.flags.displayBackground) {
+		const uint16_t mapOffset = lcdControl.flags.bgTileTable ? 0x1c00 : 0x1800;
+
+		const uint8_t ty = line + bgScrollY;
+		const uint16_t tileRow = ty / 8;
+		const uint8_t lineOffset = ty % 8;
 
 		//TODO Calculate scroll offset
 
-		for (uint8_t x = 0; x <= WIDTH; x += 1) {
-			uint8_t tx = x + bgScrollX;
+		for (uint8_t x = 0; x <= WIDTH; ++x) {
+			const uint8_t tx = x + bgScrollX;
 
 			// Get tile id
-			uint8_t tileCol = tx / 8;
+			const uint8_t tileCol = tx / 8;
 			uint8_t tileId = VRAM[VRAMbankId].bytes[mapOffset + (tileRow * 32) + tileCol];
 
 			// Convert signed to unsigned if Pattern table #1
@@ -151,28 +151,69 @@ void GPU::drawLine() {
 			}
 
 			// Get colors (2 bytes) of the current tile's line
-			uint16_t colorOffset = dataOffset + (tileId * 16) + (lineOffset * 2);
-			uint8_t color0 = VRAM[VRAMbankId].bytes[colorOffset];
-			uint8_t color1 = VRAM[VRAMbankId].bytes[colorOffset + 1];
+			const uint16_t colorOffset = dataOffset + (tileId * 16) + (lineOffset * 2);
+			const uint8_t color0 = VRAM[VRAMbankId].bytes[colorOffset];
+			const uint8_t color1 = VRAM[VRAMbankId].bytes[colorOffset + 1];
 
 			// Get palette color id of current pixel
 			// This is a 2 bit number, MSB is color1[pixel], LSB is color0[pixel]
-			uint8_t tileOffset = 7 - tx % 8;
-			uint8_t colorId = ((color1 >> tileOffset & 0x1) << 1) | (color0 >> tileOffset & 0x1);
+			const uint8_t tileOffset = 7 - tx % 8;
+			const uint8_t colorId = ((color1 >> tileOffset & 0x1) << 1) | (color0 >> tileOffset & 0x1);
 
 			// Get actual color from the palette
-			uint8_t actualColor = (bgPalette.raw >> (colorId * 2)) & 0x3;
+			const uint8_t actualColor = (bgPalette.raw >> (colorId * 2)) & 0x3;
 
 			// Set pixel to shade defined by the color
 			screen[line * WIDTH + x] = shades[actualColor];
+		}
+	}
+
+	// Check for sprites
+	for (int cur = 0; cur < SPRITE_COUNT; ++cur) {
+		const OAMBlock currentSprite = sprites[cur];
+		const uint16_t spriteHeight = lcdControl.flags.spriteSize == SpriteSize_8x16 ? 16 : 8;
+		// Check if it's on screen (vertically)
+		if (currentSprite.y > line || currentSprite.y + spriteHeight < line) {
+			continue;
+		}
+
+		//TODO Handle Y-flip
+		const int spriteLineId = line - currentSprite.y;
+
+		// Get colors (2 bytes) of the current sprite's line
+		const uint16_t colorOffset = dataOffset + (currentSprite.pattern * 2 * spriteHeight) + (spriteLineId * 2);
+		const Palette palette = currentSprite.flags.single.palette ? spritePalette2 : spritePalette1;
+		const uint8_t color0 = VRAM[VRAMbankId].bytes[colorOffset];
+		const uint8_t color1 = VRAM[VRAMbankId].bytes[colorOffset + 1];
+
+		for (uint8_t x = 0; x <= 8; ++x) {
+			const uint8_t absX = currentSprite.x + x;
+			if (absX >= WIDTH) {
+				break;
+			}
+			const uint8_t colorId = ((color1 >> x & 0x1) << 1) | (color0 >> x & 0x1);
+			const uint8_t actualColor = (palette.raw >> (colorId * 2)) & 0x3;
+
+			// Transparency checks
+			if (lcdControl.flags.color0Opacity) {
+				//TODO Blit under background
+
+				// Don't blit transparent pixels
+				if (colorId == 0) {
+					continue;
+				}
+			}
+
+			// Set pixel to shade defined by the color
+			screen[line * WIDTH + absX] = shades[actualColor];
 		}
 	}
 }
 
 void GPU::drawScreen() {
 	// Update speed %
-	uint32_t now = SDL_GetTicks();
-	uint32_t diff = now - lastFrameTime;
+	const uint32_t now = SDL_GetTicks();
+	const uint32_t diff = now - lastFrameTime;
 	percent = 1666.66 / diff;
 	lastFrameTime = now;
 

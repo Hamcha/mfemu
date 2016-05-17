@@ -6,7 +6,8 @@
 const int
 	WIDTH = 160,             //!< Gameboy screen width
 	HEIGHT = 144,            //!< Gameboy screen height
-	PIXELS = WIDTH * HEIGHT; //!< Gameboy framebuffer pixel count
+	PIXELS = WIDTH * HEIGHT, //!< Gameboy framebuffer pixel count
+	SPRITE_COUNT = 40;       //!< Gameboy OAM sprite count
 
 //! Single VRAM bank
 struct VRAMBank {
@@ -153,7 +154,7 @@ public:
 	uint8_t VRAMbankId = 0;
 
 	//! Sprite OAM table
-	OAMBlock sprites[40];
+	OAMBlock sprites[SPRITE_COUNT];
 
 	/*! \brief Step a number of cycles
 	 *
