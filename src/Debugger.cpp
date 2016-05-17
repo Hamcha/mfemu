@@ -24,9 +24,9 @@ static Debugger* _debugger = nullptr;
 // While the debugger is running, trap the SIGINT to pause the emulation.
 static void interrupt_handler(int s) {
 	if (_debugger == nullptr) return;
-	if (!_debugger->getEmulator()->cpu.paused) {
+	if (!_debugger->GetEmulator()->cpu.paused) {
 		std::clog << "Emulation paused. Type 'run' to resume." << std::endl;
-		_debugger->getEmulator()->cpu.paused = true;
+		_debugger->GetEmulator()->cpu.paused = true;
 		return;
 	}
 	exit(s);

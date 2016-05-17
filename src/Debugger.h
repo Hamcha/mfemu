@@ -41,5 +41,5 @@ public:
 
 	void Run();
 
-	Emulator* getEmulator() const { return emulator; }
+	Emulator* GetEmulator() const { return emulator; }
 };
