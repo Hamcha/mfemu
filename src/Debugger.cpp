@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cctype>
 #include <algorithm>
+#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <utility>
@@ -50,6 +51,32 @@ static BOOL InterruptHandlerProxy(DWORD ctrlType) {
 }
 #endif
 
+enum DebugInstr {
+	CMD_INVALID,
+	CMD_RUN,
+	CMD_PRINT,
+	CMD_REGISTERS,
+	CMD_STACK,
+	CMD_TRACK,
+	CMD_STEP,
+	CMD_MEMORY,
+	CMD_FLAGS,
+	CMD_BREAK,
+	CMD_CONTINUE,
+	CMD_ROMINFO,
+	CMD_HELP,
+	CMD_QUIT,
+	CMD_TOGGLEBP,
+	CMD_DUMP
+};
+
+struct DebugCmd {
+	DebugInstr instr;
+	std::list<std::string> args;
+};
+
+static DebugCmd getCommand(const char* prompt);
+
 // { cmd_string => { command, n.args, description } }
 static const std::unordered_map<std::string, std::tuple<DebugInstr, int, std::string>> debugInstructions = {
 	{ "run",      std::make_tuple(CMD_RUN,       0, "Start emulation") },
@@ -69,6 +96,7 @@ static const std::unordered_map<std::string, std::tuple<DebugInstr, int, std::st
 	{ "continue", std::make_tuple(CMD_CONTINUE,  0, "Resume execution") },
 	{ "rominfo",  std::make_tuple(CMD_ROMINFO,   0, "Print ROM information") },
 	{ "help",     std::make_tuple(CMD_HELP,      0, "Print a help message") },
+	{ "dump",     std::make_tuple(CMD_DUMP,      1, "Dump instruction history to specified file") },
 	{ "?",        std::make_tuple(CMD_HELP,      0, "Print a help message") }
 };
 
@@ -199,6 +227,21 @@ void Debugger::Run() {
 			case CMD_QUIT:
 				std::clog << "...quitting." << std::endl;
 				return;
+			case CMD_DUMP: {
+				std::string fname = "history_dump.txt";
+				if (cmd.args.front().length() > 0) {
+					fname = cmd.args.front();
+				}
+				std::ofstream historyFile(fname, std::ios::out);
+				auto it = lastInstructions.rbegin();
+				while (it != lastInstructions.rend()) {
+					printInstruction(*it, historyFile);
+					it++;
+				}
+				historyFile.close();
+				std::clog << "Saved history dump to " << fname << std::endl;
+				break;
+			}
 			default:
 				std::cerr << "Invalid command" << std::endl;
 			}
@@ -243,7 +286,7 @@ void Debugger::Run() {
 
 // Reads a command from stdin and returns a struct { cmd, args }.
 // Currently only takes 1 argument.
-DebugCmd Debugger::getCommand(const char* prompt) const {
+static DebugCmd getCommand(const char* prompt) {
 	static DebugCmd latest = { CMD_INVALID };
 
 	std::cout << prompt << " " << std::flush;

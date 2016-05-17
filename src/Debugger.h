@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <list>
 #include <unordered_set>
 #include <functional>
@@ -7,36 +8,13 @@
 
 namespace Debug {
 
-using InstructionPrinter = std::function<void(CPU* cpu, MMU* mmu, const uint16_t addr)>;
+using InstructionPrinter = std::function<void(std::ostream& out, CPU* cpu, MMU* mmu, const uint16_t addr)>;
 
 enum DebugOpts : uint8_t {
 	DBG_INTERACTIVE = 1,
 	DBG_PRINTINSTR  = 1 << 1,
 	DBG_NOSTART     = 1 << 2,
 	DBG_TRACK       = 1 << 3
-};
-
-enum DebugInstr {
-	CMD_INVALID,
-	CMD_RUN,
-	CMD_PRINT,
-	CMD_REGISTERS,
-	CMD_STACK,
-	CMD_TRACK,
-	CMD_STEP,
-	CMD_MEMORY,
-	CMD_FLAGS,
-	CMD_BREAK,
-	CMD_CONTINUE,
-	CMD_ROMINFO,
-	CMD_HELP,
-	CMD_QUIT,
-	CMD_TOGGLEBP
-};
-
-struct DebugCmd {
-	DebugInstr instr;
-	std::list<std::string> args;
 };
 
 } // end namespace Debug
@@ -48,12 +26,11 @@ private:
 	std::unordered_set<uint16_t> breakPoints;
 	bool track = false;
 
-	Debug::DebugCmd getCommand(const char* prompt) const;
 	void setBreakpoint(const uint16_t addr);
-	void printInstruction(const uint16_t addr) const;
-	void printRegisters() const;
-	void printStack() const;
-	void printFlags() const;
+	void printInstruction(const uint16_t addr, std::ostream& out = std::cout) const;
+	void printRegisters(std::ostream& out = std::cout) const;
+	void printStack(std::ostream& out = std::cout) const;
+	void printFlags(std::ostream& out = std::cout) const;
 public:
 
 	//! Max number of elements in the instruction history
