@@ -67,7 +67,9 @@ enum DebugInstr {
 	CMD_HELP,
 	CMD_QUIT,
 	CMD_TOGGLEBP,
-	CMD_DUMP
+	CMD_DUMP,
+	CMD_COUNTERS,
+	CMD_INTS,
 };
 
 struct DebugCmd {
@@ -79,25 +81,27 @@ static DebugCmd getCommand(const char* prompt);
 
 // { cmd_string => { command, n.args, description } }
 static const std::unordered_map<std::string, std::tuple<DebugInstr, int, std::string>> debugInstructions = {
-	{ "run",      std::make_tuple(CMD_RUN,       0, "Start emulation") },
-	{ "print",    std::make_tuple(CMD_PRINT,     1, "Print current instruction (or any given one via argument)") },
-	{ "reg",      std::make_tuple(CMD_REGISTERS, 0, "Print registers") },
-	{ "stack",    std::make_tuple(CMD_STACK,     0, "Print stack") },
-	{ "flags",    std::make_tuple(CMD_FLAGS,     0, "Print CPU flags") },
-	{ "mem",      std::make_tuple(CMD_MEMORY,    1, "Print value at a specified memory location") },
-	{ "track",    std::make_tuple(CMD_TRACK,     0, "Toggle instruction printing") },
-	{ "break",    std::make_tuple(CMD_BREAK,     1, "Set breakpoint at <addr>") },
-	{ "togglebp", std::make_tuple(CMD_TOGGLEBP,  0, "Toggle breakpoints (speedup)") },
-	{ "quit",     std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
-	{ "q",        std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
-	{ "exit",     std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
-	{ "step",     std::make_tuple(CMD_STEP,      0, "Fetch and execute a single instruction") },
-	{ "cont",     std::make_tuple(CMD_CONTINUE,  0, "Resume execution") },
-	{ "continue", std::make_tuple(CMD_CONTINUE,  0, "Resume execution") },
-	{ "rominfo",  std::make_tuple(CMD_ROMINFO,   0, "Print ROM information") },
-	{ "help",     std::make_tuple(CMD_HELP,      0, "Print a help message") },
-	{ "dump",     std::make_tuple(CMD_DUMP,      1, "Dump instruction history to specified file") },
-	{ "?",        std::make_tuple(CMD_HELP,      0, "Print a help message") }
+	{ "run",        std::make_tuple(CMD_RUN,       0, "Start emulation") },
+	{ "print",      std::make_tuple(CMD_PRINT,     1, "Print current instruction (or any given one via argument)") },
+	{ "reg",        std::make_tuple(CMD_REGISTERS, 0, "Print registers") },
+	{ "stack",      std::make_tuple(CMD_STACK,     0, "Print stack") },
+	{ "flags",      std::make_tuple(CMD_FLAGS,     0, "Print CPU flags") },
+	{ "mem",        std::make_tuple(CMD_MEMORY,    1, "Print value at a specified memory location") },
+	{ "counters",   std::make_tuple(CMD_COUNTERS,  0, "Print CPU and machine counters") },
+	{ "interrupts", std::make_tuple(CMD_INTS,      0, "Print enabled interrupts") },
+	{ "track",      std::make_tuple(CMD_TRACK,     0, "Toggle instruction printing") },
+	{ "break",      std::make_tuple(CMD_BREAK,     1, "Set breakpoint at <addr>") },
+	{ "togglebp",   std::make_tuple(CMD_TOGGLEBP,  0, "Toggle breakpoints (speedup)") },
+	{ "quit",       std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
+	{ "q",          std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
+	{ "exit",       std::make_tuple(CMD_QUIT,      0, "Quit the debugger") },
+	{ "step",       std::make_tuple(CMD_STEP,      0, "Fetch and execute a single instruction") },
+	{ "cont",       std::make_tuple(CMD_CONTINUE,  0, "Resume execution") },
+	{ "continue",   std::make_tuple(CMD_CONTINUE,  0, "Resume execution") },
+	{ "rominfo",    std::make_tuple(CMD_ROMINFO,   0, "Print ROM information") },
+	{ "help",       std::make_tuple(CMD_HELP,      0, "Print a help message") },
+	{ "dump",       std::make_tuple(CMD_DUMP,      1, "Dump instruction history to specified file") },
+	{ "?",          std::make_tuple(CMD_HELP,      0, "Print a help message") }
 };
 
 static std::string debuggerHelp() {
@@ -194,6 +198,12 @@ void Debugger::Run() {
 			}
 			case CMD_FLAGS:
 				printFlags();
+				break;
+			case CMD_COUNTERS:
+				printCounters();
+				break;
+			case CMD_INTS:
+				printInterrupts();
 				break;
 			case CMD_TRACK:
 				track = !track;

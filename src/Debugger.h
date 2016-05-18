@@ -31,6 +31,8 @@ private:
 	void printRegisters(std::ostream& out = std::cout) const;
 	void printStack(std::ostream& out = std::cout) const;
 	void printFlags(std::ostream& out = std::cout) const;
+	void printCounters(std::ostream& out = std::cout) const;
+	void printInterrupts(std::ostream& out = std::cout) const;
 public:
 
 	//! Max number of elements in the instruction history

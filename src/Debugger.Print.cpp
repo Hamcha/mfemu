@@ -673,22 +673,13 @@ void Debugger::printInstruction(const uint16_t addr, std::ostream& out) const {
 
 void Debugger::printRegisters(std::ostream& out) const {
 	std::ios::fmtflags fmt(out.flags());
-	out
-		<< ":-----------------------------------------------------:\r\n"
-		<< "| A  |Flag| B  | C  | D  | E  | H  | L  |  SP  |  PC  |\r\n"
-		<< "|----+----+----+----+----+----+----+----+------+------|\r\n"
-		<< std::hex
-		<<  "| " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.A
-		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.AF.Single.Flags.Byte
-		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.BC.Single.B
-		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.BC.Single.C
-		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.DE.Single.D
-		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.DE.Single.E
-		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.HL.Single.H
-		<< " | " << std::setfill('0') << std::setw(2) << (int) emulator->cpu.HL.Single.L
-		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.SP
-		<< " | " << std::setfill('0') << std::setw(4) << emulator->cpu.PC << " |\r\n"
-		<< ":-----------------------------------------------------:" << std::endl;
+	out << std::hex
+		<< "  AF " << std::setfill('0') << std::setw(4) << (int)emulator->cpu.AF.Pair
+		<< "  DE " << std::setfill('0') << std::setw(4) << (int)emulator->cpu.DE.Pair
+		<< "  SP " << std::setfill('0') << std::setw(4) << (int)emulator->cpu.SP << std::endl
+		<< "  BC " << std::setfill('0') << std::setw(4) << (int)emulator->cpu.BC.Pair
+		<< "  HL " << std::setfill('0') << std::setw(4) << (int)emulator->cpu.HL.Pair
+		<< "  PC " << std::setfill('0') << std::setw(4) << (int)emulator->cpu.PC << std::endl;
 	out.flags(fmt);
 }
 
@@ -713,10 +704,28 @@ void Debugger::printStack(std::ostream& out) const {
 }
 
 void Debugger::printFlags(std::ostream& out) const {
-	FlagStruct* flags = &emulator->cpu.AF.Single.Flags.Values;
-	out << ":---------------:\r\n"
-		<< "| Z | N | H | C |\r\n"
-		<< "|---+---+---+---|\r\n"
-		<< "| " << (int) flags->Zero << " | " << (int) flags->BCD_AddSub << " | " << (int) flags->BCD_HalfCarry << " | " << (int) flags->Carry << " |\r\n"
-		<< ":---------------:" << std::endl;
+	FlagStruct flags = emulator->cpu.AF.Single.Flags.Values;
+	out << "  Z  N  H  C" << std::endl
+		<< "  " << (flags.Zero          ? "x" : " ")
+		<< "  " << (flags.BCD_AddSub    ? "x" : " ")
+		<< "  " << (flags.BCD_HalfCarry ? "x" : " ")
+		<< "  " << (flags.Carry         ? "x" : " ")
+		<< std::endl;
+}
+
+void Debugger::printCounters(std::ostream& out) const {
+	CycleCount counters = emulator->cpu.cycles;
+	out << "Machine: " << counters.machine << "    "
+		<< "CPU: " << counters.cpu << std::endl;
+}
+
+void Debugger::printInterrupts(std::ostream& out) const {
+	out << "        Interrupts are " << (emulator->mmu.interruptsEnabled ? "enabled" : "disabled") << std::endl;
+	InterruptFlag::Flags flags = emulator->mmu.interruptEnable.flags;
+	out << "  VBlank  LCDcnt  Timer  Serial  Input" << std::endl
+		<< "   [" << (flags.vblank     ? "x" : " ") << "]  "
+		<< "   [" << (flags.lcdcontrol ? "x" : " ") << "]  "
+		<< "   [" << (flags.timer      ? "x" : " ") << "] "
+		<< "   [" << (flags.serial     ? "x" : " ") << "]  "
+		<< "   [" << (flags.input      ? "x" : " ") << "]" << std::endl;
 }
