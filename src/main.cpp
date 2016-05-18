@@ -2,6 +2,7 @@
 #include <cstring>
 #include "Emulator.h"
 #include "Debugger.h"
+#include "Config.h"
 
 enum MainFlags : uint8_t {
 	F_DEFAULT = 1,
@@ -19,6 +20,8 @@ int main(int argc, char **argv) {
 
 	EmulatorFlags emulatorFlags;
 	int queueSize = 10;
+
+	std::string confFile = Config::DEFAULT_FILE;
 
 	for (uint16_t i = 1; i < argc; i += 1) {
 		if (argv[i][0] == '-') {
@@ -63,11 +66,15 @@ int main(int argc, char **argv) {
 					i += 1;
 					break;
 				}
+				case 'c': 
+					confFile = std::string(argv[i + 1]);
+					break;
 				default:
 					std::cout << "Usage: " << argv[0] << " [flags] <file.gb>\r\n"
 						<< "\r\nOptions are listed below:\r\n"
 						<< "\t-h   : get this help\r\n"
 						<< "\t-v   : print version and exit\r\n"
+						<< "\t-c X : load configuration from file X (default: " << Config::DEFAULT_FILE << ")\r\n"
 						<< "\t-i   : print ROM info and exit\r\n"
 						<< "\t-d   : run the debugger on the given rom\r\n"
 						<< "\t-t   : start with code printing enabled (requires -d)\r\n"
@@ -92,6 +99,13 @@ int main(int argc, char **argv) {
 	// Check if using debugger flags without the debugger
 	if (!(flags & F_DEBUG) && (flags & F_TRACK)) {
 		std::cout << "[WARNING] Using debugger flags without the debugger, they will be ignored\r\n";
+	}
+
+	// Load config
+	if (Config::LoadFromFile(confFile)) {
+		std::cout << "[INFO] Loaded conf from " << confFile << "\r\n\r\n";
+	} else {
+		std::cout << "[WARNING] No valid conf found in " << confFile << ": using default conf.\r\n\r\n";
 	}
 
 	Emulator emulator(romFile, emulatorFlags);
