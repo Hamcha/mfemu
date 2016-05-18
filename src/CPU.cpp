@@ -19,6 +19,7 @@ CPU::CPU(MMU* _mmu)
 	running = true;
 	paused = false;
 	PC = 0;
+	AF.Single.Flags.Byte = 0;
 }
 
 void CPU::HandleInterrupts() {

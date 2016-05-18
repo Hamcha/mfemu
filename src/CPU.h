@@ -5,11 +5,11 @@
 #include "MMU.h"
 
 struct FlagStruct {
-	unsigned int Zero : 1;
-	unsigned int BCD_AddSub : 1;
-	unsigned int BCD_HalfCarry : 1;
-	unsigned int Carry : 1;
 	unsigned int _undef : 4;
+	unsigned int Carry : 1;
+	unsigned int BCD_HalfCarry : 1;
+	unsigned int BCD_AddSub : 1;
+	unsigned int Zero : 1;
 };
 
 class CPU {
