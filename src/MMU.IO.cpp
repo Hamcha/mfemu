@@ -2,8 +2,8 @@
 
 #include <functional>
 
-typedef std::function<uint8_t(MMU* mmu)> IOHandlerR;
-typedef std::function<void(MMU* mmu, uint8_t value)> IOHandlerW;
+using IOHandlerR = std::function<uint8_t(MMU* mmu)>;
+using IOHandlerW = std::function<void(MMU* mmu, uint8_t value)>;
 
 const static IOHandlerR emptyR = [](MMU*) { return 0; };
 const static IOHandlerW emptyW = [](MMU*, uint8_t) { return; };
