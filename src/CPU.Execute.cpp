@@ -43,11 +43,11 @@ static inline bool shouldJump(CPU* cpu, const JumpCondition condition) {
 }
 
 static inline uint8_t getHalfCarry(const uint8_t after, const uint8_t before) {
-	return (((before & 0xf) + (after & 0xf)) & 0x10) == 0x10;
+	return ((before & 0xf) + (after & 0xf)) >= 0x10;
 }
 
 static inline uint8_t getHalfCarry(const uint16_t after, const uint16_t before) {
-	return (((before & 0xf) + (after & 0xf)) & 0x10) == 0x10;
+	return (((before >> 8) & 0xf) + ((after >> 8) & 0xf)) >= 0x10;
 }
 
 // Do nothing
