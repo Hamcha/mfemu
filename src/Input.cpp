@@ -1,17 +1,17 @@
 #include "Input.h"
+#include "Config.h"
 
 void setButton(InputData* data, Button button, uint8_t value);
 
 Input::Input() {
-	// Hardcoded bindings for now, change later
-	keyboardBindings[SDL_SCANCODE_Z] = ButtonB;
-	keyboardBindings[SDL_SCANCODE_X] = ButtonA;
-	keyboardBindings[SDL_SCANCODE_RETURN] = ButtonStart;
-	keyboardBindings[SDL_SCANCODE_BACKSPACE] = ButtonSelect;
-	keyboardBindings[SDL_SCANCODE_UP] = ButtonUp;
-	keyboardBindings[SDL_SCANCODE_DOWN] = ButtonDown;
-	keyboardBindings[SDL_SCANCODE_LEFT] = ButtonLeft;
-	keyboardBindings[SDL_SCANCODE_RIGHT] = ButtonRight;
+	keyboardBindings[Config::Binding(ButtonB)] = ButtonB;
+	keyboardBindings[Config::Binding(ButtonA)] = ButtonA;
+	keyboardBindings[Config::Binding(ButtonStart)] = ButtonStart;
+	keyboardBindings[Config::Binding(ButtonSelect)] = ButtonSelect;
+	keyboardBindings[Config::Binding(ButtonUp)] = ButtonUp;
+	keyboardBindings[Config::Binding(ButtonDown)] = ButtonDown;
+	keyboardBindings[Config::Binding(ButtonLeft)] = ButtonLeft;
+	keyboardBindings[Config::Binding(ButtonRight)] = ButtonRight;
 
 	// Set all buttons to "not pressed" (1)
 	data.A = data.B = data.Down = data.Up = data.Left = data.Right = data.Start = data.Select = 1;
