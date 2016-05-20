@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cstring>
-#include "Emulator.h"
-#include "Debugger.h"
-#include "Config.h"
+#include <Core/Emulator.h>
+#include <Core/Debugger.h>
+#include <Core/Config.h>
 
 enum MainFlags : uint8_t {
 	F_DEFAULT = 1,

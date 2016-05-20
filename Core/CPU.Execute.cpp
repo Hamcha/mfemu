@@ -42,14 +42,6 @@ static inline bool shouldJump(CPU* cpu, const JumpCondition condition) {
 	return false;
 }
 
-static inline uint8_t getHalfCarry(const uint8_t after, const uint8_t before) {
-	return ((before & 0xf) + (after & 0xf)) >= 0x10;
-}
-
-static inline uint8_t getHalfCarry(const uint16_t after, const uint16_t before) {
-	return (((before >> 8) & 0xf) + ((after >> 8) & 0xf)) >= 0x10;
-}
-
 // Do nothing
 static CycleCount Nop(CPU*, MMU*) {
 	return CycleCount(1, 4);
@@ -287,7 +279,7 @@ static CPUHandler LoadOffset(const PID a, const PID b) {
 
 		cpu->Flags().Zero = 0;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = getHalfCarry(*aRes, orig);
+		cpu->Flags().BCD_HalfCarry = ((offset & 0xf) + (*bRes & 0xf)) >= 0x10 ? 1 : 0;
 		cpu->Flags().Carry = *aRes < orig ? 1 : 0;
 		return CycleCount(2, 12);
 	};
@@ -297,10 +289,11 @@ static CPUHandler LoadOffset(const PID a, const PID b) {
 static CPUHandler Increment(const RID dst) {
 	return [dst](CPU* cpu, MMU*) {
 		uint8_t* dstRes = getRegister(cpu, dst);
+		uint8_t HCbit = *dstRes & 0xf;
 		*dstRes += 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = getHalfCarry(*dstRes, *dstRes - 1);
+		cpu->Flags().BCD_HalfCarry = (HCbit + 1) >= 0x10 ? 1 : 0;
 		return CycleCount(1, 4);
 	};
 }
@@ -319,12 +312,13 @@ static CPUHandler IncrementInd(const PID ind) {
 	return [ind](CPU* cpu, MMU* mmu) {
 		uint16_t* addr = getPair(cpu, ind);
 		uint8_t value = mmu->Read(*addr);
+		uint8_t HCbit = value & 0xf;
 		value += 1;
 		mmu->Write(*addr, value);
 
 		cpu->Flags().Zero = value == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = getHalfCarry(value, value - 1);
+		cpu->Flags().BCD_HalfCarry = (HCbit + 1) >= 0x10 ? 1 : 0;
 		return CycleCount(1, 12);
 	};
 }
@@ -333,10 +327,11 @@ static CPUHandler IncrementInd(const PID ind) {
 static CPUHandler Decrement(const RID dst) {
 	return [dst](CPU* cpu, MMU*) {
 		uint8_t* dstRes = getRegister(cpu, dst);
+		uint8_t origLow = *dstRes & 0xf;
 		*dstRes -= 1;
 		cpu->Flags().Zero = *dstRes == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 1;
-		cpu->Flags().BCD_HalfCarry = getHalfCarry(*dstRes, *dstRes + 1);
+		cpu->Flags().BCD_HalfCarry = origLow < (*dstRes & 0xf) ? 1 : 0;
 		return CycleCount(1, 4);
 	};
 }
@@ -355,12 +350,13 @@ static CPUHandler DecrementInd(const PID ind) {
 	return [ind](CPU* cpu, MMU* mmu) {
 		uint16_t* addr = getPair(cpu, ind);
 		uint8_t value = mmu->Read(*addr);
+		uint8_t origLow = value & 0xf;
 		value -= 1;
 		mmu->Write(*addr, value);
 
 		cpu->Flags().Zero = value == 0 ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 1;
-		cpu->Flags().BCD_HalfCarry = getHalfCarry(value, value + 1);
+		cpu->Flags().BCD_HalfCarry = origLow < (value & 0xf) ? 1 : 0;
 		return CycleCount(1, 12);
 	};
 }
@@ -368,14 +364,12 @@ static CPUHandler DecrementInd(const PID ind) {
 // Add function (called by AddDirect etc)
 static void Add(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 	uint8_t orig = *a;
-	*a += *b;
-	if (useCarry && cpu->Flags().Carry) {
-		*a += 1;
-	}
+	uint8_t carry = useCarry && cpu->Flags().Carry ? 1 : 0;
+	*a += *b + carry;
 	cpu->Flags().Carry = *a < orig ? 1 : 0;
 	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
-	cpu->Flags().BCD_HalfCarry = getHalfCarry(*a, orig);
+	cpu->Flags().BCD_HalfCarry = (orig & 0xf) + ((*b + carry) & 0xf) >= 0x10 ? 1 : 0;
 }
 
 static void Add(CPU* cpu, uint16_t* a, uint16_t* b) {
@@ -383,7 +377,7 @@ static void Add(CPU* cpu, uint16_t* a, uint16_t* b) {
 	*a += *b;
 	cpu->Flags().Carry = *a < orig ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 0;
-	cpu->Flags().BCD_HalfCarry = getHalfCarry(*a, orig);
+	cpu->Flags().BCD_HalfCarry = ((orig >> 8) & 0xf) + ((*b >> 8) & 0xf) >= 0x10 ? 1 : 0;
 }
 
 // Direct Add (8bit, register to register)
@@ -435,9 +429,9 @@ static CPUHandler AddImmediateS(const PID a) {
 		uint16_t orig = *aRes;
 		*aRes += bRes;
 		cpu->Flags().Zero = 0;
-		cpu->Flags().Carry = *aRes < orig;
+		cpu->Flags().Carry = *aRes < orig ? 1 : 0;
 		cpu->Flags().BCD_AddSub = 0;
-		cpu->Flags().BCD_HalfCarry = getHalfCarry(*aRes, orig);
+		cpu->Flags().BCD_HalfCarry = ((orig >> 8) & 0xf) > ((*aRes >> 8) & 0xf) ? 1 : 0;
 		return CycleCount(2, 16);
 	};
 }
@@ -445,14 +439,12 @@ static CPUHandler AddImmediateS(const PID a) {
 // Subtract function (called by SubDirect etc)
 static void Subtract(CPU* cpu, uint8_t* a, uint8_t* b, const bool useCarry) {
 	uint8_t orig = *a;
-	*a -= *b;
-	if (useCarry && cpu->Flags().Carry) {
-		*a -= 1;
-	}
-	cpu->Flags().Carry = *a > orig;
+	uint8_t carry = useCarry && cpu->Flags().Carry ? 1 : 0;
+	*a -= *b + carry;
+	cpu->Flags().Carry = *a > orig ? 1 : 0;
 	cpu->Flags().Zero = *a == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 1;
-	cpu->Flags().BCD_HalfCarry = getHalfCarry(*a, orig);
+	cpu->Flags().BCD_HalfCarry = (*a & 0xf) > (orig & 0xf) ? 1 : 0;
 }
 
 // Direct Subtract (8bit, register to register)
@@ -489,10 +481,10 @@ static CPUHandler SubImmediate(const RID a, const bool useCarry) {
 // Compare function (used by CmpImmediate, CmpDirect etc)
 static void Compare(CPU* cpu, uint8_t* a, uint8_t* b) {
 	uint8_t c = *a - *b;
-	cpu->Flags().Carry = c > *a;
+	cpu->Flags().Carry = c > *a ? 1 : 0;
 	cpu->Flags().Zero = c == 0 ? 1 : 0;
 	cpu->Flags().BCD_AddSub = 1;
-	cpu->Flags().BCD_HalfCarry = getHalfCarry(c, *a);
+	cpu->Flags().BCD_HalfCarry = (c & 0xf) > (*a & 0xf) ? 1 : 0;
 }
 
 static CPUHandler CmpDirect(const RID a, const RID b) {
@@ -888,11 +880,12 @@ static CycleCount DecimalToBCD(CPU* cpu, MMU*) {
 	// If AddSub is set, Subtract, otherwise Add the correction factor
 	if (cpu->Flags().BCD_AddSub == 1) {
 		*reg -= corr;
+		cpu->Flags().BCD_HalfCarry = (*reg & 0xf) > (orig & 0xf) ? 1 : 0;
 	} else {
 		*reg += corr;
+		cpu->Flags().BCD_HalfCarry = (*reg & 0xf) + (corr & 0xf) >= 0x10 ? 1 : 0;
 	}
 
-	cpu->Flags().BCD_HalfCarry = getHalfCarry(*reg, orig);
 	cpu->Flags().Zero = *reg == 0 ? 1 : 0;
 
 	return CycleCount(1, 4);
