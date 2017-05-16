@@ -8,7 +8,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # MFEMU Core
 file(GLOB MFEMU_CORE_HEADERS src/*.h)
 file(GLOB MFEMU_CORE_SRC Core/*.cpp Core/MBC/*.cpp)
-source_group("Headers" FILES ${MFEMU_HEADERS})
+source_group("Headers" FILES ${MFEMU_CORE_HEADERS})
 add_library(Core STATIC ${MFEMU_CORE_SRC} ${MFEMU_CORE_HEADERS})
 
 # MFEMU cmd line
@@ -18,7 +18,7 @@ target_link_libraries(${PROJECT_NAME}_cmd Core)
 
 # MFEMU tests
 file(GLOB MFEMU_TEST test/*.cpp)
-add_executable(${PROJECT_NAME}_test ${MFEMU_TEST} ${MFEMU_HEADERS})
+add_executable(${PROJECT_NAME}_test ${MFEMU_TEST} ${MFEMU_CORE_HEADERS})
 target_link_libraries(${PROJECT_NAME}_test Core)
 
 set_target_properties(Core PROPERTIES LINKER_LANGUAGE CXX)
